@@ -1,19 +1,18 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import TableProduct from "./tableProduct";
-import ProductTable from "./ProductTable";
+import TableOpportunity from "./tableOpportunity";
 
 const Main = () => {
   const navigate = useNavigate();
 
   const handleAddClick = () => {
-    navigate("/addProd");
+    navigate("/addOpportunity");
   };
 
   return (
     <div className="flex flex-col h-screen p-7">
       <div className="mb-4">
-        <h1 className="text-2xl font-semibold text-center">Products</h1>
+        <h1 className="text-2xl font-semibold text-center">Opportunity</h1>
       </div>
       <div className="flex justify-end mb-4">
         <button
@@ -24,8 +23,7 @@ const Main = () => {
         </button>
       </div>
       <div className="flex-1 overflow-y-auto">
-        
-        <TableProduct />
+        <TableOpportunity />
       </div>
     </div>
   );

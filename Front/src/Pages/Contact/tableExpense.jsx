@@ -10,7 +10,7 @@ import { FaEye } from "react-icons/fa";
 import ExportTable from "./ExportTable";
 import { CiFilter } from "react-icons/ci";
 import FilterModal from "./FilterModal";
-import DeleteConfirmationDialog from "../Product/DeleteConfirmationDialog";
+import DeleteConfirmationDialog from "./DeleteConfirmationDialog";
 
 
 const TableExpense = () => {

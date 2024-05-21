@@ -10,7 +10,7 @@ import { FaEye } from "react-icons/fa";
 import ExportTable from "./ExportTable";
 import FilterModal from "./FilterModal";
 import { CiFilter } from "react-icons/ci";
-import DeleteConfirmationDialog from "../Product/DeleteConfirmationDialog";
+import DeleteConfirmationDialog from "./DeleteConfirmationDialog";
 
 
 const Users = () => {

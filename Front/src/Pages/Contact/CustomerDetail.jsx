@@ -11,6 +11,7 @@ import FilterModal from "./filterModalContact";
 import { CiFilter } from "react-icons/ci";
 
 const CustomerDetail = () => {
+  const [addContactIsOpen, setAddContactIsOpen] = useState(false);
   const [filterModalIsOpen, setFilterModalIsOpen] = useState(false);
   const [edit, setEdit] = useState(false);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
@@ -20,22 +21,20 @@ const CustomerDetail = () => {
   const [loading, setLoading] = useState(true); // Add loading state
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [filters, setFilters] = useState({
-    
-    designation:"",
-    name:"",
-    
+    designation: "",
+    name: "",
   });
 
-  const {customer_entity} = useParams()
+  const { customer_entity } = useParams();
+
   const handleAddClick = () => {
-    setFilterModalIsOpen(true);
+    setAddContactIsOpen(true);
   };
 
   const handleEditClick = (customerId) => {
     setEdit(true);
     setCustomerId(customerId); // Assuming you have a state to store the customer ID
   };
-
 
   const handleDeleteConfirmation = (itemId) => {
     axios
@@ -61,21 +60,20 @@ const CustomerDetail = () => {
     setDeleteItemId(id);
     setShowDeleteConfirmation(true);
   };
+
   const onApplyFilters = (filteredData) => {
     setFilteredUsers(filteredData);
     setFilterModalIsOpen(false);
   };
 
   const initialFilters = {
-
-    designation:"",
-    name:"",
+    designation: "",
+    name: "",
   };
 
   const handleCiFilterClick = () => {
     setFilterModalIsOpen(true);
   };
-
 
   useEffect(() => {
     const fetchData = async () => {
@@ -85,7 +83,7 @@ const CustomerDetail = () => {
         );
         setCustomers(response.data.products);
         setFilteredUsers(response.data.products);
-        console.log(response.data.products)
+        console.log(response.data.products);
         setLoading(false); // Update loading state
       } catch (error) {
         console.error("Error fetching customer details:", error);
@@ -116,32 +114,28 @@ const CustomerDetail = () => {
           Add
         </button>
         <AddContact
+          isOpen={addContactIsOpen}
+          onClose={() => setAddContactIsOpen(false)}
+          customer_entity={customer_entity}
+        />
+        <CiFilter
+          size={40}
+          style={{ marginLeft: "25px" }}
+          onClick={handleCiFilterClick}
+        />
+        <FilterModal
           isOpen={filterModalIsOpen}
           onClose={() => setFilterModalIsOpen(false)}
-          customer_entity={customer_entity} 
+          onApplyFilters={onApplyFilters}
+          filters={filters}
+          resetFilters={() => setFilters(initialFilters)}
+          customer_entity={customer_entity}
         />
-            <CiFilter
-            size={40}
-            style={{ marginLeft: "25px" }}
-            onClick={handleCiFilterClick}
-          />
-
-          <FilterModal
-            isOpen={filterModalIsOpen}
-            onClose={() => setFilterModalIsOpen(false)}
-            onApplyFilters={onApplyFilters}
-            filters={filters}
-            resetFilters={() => setFilters(initialFilters)}
-            customer_entity={customer_entity} 
-          />
-         
       </div>
 
-      <div >
+      <div>
         {loading ? (
-          <div>
-
-          </div>
+          <div>Loading...</div>
         ) : customers.length === 0 ? (
           <div className="text-xl font text-center">
             No Contacts available, please add details.
@@ -149,16 +143,17 @@ const CustomerDetail = () => {
         ) : (
           Array.isArray(customers) &&
           filteredUsers.map((customer) => (
-            <div 
+            <div
               key={customer.id}
               style={{
                 border: "1px solid #ccc",
                 padding: "10px",
                 margin: "10px",
-                height:"auto",
+                height: "auto",
                 width: "90%",
-                display: "flex", flexWrap: "wrap" ,
-                justifyContent:"space-around"
+                display: "flex",
+                flexWrap: "wrap",
+                justifyContent: "space-around",
               }}
             >
               <div>
@@ -182,12 +177,18 @@ const CustomerDetail = () => {
                   marginTop: "10px",
                   textAlign: "center",
                   display: "flex",
-                  flexDirection:"column",
+                  flexDirection: "column",
                   justifyContent: "space-between",
                 }}
               >
-            <MdEdit onClick={() => handleEditClick(customer.id)} />
-             {edit && <EditContact isOpen={edit} onClose={() => setEdit(false)} customerId={customerId} />}
+                <MdEdit onClick={() => handleEditClick(customer.id)} />
+                {edit && (
+                  <EditContact
+                    isOpen={edit}
+                    onClose={() => setEdit(false)}
+                    customerId={customerId}
+                  />
+                )}
                 <MdDelete onClick={() => handleDeleteClick(customer.id)} />
                 <DeleteConfirmationDialog
                   isOpen={showDeleteConfirmation}
@@ -203,7 +204,7 @@ const CustomerDetail = () => {
         )}
       </div>
       <Link to="/Customer">
-      <button
+        <button
           style={{
             backgroundColor: "blue",
             color: "white",
@@ -212,7 +213,6 @@ const CustomerDetail = () => {
             border: "none",
             borderRadius: "4px",
           }}
-          onClick={handleAddClick}
         >
           Back
         </button>

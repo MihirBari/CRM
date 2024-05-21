@@ -8,6 +8,7 @@ const session = require('express-session');
 const contactRoute = require("./routes/Contact")
 const userRoute = require("./routes/user")
 const leaveRoute = require("./routes/Leave")
+const opportunityRoute = require("./routes/opportunity")
 
 app.use(express.json());
 app.use(
@@ -54,8 +55,7 @@ process.on("unhandleRejection", (err) => {
 app.use("/api/user",userRoute)
 app.use("/api/Contact",contactRoute)
 app.use("/api/Leave",leaveRoute)
-
-
+app.use("/api/Opportunity",opportunityRoute)
 
 //errorhandling
 app.use(ErrorHandler);

@@ -2,7 +2,7 @@ import React from 'react';
 import SideNavBar from '../Sidebar/Navbar';
 import Maiin from './maiin';  // Assuming that 'maiin' is a component and not a typo
 
-const Market = () => {
+const Alert = () => {
   return (
     <div className="flex h-screen overflow-hidden">
     <SideNavBar />
@@ -13,4 +13,4 @@ const Market = () => {
   );
 }
 
-export default Market;
+export default Alert;

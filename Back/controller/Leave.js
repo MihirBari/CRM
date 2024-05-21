@@ -107,7 +107,6 @@ console.log(req.user)
     });
 };
 
-
 const showOneApplicationLeave = async (req, res) => {
   
   const dealerQuery = `

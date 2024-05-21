@@ -4,21 +4,20 @@ import { toast } from "react-toastify";
 import API_BASE_URL from "../../config";
 import axios from "axios";
 
-const EditOrder = () => {
+const EditOpportunity = () => {
   const initialInputs = {
-    creditor_name: "",
-    amount_sold: "",
-    product_id:"",
-    size: "",
-    amount_condition: "yes",
-    returned: "No",
-    paid_by: "",
-    bank_payment:"",
-    city:"",
-    delivery_status:""
+    customer_entity: "",
+    name: "",
+    description: "",
+    type: "",
+    value: "",
+    closure_time: "",
+    status: "",
+    license_from: "",
+    license_to: "",
   };
 
-  const { order_id } = useParams();
+  const { id } = useParams();
   const navigate = useNavigate();
   const [inputs, setInputs] = useState(initialInputs);
   const [err, setError] = useState(null);
@@ -26,59 +25,62 @@ const EditOrder = () => {
   useEffect(() => {
     const fetchOrder = async () => {
       try {
-        const response = await axios.get(`${API_BASE_URL}/api/order/viewOneOrder/${order_id}`);
+        const response = await axios.get(`${API_BASE_URL}/api/Opportunity/showOneOpportunity/${id}`);
         const orderData = response.data[0];
         console.log("Fetched Order Data:", orderData);
-  
+
+        // Adjust the timezone offset and convert to yyyy-MM-dd format
+        const formatDate = (dateString) => {
+          if (!dateString) return "";
+          const date = new Date(dateString);
+          const timezoneOffset = date.getTimezoneOffset() * 60000;
+          const adjustedDate = new Date(date.getTime() - timezoneOffset);
+          return adjustedDate.toISOString().split("T")[0];
+        };
+
         setInputs({
-          creditor_name: orderData.creditor_name,
-          product_id: orderData.product_id,
-          amount_sold: orderData.amount_sold,
-          size: orderData.Total_items, // Correct property name
-          amount_condition: orderData.amount_condition || "yes",
-          returned: orderData.returned || "No",
-          paid_by: orderData.paid_by,
-          bank_payment: orderData.bank_payment,
-          city:orderData.city,
-          delivery_status:orderData.delivery_status,
+          customer_entity: orderData.customer_entity,
+          name: orderData.name,
+          description: orderData.description,
+          type: orderData.type,
+          value: orderData.value,
+          closure_time: formatDate(orderData.closure_time),
+          status: orderData.status,
+          license_from: formatDate(orderData.license_from),
+          license_to: formatDate(orderData.license_to),
         });
-        
       } catch (err) {
         console.error(err);
         setError(err.response);
         toast.error("Failed to fetch order details");
       }
     };
-  
+
     fetchOrder();
-  }, [order_id]);
+  }, [id]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
-    setInputs((prev) => {
-      if (name === "Size") {
-        return {
-          ...prev,
-          size: value,
-        };
-      } else {
-        return {
-          ...prev,
-          [name]: type === "checkbox" ? checked : value,
-        };
-      }
-    });
+    setInputs((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
-      await axios.put(`${API_BASE_URL}/api/order/updateOrder/${order_id}`, inputs);
+      await axios.put(`${API_BASE_URL}/api/Opportunity/editOpportunity/${id}`, {
+        ...inputs,
+        closure_time: inputs.closure_time ? new Date(inputs.closure_time).toISOString() : null,
+        license_from: inputs.license_from ? new Date(inputs.license_from).toISOString() : null,
+        license_to: inputs.license_to ? new Date(inputs.license_to).toISOString() : null,
+      });
+
       setInputs(initialInputs);
-      console.log(initialInputs)
-      console.log("order_id:", order_id);
-      navigate("/Customer");
+      navigate("/Opportunity");
       toast.success("Order updated successfully");
     } catch (err) {
       console.error(err);
@@ -91,64 +93,62 @@ const EditOrder = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Edit Order
+          Edit Opportunity
         </h2>
       </div>
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <form className="space-y-6">
+          <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                {renderInput("creditor_name", "Name", "Enter Customer Name")}
+                {renderInput("customer_entity", "Customer Entity", "Enter Customer Entity")}
               </div>
               <div>
-                {renderInput("product_id", "Product Id", "")}
+                {renderInput("name", "Name", "Name")}
               </div>
               <div>
-                {renderInput("amount_sold", "Amount Sold", "Enter Amount Sold")}
+                {renderInput("description", "description", "Enter description")}
               </div>
               <div>
-                {renderInput("paid_by", "Sold By", "Sold By")}
-              </div>
-              <div>
-                {renderSelect("amount_condition", "Amount Credited", [
-                  { value: "no", label: "No" },
-                  { value: "yes", label: "Yes" },
-                  { value: "Yes Returned", label: "Yes Returned" },
-                  { value: "No Returned", label: "No Returned" },
+                {renderSelect("type", "Opportunity Type", [
+                  { value: "BigFix New", label: "BigFix New" },
+                  { value: "BigFix Renew", label: "BigFix Renew" },
+                  { value: "SolarWinds New", label: "SolarWinds New" },
+                  { value: "SolarWinds Renew", label: "SolarWinds Renew" },
+                  { value: "Services", label: "Services" },
                 ])}
               </div>
               <div>
-                {renderSelect("returned", "Returned", [
+                {renderInput("value", "Value", "Enter value")}
+              </div>
+              <div>
+                {renderInput("closure_time", "Closure Time", "Closure Time", "date")}
+              </div>
+              <div>
+                {renderSelect("status", "Status", [
+                  { value: "Quotation Done", label: "Quotation Done" },
+                  { value: "Demo Done", label: "Demo Done" },
+                  { value: "ROC Done", label: "ROC Done" },
+                  { value: "Progress Sub", label: "Progress Sub" },
+                  { value: "Won", label: "Won" },
+                  { value: "Lost", label: "Lost" },
+                ])}
+              </div>
 
-                  { value: "Yes", label: "Yes" },
-                  { value: "No", label: "No" },
-                ])}
-              </div>
-              <div>
-                {renderInput("bank_payment", "Bank Payment", "Bank Payment")}
-              </div>
-              <div>
-                {renderInput("city", "City", "City")}
-              </div>
-              <div>
-                {renderSelect("delivery_status", "Delivery Status", [
-
-                  { value: "In process", label: "In process" },
-                  { value: "In transit", label: "No" },
-                  { value: "Completed", label: "Completed" },
-                  { value: "Returned", label: "Returned" },
-                ])}
-              </div>
-              <div>
-                {renderInputs("size", "Size","size",)}
-              </div>
+              {inputs.status === "Won" && (
+                <>
+                  <div>
+                    {renderInput("license_from", "License From", "License From", "date")}
+                  </div>
+                  <div>
+                    {renderInput("license_to", "License To", "License To", "date")}
+                  </div>
+                </>
+              )}
             </div>
             <div className="flex justify-between items-center mt-4">
-              <Link to="/Customer">
-                {renderButton("Edit")}
-              </Link>
-              <Link to="/Customer">
+              {renderButton("Edit")}
+              <Link to="/Opportunity">
                 {renderButton("Back")}
               </Link>
             </div>
@@ -158,7 +158,7 @@ const EditOrder = () => {
     </div>
   );
 
-  function renderInput(name, label, placeholder) {
+  function renderInput(name, label, placeholder, type = "text") {
     return (
       <>
         <label htmlFor={name} className="block text-sm font-medium text-gray-700">
@@ -166,33 +166,11 @@ const EditOrder = () => {
         </label>
         <div className="mt-1">
           <input
-            type="name"
+            type={type}
             name={name}
             required
             onChange={handleChange}
             placeholder={placeholder}
-            value={inputs[name]}
-            className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-          />
-        </div>
-      </>
-    );
-  }
-
-  function renderInputs(name, label, placeholder) {
-    return (
-      <>
-        <label htmlFor={name} className="block text-sm font-medium text-gray-700">
-          {label}
-        </label>
-        <div className="mt-1">
-          <input
-            type="name"
-            name={name}
-            required
-            onChange={handleChange}
-            placeholder={placeholder}
-            readOnly
             value={inputs[name]}
             className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
           />
@@ -215,7 +193,7 @@ const EditOrder = () => {
             value={inputs[name]}
             className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
           >
-            <option value="" label="Select an option" disabled/>
+            <option value="" label="Select an option" disabled />
             {options.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
@@ -230,7 +208,7 @@ const EditOrder = () => {
   function renderButton(label) {
     return (
       <button
-        onClick={label === "Edit" ? handleSubmit : undefined}
+        type={label === "Edit" ? "submit" : "button"}
         className="group relative w-[100px] h-[40px] flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
       >
         {label}
@@ -239,4 +217,4 @@ const EditOrder = () => {
   }
 };
 
-export default EditOrder;
+export default EditOpportunity;
