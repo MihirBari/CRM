@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import API_BASE_URL from "../../config";
 import axios from "axios";
+import Select from 'react-select';
 
 const AddOpportunity = () => {
   const initialInputs = {
@@ -13,6 +14,7 @@ const AddOpportunity = () => {
     value: "",
     closure_time: "",
     status: "",
+    period: "",
     license_from: "",
     license_to: "",
   };
@@ -26,9 +28,7 @@ const AddOpportunity = () => {
   useEffect(() => {
     const fetchCustomerEntities = async () => {
       try {
-        const response = await axios.get(
-          `${API_BASE_URL}/api/Contact/customerentity`
-        );
+        const response = await axios.get(`${API_BASE_URL}/api/Contact/customerentity`);
         setCustomerEntities(response.data); // Update customerEntities state with data from the backend
       } catch (error) {
         console.error("Error fetching customer entities:", error);
@@ -40,10 +40,7 @@ const AddOpportunity = () => {
 
   const fetchName = async (customerEntity) => {
     try {
-      const response = await axios.post(
-        `${API_BASE_URL}/api/Opportunity/name`,
-        { customer_entity: customerEntity }
-      );
+      const response = await axios.post(`${API_BASE_URL}/api/Opportunity/name`, { customer_entity: customerEntity });
       setNameOptions(response.data);
     } catch (error) {
       console.error("Error fetching names:", error);
@@ -62,22 +59,32 @@ const AddOpportunity = () => {
     }
   };
 
+  const handleSelectChange = (selectedOption) => {
+    setInputs((prev) => ({
+      ...prev,
+      customer_entity: selectedOption.value,
+    }));
+    fetchName(selectedOption.value);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(
-        `${API_BASE_URL}/api/Opportunity/addOpportunity`,
-        inputs
-      );
+      await axios.post(`${API_BASE_URL}/api/Opportunity/addOpportunity`, inputs);
       setInputs(initialInputs);
       toast.success("Opportunity created successfully");
-      navigate("/Opportunity");
+      navigate("/Opportunity")
     } catch (err) {
       console.error(err);
       setError(err.response);
-      toast.error("Customer Already Exists");
+      toast.error("Opportunity Already Exists");
     }
   };
+
+  const customerEntityOptions = customerEntities.map((entity) => ({
+    value: entity.customer_entity,
+    label: entity.customer_entity,
+  }));
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -91,37 +98,23 @@ const AddOpportunity = () => {
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label
-                  htmlFor="customer_entity"
-                  className="block text-sm font-medium text-gray-700"
-                >
+                <label htmlFor="customer_entity" className="block text-sm font-medium text-gray-700">
                   Name Of Customer Entity
                 </label>
                 <div className="mt-1">
-                  <select
-                    name="customer_entity"
-                    required
-                    onChange={handleChange}
-                    value={inputs.customer_entity}
-                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  >
-                    <option value="" disabled>
-                      Select Customer Entity
-                    </option>
-                    {customerEntities.map((entity, index) => (
-                      <option key={index} value={entity.customer_entity}>
-                        {entity.customer_entity}
-                      </option>
-                    ))}
-                  </select>
+                  <Select
+                    options={customerEntityOptions}
+                    onChange={handleSelectChange}
+                    value={customerEntityOptions.find(option => option.value === inputs.customer_entity)}
+                    placeholder="Select Customer Entity"
+                    className="basic-single"
+                    classNamePrefix="select"
+                  />
                 </div>
               </div>
 
               <div>
-                <label
-                  htmlFor="name"
-                  className="block text-sm font-medium text-gray-700"
-                >
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                   Name
                 </label>
                 <div className="mt-1 relative">
@@ -145,14 +138,11 @@ const AddOpportunity = () => {
               </div>
 
               <div>
-                <label
-                  htmlFor="description"
-                  className="block text-sm font-medium text-gray-700"
-                >
+                <label htmlFor="description" className="block text-sm font-medium text-gray-700">
                   Opportunity Description
                 </label>
                 <div className="mt-1 relative">
-                  <input
+                  <textarea
                     type="text"
                     name="description"
                     required
@@ -165,10 +155,7 @@ const AddOpportunity = () => {
               </div>
 
               <div>
-                <label
-                  htmlFor="type"
-                  className="block text-sm font-medium text-gray-700"
-                >
+                <label htmlFor="type" className="block text-sm font-medium text-gray-700">
                   Opportunity Type
                 </label>
                 <div className="mt-1 relative">
@@ -192,10 +179,7 @@ const AddOpportunity = () => {
               </div>
 
               <div>
-                <label
-                  htmlFor="value"
-                  className="block text-sm font-medium text-gray-700"
-                >
+                <label htmlFor="value" className="block text-sm font-medium text-gray-700">
                   Opportunity Value
                 </label>
                 <div className="mt-1 relative">
@@ -212,10 +196,7 @@ const AddOpportunity = () => {
               </div>
 
               <div>
-                <label
-                  htmlFor="closure_time"
-                  className="block text-sm font-medium text-gray-700"
-                >
+                <label htmlFor="closure_time" className="block text-sm font-medium text-gray-700">
                   Opportunity Closure Time
                 </label>
                 <div className="mt-1 relative">
@@ -232,10 +213,24 @@ const AddOpportunity = () => {
               </div>
 
               <div>
-                <label
-                  htmlFor="status"
-                  className="block text-sm font-medium text-gray-700"
-                >
+                <label htmlFor="period" className="block text-sm font-medium text-gray-700">
+                  Comment
+                </label>
+                <div className="mt-1 relative">
+                  <input
+                    type="text"
+                    name="period"
+                    required
+                    onChange={handleChange}
+                    value={inputs.period}
+                    placeholder="License Period"
+                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="status" className="block text-sm font-medium text-gray-700">
                   Opportunity Status
                 </label>
                 <div className="mt-1 relative">
@@ -251,7 +246,7 @@ const AddOpportunity = () => {
                     </option>
                     <option value="Quotation Done">Quotation Done</option>
                     <option value="Demo Done">Demo Done</option>
-                    <option value="ROC Done">ROC Done</option>
+                    <option value="POC Done">POC Done</option>
                     <option value="Progress Sub">Progress Sub</option>
                     <option value="Won">Won</option>
                     <option value="Lost">Lost</option>
@@ -262,10 +257,7 @@ const AddOpportunity = () => {
               {inputs.status === "Won" && (
                 <>
                   <div>
-                    <label
-                      htmlFor="license_from"
-                      className="block text-sm font-medium text-gray-700"
-                    >
+                    <label htmlFor="license_from" className="block text-sm font-medium text-gray-700">
                       Opportunity License From
                     </label>
                     <div className="mt-1 relative">
@@ -282,10 +274,7 @@ const AddOpportunity = () => {
                   </div>
 
                   <div>
-                    <label
-                      htmlFor="license_to"
-                      className="block text-sm font-medium text-gray-700"
-                    >
+                    <label htmlFor="license_to" className="block text-sm font-medium text-gray-700">
                       Opportunity License To
                     </label>
                     <div className="mt-1 relative">
@@ -302,6 +291,9 @@ const AddOpportunity = () => {
                   </div>
                 </>
               )}
+
+              
+
             </div>
 
             <div className="flex justify-between items-center mt-4">

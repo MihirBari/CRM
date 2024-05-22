@@ -22,6 +22,8 @@ import AddOpportunity from './Pages/Opportunity/addOpportunity.jsx';
 import Opportunity from './Pages/Opportunity/Opportunity.jsx';
 import EditOpportunity from './Pages/Opportunity/editOpportunity.jsx';
 import Alert from './Pages/Alert/Alert.jsx';
+import PO from './Pages/PO/PO.jsx';
+import ViewOpportunity from './Pages/Opportunity/viewOpportunity.jsx';
 
 
 function App() {
@@ -38,11 +40,13 @@ function App() {
         <Route path='/Leave' element={currentUser ? <Seller /> : <Navigate to='/' />} />
         <Route path='/Alert' element={currentUser ? <Alert /> : <Navigate to='/' />} />
         <Route path='/Opportunity' element={currentUser ? <Opportunity /> : <Navigate to='/' />} />
+        <Route path='/PO' element={currentUser ? <PO /> : <Navigate to='/' />} />
         <Route path='/addExpense' element={currentUser ? <AddContact /> : <Navigate to='/' />} />
         <Route path='/addCustomer' element={currentUser ? <AddCustomer /> : <Navigate to='/' />} />
         <Route path='/addLeave' element={currentUser ? <AddSeller /> : <Navigate to='/' />} />
         <Route path='/addOpportunity' element={currentUser ? <AddOpportunity /> : <Navigate to='/' />} />
         <Route path='/Expense/edit/:id' element={currentUser ? <EditContact /> : <Navigate to='/' />} />
+        <Route path='/Opportunity/view/:id' element={currentUser ? <ViewOpportunity /> : <Navigate to='/' />} />
         <Route path='/Customer/edit/:id' element={currentUser ? <EditCustomer /> : <Navigate to='/' />} />
         <Route path='/Leave/edit/:id' element={currentUser ? <EditSeller /> : <Navigate to='/' />} />
         <Route path='/Opportunity/edit/:id' element={currentUser ? <EditOpportunity /> : <Navigate to='/' />} />

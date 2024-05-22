@@ -13,6 +13,7 @@ const EditOpportunity = () => {
     value: "",
     closure_time: "",
     status: "",
+    period:"",
     license_from: "",
     license_to: "",
   };
@@ -46,6 +47,7 @@ const EditOpportunity = () => {
           value: orderData.value,
           closure_time: formatDate(orderData.closure_time),
           status: orderData.status,
+          period: orderData.period,
           license_from: formatDate(orderData.license_from),
           license_to: formatDate(orderData.license_to),
         });
@@ -81,7 +83,7 @@ const EditOpportunity = () => {
 
       setInputs(initialInputs);
       navigate("/Opportunity");
-      toast.success("Order updated successfully");
+      toast.success("Opportnity updated successfully");
     } catch (err) {
       console.error(err);
       setError(err.response);
@@ -125,10 +127,13 @@ const EditOpportunity = () => {
                 {renderInput("closure_time", "Closure Time", "Closure Time", "date")}
               </div>
               <div>
+                {renderInput("period", "Comment", "Comment")}
+              </div>
+              <div>
                 {renderSelect("status", "Status", [
                   { value: "Quotation Done", label: "Quotation Done" },
                   { value: "Demo Done", label: "Demo Done" },
-                  { value: "ROC Done", label: "ROC Done" },
+                  { value: "POC Done", label: "POC Done" },
                   { value: "Progress Sub", label: "Progress Sub" },
                   { value: "Won", label: "Won" },
                   { value: "Lost", label: "Lost" },
@@ -147,7 +152,7 @@ const EditOpportunity = () => {
               )}
             </div>
             <div className="flex justify-between items-center mt-4">
-              {renderButton("Edit")}
+              {renderButton("Update")}
               <Link to="/Opportunity">
                 {renderButton("Back")}
               </Link>
@@ -208,7 +213,7 @@ const EditOpportunity = () => {
   function renderButton(label) {
     return (
       <button
-        type={label === "Edit" ? "submit" : "button"}
+        type={label === "Update" ? "submit" : "button"}
         className="group relative w-[100px] h-[40px] flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
       >
         {label}

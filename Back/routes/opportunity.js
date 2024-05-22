@@ -5,7 +5,10 @@ const {     showOpportunity,
     editOpportunity,
     name,
     acknowledge,sendAlert,
-    deleteOpportunity} = require("../controller/opportunity");
+    deleteOpportunity,
+    customerEntityAlert,
+    PoLost,
+    sendPo} = require("../controller/opportunity");
 const router = express.Router();
 
 
@@ -15,6 +18,9 @@ router.post("/addOpportunity", addOpportunity);
 router.put("/editOpportunity/:id", editOpportunity);
 router.post("/name",name);
 router.post("/acknowledge",acknowledge);
+router.post("/PoLost",PoLost);
 router.get("/sendAlert",sendAlert);
+router.get("/sendPo",sendPo);
+router.get("/customerEntityAlert",customerEntityAlert);
 router.delete("/deleteOpportunity", deleteOpportunity);
 module.exports = router; 

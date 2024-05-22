@@ -1,6 +1,7 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import Modal from "react-modal";
+import Select from "react-select";
 import API_BASE_URL from "../../config";
 
 const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
@@ -123,7 +124,7 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
     setCustomerEntities([]);
     setType("");
     setValue("");
-    setStatus("");
+    setStatus([]);
     setClosureTime("");
     setLicenseFrom("");
     setLicenseTo("");
@@ -133,6 +134,11 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
     setEndDate(null);
     resetFilters();
   };
+
+  const customerEntityOptions = customerEntitiess.map((entity) => ({
+    value: entity.customer_entity,
+    label: entity.customer_entity,
+  }));
 
   return (
     <Modal
@@ -149,30 +155,25 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
       }}
     >
       <div className="filter-modal">
-        <select
-          value={customerEntities}
-          onChange={(e) =>
-            setCustomerEntities(
-              Array.from(e.target.selectedOptions, (option) => option.value)
-            )
+        <Select
+          isMulti
+          options={customerEntityOptions}
+          value={customerEntityOptions.filter(option =>
+            customerEntities.includes(option.value)
+          )}
+          onChange={(selectedOptions) =>
+            setCustomerEntities(selectedOptions ? selectedOptions.map(option => option.value) : [])
           }
+          placeholder="Select Customer Entity"
           className="p-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2"
-        >
-          <option value="">Select Customer Entity</option>
-          {customerEntitiess &&
-            customerEntitiess.map((entity, index) => (
-              <option key={index} value={entity.customer_entity}>
-                {entity.customer_entity}
-              </option>
-            ))}
-        </select>
+        />
 
         <select
           value={type}
           onChange={(e) => setType(e.target.value)}
           className="p-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2"
         >
-           <option value="" selected disabled>Opportunity Type</option>
+          <option value="" disabled>Opportunity Type</option>
           <option value="BigFix New">BigFix New</option>
           <option value="BigFix Renew">BigFix Renew</option>
           <option value="SolarWinds New">SolarWinds New</option>
@@ -197,10 +198,10 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
           }
           className="p-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2"
         >
-          <option value="" selected disabled>Opportunity Status</option>
+          <option value="" disabled>Opportunity Status</option>
           <option value="Quotation Done">Quotation Done</option>
           <option value="Demo Done">Demo Done</option>
-          <option value="ROC Done">ROC Done</option>
+          <option value="POC Done">POC Done</option>
           <option value="Progress Sub">Progress Sub</option>
           <option value="Won">Won</option>
           <option value="Lost">Lost</option>

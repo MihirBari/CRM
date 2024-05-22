@@ -75,8 +75,8 @@ const TableCustomer = () => {
     setShowDeleteConfirmation(true);
   };
 
-  const handleViewClick = (row) => {
-    navigate(`${row.customer_entity}`);
+  const handleViewClick = (customer_entity) => {
+    navigate(`${customer_entity}`);
   };
 
   const handleExportClick = () => {
@@ -84,12 +84,6 @@ const TableCustomer = () => {
   };
 
   const columns = [
-    {
-      name: "Sr. No",
-      selector: (_, index) => index + 1,
-      sortable: false,
-      width: "80px",
-    },
     {
       name: "ID",
       selector: (row) => row.id,
@@ -100,6 +94,15 @@ const TableCustomer = () => {
       selector: (row) => row.customer_entity,
       sortable: true,
       width: "340px",
+      cell: (row) => (
+        <span
+          className="view-link"
+          onClick={() => handleViewClick(row.customer_entity)}
+          style={{ cursor: "pointer" }}
+        >
+          {row.customer_entity}
+        </span>
+      ),
     },
     {
       name: "E-Mail",

@@ -26,6 +26,7 @@ const TableOpportunity = () => {
     value: "",
     closureTime: "",
     status: "",
+    period:"",
     licenseFrom: "",
     licenseTo: "",
   });
@@ -93,11 +94,25 @@ const TableOpportunity = () => {
     navigate(`edit/${id}`);
   };
 
+  const handleViewClick = (id) => {
+    console.log("Viewing order with ID:", id);
+    navigate(`view/${id}`);
+  };
+
   const columns = [
     {
       name: "ID",
       selector: (row) => row.id,
       sortable: true,
+      cell: (row) => (
+        <span
+          className="view-link"
+          onClick={() => handleViewClick(row.id)}
+          style={{ cursor: "pointer", color: "blue" }}
+        >
+          {row.id}
+        </span>
+      ),
     },
     {
       name: "Customer Entity",
@@ -156,6 +171,12 @@ const TableOpportunity = () => {
     {
       name: "Opportunity Status",
       selector: (row) => row.status,
+      sortable: true,
+      width: "150px",
+    },
+    {
+      name: "Comment",
+      selector: (row) => row.period,
       sortable: true,
       width: "150px",
     },

@@ -1,7 +1,6 @@
 const { pool } = require("../database");
 const nodemailer = require("nodemailer");
 const cron = require("node-cron");
-const WebSocket = require("ws");
 const moment = require("moment-timezone");
 
 const showOpportunity = (req, res) => {
@@ -16,6 +15,7 @@ const showOpportunity = (req, res) => {
     dateFilterType,
     fromDate,
     toDate,
+    period
   } = req.query;
 
   pool.getConnection((err, connection) => {
@@ -33,7 +33,7 @@ const showOpportunity = (req, res) => {
       }
 
       let query = `
-      SELECT o.id, o.customer_entity, o.name, o.description, o.type, o.value, o.closure_time, o.status, o.license_from, o.license_to, c.phone, c.email
+      SELECT o.id, o.customer_entity, o.name, o.description, o.type, o.period, o.value, o.closure_time, o.status, o.license_from, o.license_to, c.phone, c.email
   FROM 
       opportunity o
   LEFT JOIN 
@@ -45,7 +45,7 @@ const showOpportunity = (req, res) => {
               customer_entity, 
               name
       ) c ON o.customer_entity = c.customer_entity AND o.name = c.name
-      ORDER by  o.id
+ 
       `;
 
       let filterConditions = [];
@@ -71,6 +71,10 @@ const showOpportunity = (req, res) => {
 
       if (status) {
         filterConditions.push(`o.status LIKE '%${status}%'`);
+      }
+
+      if (period) {
+        filterConditions.push(`o.period LIKE '%${period}%'`);
       }
 
       if (licenseFrom) {
@@ -102,8 +106,11 @@ const showOpportunity = (req, res) => {
       }
 
       if (filterConditions.length > 0) {
-        query += ` WHERE ${filterConditions.join(" AND ")}`;
+        query += ` WHERE ${filterConditions.join(" AND ")}
+        `;
       }
+
+      query += ` ORDER BY o.id`;
 
       connection.query(query, (error, results) => {
         if (error) {
@@ -131,7 +138,7 @@ const showOpportunity = (req, res) => {
 
 const showOneOpportunity = async (req, res) => {
   const dealerQuery = `
-  SELECT customer_entity, name, description, type, value, closure_time, status, license_from, license_to
+  SELECT customer_entity, name, description, type, value, closure_time, status,	period, license_from, license_to
   FROM opportunity
   WHERE id = ?
   `;
@@ -150,8 +157,8 @@ const showOneOpportunity = async (req, res) => {
 const addOpportunity = async (req, res) => {
   const addDealer = `
     INSERT INTO opportunity
-    (customer_entity, name,  description, type, value, closure_time, status, license_from, license_to)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?,?)
+    (customer_entity, name,  description, type, value, closure_time, status,period, license_from, license_to)
+    VALUES (?, ?, ?, ?, ?, ?, ?,?, ?,?)
     `;
 
   // Extract common values from the request body
@@ -163,6 +170,7 @@ const addOpportunity = async (req, res) => {
     value,
     closure_time,
     status,
+    period,
     license_from,
     license_to,
   } = req.body;
@@ -178,6 +186,7 @@ const addOpportunity = async (req, res) => {
       value,
       closure_time,
       status,
+      period,
       license_from,
       license_to,
     ];
@@ -211,7 +220,8 @@ const editOpportunity = (req, res) => {
     type = ?,
     value = ?,
     closure_time= ?,
-    status =?,	
+    status =?,
+    period=?,	
     license_from = ?,
     license_to = ?
     WHERE
@@ -226,6 +236,7 @@ const editOpportunity = (req, res) => {
     req.body.value,
     req.body.closure_time,
     req.body.status,
+    req.body.period,
     req.body.license_from,
     req.body.license_to,
     req.params.id,
@@ -294,31 +305,6 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// Set up the WebSocket server
-const wss = new WebSocket.Server({ port: 8081 });
-
-wss.on("connection", (ws) => {
-  console.log("Client connected");
-
-  // Send all unacknowledged alerts to the newly connected client
-  pool.query(
-    'SELECT alert_entity, alert_description, alert_type, license_to, daysLeft FROM alert WHERE acknowledge = "No"',
-    (error, results) => {
-      if (error) {
-        console.error("Error fetching alerts from database:", error);
-        return;
-      }
-      results.forEach((alert) => {
-        ws.send(alert.alertDetails);
-      });
-    }
-  );
-
-  ws.on("close", () => {
-    console.log("Client disconnected");
-  });
-});
-
 // Function to send email alerts
 const sendEmailAlert = (alertDetails) => {
   const mailOptions = {
@@ -338,19 +324,10 @@ const sendEmailAlert = (alertDetails) => {
   });
 };
 
-// Function to send WebSocket alerts
-const sendWebSocketAlert = (alertDetails) => {
-  wss.clients.forEach((client) => {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(alertDetails);
-    }
-  });
-};
-
 const storeAlertInDatabase = (alertDetails) => {
   const query = `
-    INSERT INTO alert (alert_entity, alert_description, license_to, alert_type, daysLeft, acknowledge)
-    VALUES (?, ?, ?, ?, ?, 'No')
+    INSERT INTO alert (alert_entity, alert_description, license_to, alert_type, daysLeft, acknowledge,	po_lost)
+    VALUES (?, ?, ?, ?, ?, 'No','No')
   `;
 
   pool.query(query, [
@@ -368,10 +345,43 @@ const storeAlertInDatabase = (alertDetails) => {
   });
 };
 
-
 const sendAlert = async (req, res) => {
+  const { customerEntity, status } = req.query;
+  console.log(customerEntity)
+  let dealerQuery = `
+    SELECT id, alert_entity, alert_description, license_to, alert_type, daysLeft, acknowledge, po_lost 
+    FROM alert 
+    WHERE acknowledge = "No" AND po_lost = "No"
+  `;
+  let filterConditions = [];
+
+  if (customerEntity) {
+    filterConditions.push(`alert_entity LIKE '%${customerEntity}%'`);
+  }
+
+  if (status) {
+    filterConditions.push(`alert_type LIKE '%${status}%'`);
+  }
+
+  if (filterConditions.length > 0) {
+    dealerQuery += ` AND ${filterConditions.join(" AND ")}`;
+  }
+
+  pool.query(dealerQuery, (error, results) => {
+    if (error) {
+      console.error("Error executing query:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+    console.log("Dealer details:", results);
+    res.status(200).json({ products: results });
+  });
+};
+
+
+const sendPo = async (req, res) => { 
   const dealerQuery = `
-  SELECT alert_entity, alert_description, license_to, alert_type, daysLeft, acknowledge FROM alert WHERE acknowledge = "No"
+  SELECT id, alert_entity, alert_description, license_to, alert_type, daysLeft, acknowledge, po_lost FROM alert WHERE acknowledge = "Yes"
   `;
 
   pool.query(dealerQuery, (error, results) => {
@@ -385,12 +395,11 @@ const sendAlert = async (req, res) => {
   });
 };
 
-
 const checkOpportunities = () => {
   console.log(`Task started`);
 
   const query = `
-    SELECT id, customer_entity, description, license_from, license_to, type
+    SELECT id, customer_entity, description, license_from, license_to, type,period
     FROM opportunity
   `;
 
@@ -431,11 +440,9 @@ const checkOpportunities = () => {
             license_from: formattedLicenseFromDate,
             license_to: formattedLicenseToDate,
             type: opportunity.type,
-            daysLeft: daysLeft
+            daysLeft: daysLeft,
+            period: opportunity.period
           };
-
-          // Send WebSocket alert
-          sendWebSocketAlert(alertDetails);
 
           // Store alert details in the database
           storeAlertInDatabase(alertDetails);
@@ -452,7 +459,7 @@ const checkOpportunities = () => {
 };
 
 // Schedule the task to run daily at 1:10 PM IST
-cron.schedule('39 18 * * *', () => {
+cron.schedule('30 11 * * *', () => {
   console.log(`[${moment().tz('Asia/Kolkata').format()}] Scheduled task triggered`);
   checkOpportunities();
 },
@@ -463,21 +470,57 @@ cron.schedule('39 18 * * *', () => {
 );
 
 const acknowledge = async (req, res) => {
-  const { alertMessage } = req.body;
-  console.log(alertMessage);
+  const { id } = req.body;
+  console.log(id);
   const query = `
       UPDATE alert
-      SET acknowledge = 'Yes'
-      WHERE alertMessage = ?
+      SET 	acknowledge = 'Yes'
+      WHERE id = ?
   `;
 
-  pool.query(query, [alertMessage], (error, results) => {
+  pool.query(query, [id], (error, results) => {
     if (error) {
       console.error("Error acknowledging alert:", error);
       res.status(500).send("Server error");
     } else {
       res.send("Alert acknowledged");
     }
+  });
+};
+
+const PoLost = async (req, res) => {
+  const { id } = req.body;
+  console.log(id);
+  const query = `
+      UPDATE alert
+      SET 	po_lost = 'Yes'
+      WHERE id = ?
+  `;
+
+  pool.query(query, [id], (error, results) => {
+    if (error) {
+      console.error("Error acknowledging alert:", error);
+      res.status(500).send("Server error");
+    } else {
+      res.send("Alert acknowledged");
+    }
+  });
+};
+
+const customerEntityAlert = async (req, res) => {
+  // Use the promisified pool.query function
+  const dealerQuery = `
+    SELECT distinct alert_entity FROM alert
+  `;
+
+  pool.query(dealerQuery, (error, results) => {
+    if (error) {
+      console.error("Error executing query:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+
+    res.status(200).json(results);
   });
 };
 
@@ -489,5 +532,8 @@ module.exports = {
   name,
   deleteOpportunity,
   acknowledge,
-  sendAlert
+  sendAlert,
+  customerEntityAlert,
+  PoLost,
+  sendPo
 };

@@ -1,67 +1,46 @@
-const OrderDetail = ({ product }) => {
-  const {
-    creditor_name,
-    product_id,
-    product_name,
-    amount_condition,
-    amount_sold,
-    bank_payment,
-    city,
-    s,
-    m,
-    l,
-    xl,
-    xxl,
-    xxxl,
-    xxxxl,
-    xxxxxl,
-    xxxxxxl,
-    returned,
-  } = product;
+import React from 'react';
+import { Link, useParams } from 'react-router-dom';
 
-  const sizes = [
-    { label: "S", quantity: s },
-    { label: "M", quantity: m },
-    { label: "L", quantity: l },
-    { label: "XL", quantity: xl },
-    { label: "XXL", quantity: xxl },
-    { label: "XXXL", quantity: xxxl },
-    { label: "XXXXL", quantity: xxxxl },
-    { label: "XXXXXL", quantity: xxxxxl },
-    { label: "XXXXXXL", quantity: xxxxxxl },
-  ];
+const OpportunityDetail = ({ product }) => {
+  const {id} = useParams()
+  const {
+    customer_entity,
+    description,
+    type,
+    value,
+    closure_time,
+    status,
+    period,
+    license_from,
+    license_to,
+  } = product;
 
   return (
     <div className="flex flex-col justify-center items-center mt-8">
       <div className="max-w-md w-full bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-xl font-semibold mb-2">Name : {creditor_name}</h2>
-        <h2 className="text-xl font-semibold mb-2">Product Id : {product_id}</h2>
-        <p className="text-gray-600 mb-2">Product Name : {product_name}</p>
-        <p className="text-gray-800 font-semibold mb-2">payment Status: {amount_condition}</p>
-        <p className="text-gray-600 mb-2">Returned : {returned}</p>
-        <p className="text-gray-600 mb-2">Toatl Amount Sold:₹ {amount_sold}</p>
-        <p className="text-gray-600 mb-2">Bank Amount:₹ {bank_payment}</p>
-        <p className="text-gray-600 mb-2">City : {city}</p>
+        <h2 className="text-xl font-semibold mb-2">Customer Entity : {customer_entity}</h2>
+        <p className="text-gray-600 mb-2">Description : {description}</p>
+        <p className="text-gray-800 font-semibold mb-2">Value:₹ {value} </p>
+        <p className="text-gray-600 mb-2">Type : {type}</p>
+        <p className="text-gray-600 mb-2">Status : {status}</p>
+        <p className="text-gray-600 mb-2">License From: {license_from}</p>
+        <p className="text-gray-600 mb-2">License To : {license_to}</p>
 
-        <div className="flex items-center">
-          <p className="text-gray-600 mr-2">Sizes:</p>
-          <div className="flex space-x-2">
-            {sizes.map(
-              (size) =>
-                size.quantity > 0 && (
-                  <span
-                    key={size.label}
-                    className="border border-gray-300 px-2 py-1 rounded-md text-gray-600"
-                  >
-                    {size.label} ({size.quantity})
-                  </span>
-                )
-            )}
-          </div>
+        <div className="flex items-center justify-around mt-4">
+        <Link to={`/Opportunity/edit/${id}`}>
+          <button className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none">
+            Edit
+          </button>
+          </Link>
+          <Link to="/Opportunity">
+          <button className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 focus:outline-none">
+            Back
+          </button>
+        </Link>
         </div>
       </div>
     </div>
   );
 };
 
-export default OrderDetail;
+export default OpportunityDetail;

@@ -12,7 +12,8 @@ const SideNavBar = () => {
     { title: "Customer", src: "Setting", link: "/Customer" },
     { title: "Opportunity", src: "Setting", link: "/Opportunity" },
     { title: "Alert", src: "Setting", link: "/Alert" },
-    { title: "Leave", src: "Setting", link: "/Leave" },
+    { title: "PO", src: "Setting", link: "/PO" },
+    // { title: "Leave", src: "Setting", link: "/Leave" },
 
   ];
   
