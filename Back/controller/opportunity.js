@@ -33,18 +33,10 @@ const showOpportunity = (req, res) => {
       }
 
       let query = `
-      SELECT o.id, o.customer_entity, o.name, o.description, o.type, o.period, o.value, o.closure_time, o.status, o.license_from, o.license_to, c.phone, c.email
+      SELECT o.id, o.customer_entity, o.name, o.description, o.type, o.period, o.value, o.closure_time, o.status, o.license_from, o.license_to
   FROM 
       opportunity o
-  LEFT JOIN 
-      (
-          SELECT customer_entity, name, phone, email
-          FROM 
-              contact
-          GROUP BY 
-              customer_entity, 
-              name
-      ) c ON o.customer_entity = c.customer_entity AND o.name = c.name
+  
  
       `;
 
@@ -138,8 +130,18 @@ const showOpportunity = (req, res) => {
 
 const showOneOpportunity = async (req, res) => {
   const dealerQuery = `
-  SELECT customer_entity, name, description, type, value, closure_time, status,	period, license_from, license_to
-  FROM opportunity
+  SELECT o.id, o.customer_entity, o.name, o.description, o.type, o.period, o.value, o.closure_time, o.status, o.license_from, o.license_to, c.phone, c.email
+  FROM 
+      opportunity o
+  LEFT JOIN 
+      (
+          SELECT customer_entity, name, phone, email
+          FROM 
+              contact
+          GROUP BY 
+              customer_entity, 
+              name
+      ) c ON o.customer_entity = c.customer_entity AND o.name = c.name
   WHERE id = ?
   `;
 
@@ -326,8 +328,8 @@ const sendEmailAlert = (alertDetails) => {
 
 const storeAlertInDatabase = (alertDetails) => {
   const query = `
-    INSERT INTO alert (alert_entity, alert_description, license_to, alert_type, daysLeft, acknowledge,	po_lost)
-    VALUES (?, ?, ?, ?, ?, 'No','No')
+    INSERT INTO alert (alert_entity, alert_description, license_to, alert_type, daysLeft, acknowledge, po_lost, reminder)
+    VALUES (?, ?, ?, ?, ?, 'No','No','No')
   `;
 
   pool.query(query, [
@@ -347,12 +349,47 @@ const storeAlertInDatabase = (alertDetails) => {
 
 const sendAlert = async (req, res) => {
   const { customerEntity, status } = req.query;
-  console.log(customerEntity)
+  console.log(customerEntity);
+  
   let dealerQuery = `
     SELECT id, alert_entity, alert_description, license_to, alert_type, daysLeft, acknowledge, po_lost 
     FROM alert 
-    WHERE acknowledge = "No" AND po_lost = "No"
+    WHERE (acknowledge = "No" AND po_lost = "No" AND reminder = "No") 
+       OR (daysLeft = 30 AND acknowledge = "No" AND po_lost = "No")
   `;
+
+  let filterConditions = [];
+
+  if (customerEntity) {
+    filterConditions.push(`alert_entity LIKE '%${customerEntity}%'`);
+  }
+
+  if (status) {
+    filterConditions.push(`alert_type LIKE '%${status}%'`);
+  }
+
+  if (filterConditions.length > 0) {
+    dealerQuery += ` AND ${filterConditions.join(" AND ")}`;
+  }
+
+  pool.query(dealerQuery, (error, results) => {
+    if (error) {
+      console.error("Error executing query:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+    //console.log("Dealer details:", results);
+    res.status(200).json({ products: results });
+  });
+};
+
+const sendPo = async (req, res) => { 
+  const { customerEntity, status } = req.query;
+
+  let dealerQuery = `
+  SELECT id, alert_entity, alert_description, license_to, alert_type, daysLeft, acknowledge, po_lost FROM alert WHERE acknowledge = "Yes"
+  `;
+
   let filterConditions = [];
 
   if (customerEntity) {
@@ -378,28 +415,11 @@ const sendAlert = async (req, res) => {
   });
 };
 
-
-const sendPo = async (req, res) => { 
-  const dealerQuery = `
-  SELECT id, alert_entity, alert_description, license_to, alert_type, daysLeft, acknowledge, po_lost FROM alert WHERE acknowledge = "Yes"
-  `;
-
-  pool.query(dealerQuery, (error, results) => {
-    if (error) {
-      console.error("Error executing query:", error);
-      res.status(500).json({ error: "Internal Server Error" });
-      return;
-    }
-    console.log("Dealer details:", results);
-    res.status(200).json(results);
-  });
-};
-
 const checkOpportunities = () => {
   console.log(`Task started`);
 
   const query = `
-    SELECT id, customer_entity, description, license_from, license_to, type,period
+    SELECT id, customer_entity, description, license_from, license_to, type, period
     FROM opportunity
   `;
 
@@ -411,28 +431,23 @@ const checkOpportunities = () => {
 
     results.forEach((opportunity) => {
       const today = new Date();
-      const licenseFrom = new Date(opportunity.license_from);
       const licenseTo = new Date(opportunity.license_to);
 
-      // Iterate through each anniversary date
-      for (let year = licenseFrom.getFullYear(); year <= licenseTo.getFullYear(); year++) {
-        const anniversaryDate = new Date(licenseFrom);
-        anniversaryDate.setFullYear(year);
+      const daysBeforeAlert = [45, 30, 15];
+      const formattedLicenseToDate = moment(opportunity.license_to)
+        .tz('Asia/Kolkata')
+        .format('ddd MMM D YYYY');
 
-        // Calculate the alert date (45 days before anniversary date)
-        const alertDate = new Date(anniversaryDate);
-        alertDate.setDate(alertDate.getDate() - 45);
+      const formattedLicenseFromDate = moment(opportunity.license_from)
+        .tz('Asia/Kolkata')
+        .format('ddd MMM D YYYY');
 
-        if (alertDate <= today && today <= anniversaryDate) {
-          const daysLeft = Math.ceil((anniversaryDate - today) / (1000 * 60 * 60 * 24));
+      daysBeforeAlert.forEach(days => {
+        const alertDate = new Date(licenseTo);
+        alertDate.setDate(alertDate.getDate() - days);
 
-          const formattedLicenseToDate = moment(opportunity.license_to)
-            .tz('Asia/Kolkata')
-            .format('ddd MMM D YYYY');
-
-            const formattedLicenseFromDate = moment(opportunity.license_from)
-            .tz('Asia/Kolkata')
-            .format('ddd MMM D YYYY');
+        if (alertDate <= today && today <= licenseTo) {
+          const daysLeft = Math.ceil((licenseTo - today) / (1000 * 60 * 60 * 24));
 
           const alertDetails = {
             customer_entity: opportunity.customer_entity,
@@ -446,12 +461,12 @@ const checkOpportunities = () => {
 
           // Store alert details in the database
           storeAlertInDatabase(alertDetails);
-
+          //sendEmailAlert(alertDetails)
           console.log(
             `Alert for opportunity ID ${opportunity.id}:`, alertDetails
           );
         }
-      }
+      });
     });
 
     console.log(`Task completed`);
@@ -487,6 +502,26 @@ const acknowledge = async (req, res) => {
     }
   });
 };
+
+const reminder = async (req, res) => {
+  const { id } = req.body;
+  console.log(id);
+  const query = `
+      UPDATE alert
+      SET reminder = 'Yes'
+      WHERE id = ?
+  `;
+
+  pool.query(query, [id], (error, results) => {
+    if (error) {
+      console.error("Error acknowledging alert:", error);
+      res.status(500).send("Server error");
+    } else {
+      res.send("Alert acknowledged");
+    }
+  });
+};
+
 
 const PoLost = async (req, res) => {
   const { id } = req.body;
@@ -535,5 +570,6 @@ module.exports = {
   sendAlert,
   customerEntityAlert,
   PoLost,
-  sendPo
+  sendPo,
+  reminder
 };

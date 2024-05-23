@@ -20,9 +20,9 @@ const Main = () => {
         const response = await fetch(
           `${API_BASE_URL}/api/Opportunity/sendPo`
         );
-        const data = await response.json();
-        console.log(data);
-        setAlerts(data);
+     
+        setAlerts(response.data.products);
+        setFilteredUsers(response.data.products);
       } catch (error) {
         console.error("Error fetching alerts:", error);
       }
@@ -83,11 +83,12 @@ const Main = () => {
         <p className="text-xl p-7 text-center">No alerts present</p>
       ) : (
         <div className="alert-container">
-          {alerts.map((alert) => (
+          {Array.isArray(alerts) &&
+            filteredUsers.map((alert)  => (
             <div key={alert.id} className="alert-box">
               <h2>PO WON!!</h2>
               <p>
-                PO for <b>{alert.alert_entity}</b> for{" "}
+                PO of <b>{alert.alert_entity}</b> for{" "}
                 {alert.alert_description} in {alert.alert_type} was won
               </p>
               <div className="button-container">

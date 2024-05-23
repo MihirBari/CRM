@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 22, 2024 at 03:27 PM
+-- Generation Time: May 23, 2024 at 03:03 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -35,16 +35,19 @@ CREATE TABLE `alert` (
   `alert_type` varchar(255) NOT NULL,
   `alert_entity` varchar(255) NOT NULL,
   `daysLeft` int(11) NOT NULL,
-  `license_to` varchar(255) DEFAULT NULL
+  `license_to` varchar(255) DEFAULT NULL,
+  `reminder` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `alert`
 --
 
-INSERT INTO `alert` (`id`, `acknowledge`, `po_lost`, `alert_description`, `alert_type`, `alert_entity`, `daysLeft`, `license_to`) VALUES
-(10, 'Yes', 'No', 'License ', 'SolarWinds Renew', 'Techsa', 15, 'Fri Jul 5 2024'),
-(12, 'No', 'No', '100 BigFix License', 'BigFix New', 'BSE', 15, 'Fri Jul 5 2024');
+INSERT INTO `alert` (`id`, `acknowledge`, `po_lost`, `alert_description`, `alert_type`, `alert_entity`, `daysLeft`, `license_to`, `reminder`) VALUES
+(15, 'No', 'No', 'License ', 'SolarWinds Renew', 'Techsa', 43, 'Fri Jul 5 2024', 'No'),
+(16, 'No', 'Yes', '100 BigFix License', 'BigFix New', 'BSE', 44, 'Fri Jul 5 2024', 'No'),
+(17, 'No', 'No', '1000 BigFix License', 'BigFix Renew', 'Techsa1', 15, 'Wed Jul 7 2027', 'No'),
+(18, 'Yes', 'No', '1000 license', 'SolarWinds New', 'SVC', 45, 'Sun Jul 7 2024', 'No');
 
 -- --------------------------------------------------------
 
@@ -238,7 +241,7 @@ ALTER TABLE `user`
 -- AUTO_INCREMENT for table `alert`
 --
 ALTER TABLE `alert`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `contact`

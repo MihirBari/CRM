@@ -108,45 +108,24 @@ const TableOpportunity = () => {
         <span
           className="view-link"
           onClick={() => handleViewClick(row.id)}
-          style={{ cursor: "pointer", color: "blue" }}
+          style={{ cursor: "pointer" }}
         >
           {row.id}
         </span>
       ),
+      width: "60px",
     },
     {
       name: "Customer Entity",
       selector: (row) => row.customer_entity,
       sortable: true,
-    },
-    {
-      name: "Name",
-      selector: (row) => row.name,
-      sortable: true,
-    },
-    {
-      name: "Phone",
-      selector: (row) => row.phone,
-      sortable: true,
-      width: "130px",
-    },
-    {
-      name: "E-Mail",
-      selector: (row) => row.email,
-      sortable: true,
-      width: "150px",
-    },
-    {
-      name: "Description",
-      selector: (row) => row.description,
-      sortable: true,
-      width: "150px",
+      width: "200px",
     },
     {
       name: "Opportunity Type",
       selector: (row) => row.type,
       sortable: true,
-      width: "150px",
+      width: "200px",
     },
     {
       name: "Value",
@@ -172,13 +151,7 @@ const TableOpportunity = () => {
       name: "Opportunity Status",
       selector: (row) => row.status,
       sortable: true,
-      width: "150px",
-    },
-    {
-      name: "Comment",
-      selector: (row) => row.period,
-      sortable: true,
-      width: "150px",
+      width: "200px",
     },
     {
       name: "License From",

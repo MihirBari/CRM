@@ -3,73 +3,69 @@ import Modal from "react-modal";
 import axios from "axios";
 import API_BASE_URL from "../../config";
 
-const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters,customer_entity }) => {
+const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
   
-  const [designation, setDesignation] = useState("");
-  const [designations, setDesignations] = useState([]);
+  const [customerEntity, setCustomerEntity] = useState("");
+  const [customerEntitys, setCustomerEntitys] = useState([]);
+  const [status, setStatus] = useState([]);
 
-  const [name, setName] = useState("");
   const [shouldApplyFilters, setShouldApplyFilters] = useState(false);
 
   useEffect(() => {
-    const fetchDesignation = async () => {
+    const fetchCustomerEntity = async () => {
       try {
         const response = await axios.get(
           `${API_BASE_URL}/api/opportunity/customerEntityAlert`
         );
-        setDesignations(response.data);
-        console.log(response.data);
+        setCustomerEntitys(response.data);
+        console.log("Entity:",response.data);
       } catch (error) {
         console.error("Error fetching product types:", error.message);
       }
     };
 
-    fetchDesignation();
+    fetchCustomerEntity();
   }, []);
 
 
   const applyFilters = async () => {
     try {
-      const response = await axios.get(
-        `${API_BASE_URL}/api/contact/showContact/${customer_entity}`,
-        {
-          params: {
-            designation,     
-            name
-          },
-        }
-      );
-
+      const response = await axios.get(`${API_BASE_URL}/api/Opportunity/sendPo`, {
+        params: {
+          customerEntity,
+          status,
+        },
+      });
+  
       onApplyFilters(response.data.products);
+      
       // Update localStorage only if filters are applied successfully
       localStorage.setItem(
         "expenseFilters",
         JSON.stringify({
-          
-          designation,
-          
-          name,
+          customerEntity,
+          status,
         })
       );
     } catch (error) {
       console.error("Error applying filters:", error.message);
     }
   };
-
+  
   const retrieveAndSetFilters = async () => {
     // Retrieve filter values from localStorage
     const storedFilters = localStorage.getItem("expenseFilters");
     if (storedFilters) {
       const {
         
-        designation: storedDesignation,
-       
+        customerEntity: storedCustomerEntity,
+        status: storedStatus
       } = JSON.parse(storedFilters);
 
       // Set filter values to state
      
-      setDesignation(storedDesignation);
-      
+      setCustomerEntity(storedCustomerEntity);
+      setStatus(storedStatus);
       setShouldApplyFilters(true);
     }
   };
@@ -90,8 +86,8 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters,customer_en
 
   const handleResetFilters = () => {
    
-    setDesignation("");
-    setName("");
+    setCustomerEntity("");
+    setStatus("");
     resetFilters();
   };
 
@@ -110,28 +106,33 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters,customer_en
       }}
     >
       <div className="filter-modal">
-        <input
-          type="text"
-          placeholder="Name of Customer"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="p-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2"
-        />
-
-
-        <select
-          value={designation}
-          onChange={(e) => setDesignation(e.target.value)}
+      <select
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
           className="p-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2"
         >
-          <option value="">Select Entity</option>
-          {designations &&
-            designations.map((data, index) => (
-              <option key={index} value={data.designation}>
-                {data.designation}
-              </option>
-            ))}
+          <option value="" disabled>Opportunity Type</option>
+          <option value="BigFix New">BigFix New</option>
+          <option value="BigFix Renew">BigFix Renew</option>
+          <option value="SolarWinds New">SolarWinds New</option>
+          <option value="SolarWinds Renew">SolarWinds Renew</option>
+          <option value="Services">Services</option>
         </select>
+
+        <select
+  value={customerEntity}
+  onChange={(e) => setCustomerEntity(e.target.value)}
+  className="p-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2"
+>
+  <option value="">Select Entity</option>
+  {customerEntitys &&
+    customerEntitys.map((data, index) => (
+      <option key={index} value={data.alert_entity}>
+        {data.alert_entity}
+      </option>
+    ))}
+</select>
+
         {/* Apply and Cancel buttons */}
         <button
           onClick={() => {

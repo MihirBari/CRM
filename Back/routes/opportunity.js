@@ -8,7 +8,8 @@ const {     showOpportunity,
     deleteOpportunity,
     customerEntityAlert,
     PoLost,
-    sendPo} = require("../controller/opportunity");
+    sendPo,
+    reminder} = require("../controller/opportunity");
 const router = express.Router();
 
 
@@ -21,6 +22,7 @@ router.post("/acknowledge",acknowledge);
 router.post("/PoLost",PoLost);
 router.get("/sendAlert",sendAlert);
 router.get("/sendPo",sendPo);
+router.get("/reminder",reminder);
 router.get("/customerEntityAlert",customerEntityAlert);
 router.delete("/deleteOpportunity", deleteOpportunity);
 module.exports = router; 
