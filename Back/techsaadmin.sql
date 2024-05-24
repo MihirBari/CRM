@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 23, 2024 at 03:03 PM
+-- Generation Time: May 24, 2024 at 03:11 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -33,6 +33,7 @@ CREATE TABLE `alert` (
   `po_lost` varchar(255) NOT NULL,
   `alert_description` varchar(255) NOT NULL,
   `alert_type` varchar(255) NOT NULL,
+  `License_type` varchar(255) NOT NULL,
   `alert_entity` varchar(255) NOT NULL,
   `daysLeft` int(11) NOT NULL,
   `license_to` varchar(255) DEFAULT NULL,
@@ -43,11 +44,9 @@ CREATE TABLE `alert` (
 -- Dumping data for table `alert`
 --
 
-INSERT INTO `alert` (`id`, `acknowledge`, `po_lost`, `alert_description`, `alert_type`, `alert_entity`, `daysLeft`, `license_to`, `reminder`) VALUES
-(15, 'No', 'No', 'License ', 'SolarWinds Renew', 'Techsa', 43, 'Fri Jul 5 2024', 'No'),
-(16, 'No', 'Yes', '100 BigFix License', 'BigFix New', 'BSE', 44, 'Fri Jul 5 2024', 'No'),
-(17, 'No', 'No', '1000 BigFix License', 'BigFix Renew', 'Techsa1', 15, 'Wed Jul 7 2027', 'No'),
-(18, 'Yes', 'No', '1000 license', 'SolarWinds New', 'SVC', 45, 'Sun Jul 7 2024', 'No');
+INSERT INTO `alert` (`id`, `acknowledge`, `po_lost`, `alert_description`, `alert_type`, `License_type`, `alert_entity`, `daysLeft`, `license_to`, `reminder`) VALUES
+(23, 'No', 'No', '1000 license', 'BigFix New', 'New', 'Techsa', 45, 'Mon Jul 8 2024', 'No'),
+(24, 'No', 'No', '200 License', 'BigFix Renew', 'Renew', 'Techsa', 30, 'Sun Jun 23 2024', 'No');
 
 -- --------------------------------------------------------
 
@@ -71,7 +70,7 @@ CREATE TABLE `contact` (
 --
 
 INSERT INTO `contact` (`id`, `customer_entity`, `name`, `designation`, `phone`, `email`, `created_at`, `updated_at`) VALUES
-(16, 'Techsa', 'Mihir bari', 'CISO', '8369593873', 'mihir.b@techsa.net', '2024-04-18 12:36:03', '2024-04-18 12:36:03'),
+(16, 'Techsa', 'Rohit', 'CISO', '8369593873', 'Rohit@techsa.net', '2024-05-24 06:38:04', '2024-05-24 06:38:04'),
 (17, 'Techsa1', 'Kushal', 'CTO', '8369593874', 'kushal.s@techsa.net', '2024-05-21 10:39:38', '2024-05-21 10:39:38'),
 (19, 'Techsa1', 'Mihir bari', 'CISO', '8400315900', 'mihir.b@techsa.net', '2024-05-21 10:38:58', '2024-05-21 10:38:58'),
 (21, 'Techsa', 'Diana', 'CTO', '8668989445', 'diana@techsa.net', '2024-04-18 12:36:10', '2024-04-18 12:36:10'),
@@ -148,6 +147,7 @@ CREATE TABLE `opportunity` (
   `name` varchar(255) NOT NULL,
   `description` varchar(255) NOT NULL,
   `type` varchar(255) NOT NULL,
+  `License_type` varchar(255) NOT NULL,
   `value` int(11) NOT NULL,
   `closure_time` date NOT NULL,
   `status` varchar(255) NOT NULL,
@@ -161,13 +161,11 @@ CREATE TABLE `opportunity` (
 -- Dumping data for table `opportunity`
 --
 
-INSERT INTO `opportunity` (`id`, `customer_entity`, `name`, `description`, `type`, `value`, `closure_time`, `status`, `period`, `license_from`, `license_to`, `pdf`) VALUES
-(1, 'Techsa', 'Mihir bari', 'Nice', 'SolarWinds New', 7000, '2024-05-25', 'Progress Sub', '3', NULL, NULL, NULL),
-(3, 'Techsa1', 'Kushal', 'Nice', 'SolarWinds New', 9500, '2024-05-19', 'Won', '4', '2024-05-21', '2024-07-20', NULL),
-(4, 'Techsa', 'Diana', 'License ', 'SolarWinds Renew', 800000, '2024-05-19', 'Won', '0', '2023-07-05', '2024-07-05', NULL),
-(5, 'BSE', 'Himani', '100 BigFix License', 'BigFix New', 700, '2024-05-21', 'Won', '4', '2023-07-06', '2024-07-05', NULL),
-(7, 'Techsa1', 'Mihir bari', '1000 BigFix License', 'BigFix Renew', 9500, '2024-05-22', 'Won', '6', '2023-07-07', '2027-07-07', NULL),
-(9, 'SVC', 'Kajal', '1000 license', 'SolarWinds New', 800000, '2024-05-22', 'Won', '3', '2023-07-07', '2024-07-07', NULL);
+INSERT INTO `opportunity` (`id`, `customer_entity`, `name`, `description`, `type`, `License_type`, `value`, `closure_time`, `status`, `period`, `license_from`, `license_to`, `pdf`) VALUES
+(11, 'Techsa', 'Diana', '1000 license', 'BigFix New', 'New', 800000, '2024-05-25', 'Won', '3 Years period', '2023-07-08', '2024-07-08', NULL),
+(12, 'Techsa', 'Diana', '200 License', 'BigFix Renew', 'Renew', 800000, '2024-05-23', 'Won', '3 Years period', '2023-11-16', '2024-06-23', NULL),
+(13, 'Techsa', 'Rohit', '400 License ', 'SolarWinds New', 'New', 800000, '2024-05-23', 'Won', '3 Years period', '2023-07-01', '2024-07-07', NULL),
+(14, 'Techsa', 'Diana', '3000', 'Services', 'Sevices', 800000, '2024-05-24', 'Won', '3 Years period', '2023-06-24', '2024-06-22', NULL);
 
 -- --------------------------------------------------------
 
@@ -241,7 +239,7 @@ ALTER TABLE `user`
 -- AUTO_INCREMENT for table `alert`
 --
 ALTER TABLE `alert`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT for table `contact`
@@ -265,7 +263,7 @@ ALTER TABLE `leaveapplication`
 -- AUTO_INCREMENT for table `opportunity`
 --
 ALTER TABLE `opportunity`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `user`

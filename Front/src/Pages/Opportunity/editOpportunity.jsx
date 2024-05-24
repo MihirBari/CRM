@@ -10,6 +10,7 @@ const EditOpportunity = () => {
     name: "",
     description: "",
     type: "",
+    License_type:"",
     value: "",
     closure_time: "",
     status: "",
@@ -44,6 +45,7 @@ const EditOpportunity = () => {
           name: orderData.name,
           description: orderData.description,
           type: orderData.type,
+          License_type: orderData.License_type,
           value: orderData.value,
           closure_time: formatDate(orderData.closure_time),
           status: orderData.status,
@@ -117,6 +119,13 @@ const EditOpportunity = () => {
                   { value: "BigFix Renew", label: "BigFix Renew" },
                   { value: "SolarWinds New", label: "SolarWinds New" },
                   { value: "SolarWinds Renew", label: "SolarWinds Renew" },
+                  { value: "Services", label: "Services" },
+                ])}
+              </div>
+              <div>
+                {renderSelect("License_type", "License Type", [
+                  { value: " New", label: " New" },
+                  { value: " Renew", label: " Renew" },
                   { value: "Services", label: "Services" },
                 ])}
               </div>

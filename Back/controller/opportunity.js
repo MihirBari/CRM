@@ -12,6 +12,7 @@ const showOpportunity = (req, res) => {
     status,
     licenseFrom,
     licenseTo,
+    LicenseType,
     dateFilterType,
     fromDate,
     toDate,
@@ -33,11 +34,13 @@ const showOpportunity = (req, res) => {
       }
 
       let query = `
-      SELECT o.id, o.customer_entity, o.name, o.description, o.type, o.period, o.value, o.closure_time, o.status, o.license_from, o.license_to
-  FROM 
-      opportunity o
-  
- 
+      SELECT id, customer_entity, name, description, type, period, value, closure_time, status, license_from, license_to, License_type
+      FROM opportunity
+      `;
+
+      let query2 = `
+      SELECT COUNT(customer_entity) as TotalEntity, SUM(value) as TotalValue, COUNT(License_type) as TotalLicenseType, COUNT(type) as TotalType
+      FROM opportunity
       `;
 
       let filterConditions = [];
@@ -46,63 +49,67 @@ const showOpportunity = (req, res) => {
         const customerEntitiesList = customerEntities
           .map((entity) => `'${entity}'`)
           .join(",");
-        filterConditions.push(`o.customer_entity IN (${customerEntitiesList})`);
+        filterConditions.push(`customer_entity IN (${customerEntitiesList})`);
       }
 
       if (type) {
-        filterConditions.push(`o.type LIKE '%${type}%'`);
+        filterConditions.push(`type LIKE '%${type}%'`);
+      }
+
+      if (LicenseType) {
+        filterConditions.push(`License_type LIKE '${LicenseType}'`);
       }
 
       if (value) {
-        filterConditions.push(`o.value LIKE '%${value}%'`);
+        filterConditions.push(`value LIKE '%${value}%'`);
       }
 
       if (closureTime) {
-        filterConditions.push(`o.closure_time LIKE '%${closureTime}%'`);
+        filterConditions.push(`closure_time LIKE '%${closureTime}%'`);
       }
 
       if (status) {
-        filterConditions.push(`o.status LIKE '%${status}%'`);
+        filterConditions.push(`status LIKE '%${status}%'`);
       }
 
       if (period) {
-        filterConditions.push(`o.period LIKE '%${period}%'`);
+        filterConditions.push(`period LIKE '%${period}%'`);
       }
 
       if (licenseFrom) {
-        filterConditions.push(`o.license_from = '${licenseFrom}'`);
+        filterConditions.push(`license_from = '${licenseFrom}'`);
       }
 
       if (licenseTo) {
-        filterConditions.push(`o.license_to = '${licenseTo}'`);
+        filterConditions.push(`license_to = '${licenseTo}'`);
       }
 
       if (dateFilterType && fromDate && toDate) {
         if (dateFilterType === "equal") {
           filterConditions.push(
-            `DATE(o.license_from) = '${fromDate}' AND DATE(o.license_to) = '${toDate}'`
+            `DATE(license_from) = '${fromDate}' AND DATE(license_to) = '${toDate}'`
           );
         } else if (dateFilterType === "before") {
           filterConditions.push(
-            `DATE(o.license_from) < '${fromDate}' AND DATE(o.license_to) < '${toDate}'`
+            `DATE(license_from) < '${fromDate}' AND DATE(license_to) < '${toDate}'`
           );
         } else if (dateFilterType === "after") {
           filterConditions.push(
-            `DATE(o.license_from) > '${fromDate}' AND DATE(o.license_to) > '${toDate}'`
+            `DATE(license_from) > '${fromDate}' AND DATE(license_to) > '${toDate}'`
           );
         } else if (dateFilterType === "between") {
           filterConditions.push(
-            `DATE(o.license_from) BETWEEN '${fromDate}' AND '${toDate}'`
+            `DATE(license_from) BETWEEN '${fromDate}' AND '${toDate}'`
           );
         }
       }
 
       if (filterConditions.length > 0) {
-        query += ` WHERE ${filterConditions.join(" AND ")}
-        `;
+        query += ` WHERE ${filterConditions.join(" AND ")}`;
+        query2 += ` WHERE ${filterConditions.join(" AND ")}`;
       }
 
-      query += ` ORDER BY o.id`;
+      query += ` ORDER BY id`;
 
       connection.query(query, (error, results) => {
         if (error) {
@@ -112,25 +119,38 @@ const showOpportunity = (req, res) => {
             connection.release();
           });
         }
-        connection.commit((err) => {
-          if (err) {
-            console.error("Error committing transaction:", err);
+
+        connection.query(query2, (error2, results2) => {
+          if (error2) {
+            console.error("Error executing second query:", error2);
             return connection.rollback(() => {
               res.status(500).json({ error: "Internal Server Error" });
               connection.release();
             });
           }
-          connection.release();
-          res.status(200).json({ products: results });
+
+          connection.commit((err) => {
+            if (err) {
+              console.error("Error committing transaction:", err);
+              return connection.rollback(() => {
+                res.status(500).json({ error: "Internal Server Error" });
+                connection.release();
+              });
+            }
+            connection.release();
+            console.log(results2[0] )
+            res.status(200).json({ products: results, aggregates: results2[0] });
+          });
         });
       });
     });
   });
 };
 
+
 const showOneOpportunity = async (req, res) => {
   const dealerQuery = `
-  SELECT o.id, o.customer_entity, o.name, o.description, o.type, o.period, o.value, o.closure_time, o.status, o.license_from, o.license_to, c.phone, c.email
+  SELECT o.id, o.customer_entity, o.name, o.description, o.type, o.License_type, o.period, o.value, o.closure_time, o.status, o.license_from, o.license_to, c.phone, c.email
   FROM 
       opportunity o
   LEFT JOIN 
@@ -141,7 +161,7 @@ const showOneOpportunity = async (req, res) => {
           GROUP BY 
               customer_entity, 
               name
-      ) c ON o.customer_entity = c.customer_entity AND o.name = c.name
+      ) c ON customer_entity = c.customer_entity AND name = c.name
   WHERE id = ?
   `;
 
@@ -159,8 +179,8 @@ const showOneOpportunity = async (req, res) => {
 const addOpportunity = async (req, res) => {
   const addDealer = `
     INSERT INTO opportunity
-    (customer_entity, name,  description, type, value, closure_time, status,period, license_from, license_to)
-    VALUES (?, ?, ?, ?, ?, ?, ?,?, ?,?)
+    (customer_entity, name,  description, type,License_type, value, closure_time, status,period, license_from, license_to)
+    VALUES (?, ?, ?, ?, ?,?, ?, ?,?, ?,?)
     `;
 
   // Extract common values from the request body
@@ -169,6 +189,7 @@ const addOpportunity = async (req, res) => {
     name,
     description,
     type,
+    License_type,
     value,
     closure_time,
     status,
@@ -185,6 +206,7 @@ const addOpportunity = async (req, res) => {
       name,
       description,
       type,
+      License_type,
       value,
       closure_time,
       status,
@@ -220,6 +242,7 @@ const editOpportunity = (req, res) => {
     name = ?,
     description = ?,
     type = ?,
+    License_type = ?,
     value = ?,
     closure_time= ?,
     status =?,
@@ -235,6 +258,7 @@ const editOpportunity = (req, res) => {
     req.body.name,
     req.body.description,
     req.body.type,
+    req.body.License_type,
     req.body.value,
     req.body.closure_time,
     req.body.status,
@@ -321,15 +345,15 @@ const sendEmailAlert = (alertDetails) => {
     if (error) {
       console.error("Error sending email:", error);
     } else {
-      console.log("Email sent:", info.response);
+      console.log("Email sent:", infresponse);
     }
   });
 };
 
 const storeAlertInDatabase = (alertDetails) => {
   const query = `
-    INSERT INTO alert (alert_entity, alert_description, license_to, alert_type, daysLeft, acknowledge, po_lost, reminder)
-    VALUES (?, ?, ?, ?, ?, 'No','No','No')
+    INSERT INTO alert (alert_entity, alert_description, license_to, alert_type, License_type, daysLeft, acknowledge, po_lost, reminder)
+    VALUES (?, ?, ?, ?, ?, ?, 'No', 'No', 'No')
   `;
 
   pool.query(query, [
@@ -337,6 +361,7 @@ const storeAlertInDatabase = (alertDetails) => {
     alertDetails.description,
     alertDetails.license_to,
     alertDetails.type,
+    alertDetails.License_type,
     alertDetails.daysLeft
   ], (error, results) => {
     if (error) {
@@ -352,10 +377,11 @@ const sendAlert = async (req, res) => {
   console.log(customerEntity);
   
   let dealerQuery = `
-    SELECT id, alert_entity, alert_description, license_to, alert_type, daysLeft, acknowledge, po_lost 
+    SELECT id, alert_entity, alert_description, license_to, alert_type, daysLeft,License_type, acknowledge, po_lost 
     FROM alert 
     WHERE (acknowledge = "No" AND po_lost = "No" AND reminder = "No") 
        OR (daysLeft = 30 AND acknowledge = "No" AND po_lost = "No")
+       OR (daysLeft <= 15 AND acknowledge = "No" AND po_lost = "No")
   `;
 
   let filterConditions = [];
@@ -419,7 +445,7 @@ const checkOpportunities = () => {
   console.log(`Task started`);
 
   const query = `
-    SELECT id, customer_entity, description, license_from, license_to, type, period
+    SELECT id, customer_entity, description, license_from, license_to, type, License_type, period
     FROM opportunity
   `;
 
@@ -446,7 +472,7 @@ const checkOpportunities = () => {
         const alertDate = new Date(licenseTo);
         alertDate.setDate(alertDate.getDate() - days);
 
-        if (alertDate <= today && today <= licenseTo) {
+        if (alertDate.toDateString() === today.toDateString()) {
           const daysLeft = Math.ceil((licenseTo - today) / (1000 * 60 * 60 * 24));
 
           const alertDetails = {
@@ -455,6 +481,7 @@ const checkOpportunities = () => {
             license_from: formattedLicenseFromDate,
             license_to: formattedLicenseToDate,
             type: opportunity.type,
+            License_type: opportunity.License_type,
             daysLeft: daysLeft,
             period: opportunity.period
           };
@@ -474,7 +501,7 @@ const checkOpportunities = () => {
 };
 
 // Schedule the task to run daily at 1:10 PM IST
-cron.schedule('30 11 * * *', () => {
+cron.schedule('44 12 * * *', () => {
   console.log(`[${moment().tz('Asia/Kolkata').format()}] Scheduled task triggered`);
   checkOpportunities();
 },
@@ -521,7 +548,6 @@ const reminder = async (req, res) => {
     }
   });
 };
-
 
 const PoLost = async (req, res) => {
   const { id } = req.body;

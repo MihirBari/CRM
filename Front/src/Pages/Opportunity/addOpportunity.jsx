@@ -11,6 +11,7 @@ const AddOpportunity = () => {
     name: "",
     description: "",
     type: "",
+    License_type:"",
     value: "",
     closure_time: "",
     status: "",
@@ -174,6 +175,28 @@ const AddOpportunity = () => {
                     <option value="SolarWinds New">SolarWinds New</option>
                     <option value="SolarWinds Renew">SolarWinds Renew</option>
                     <option value="Services">Services</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="License_type" className="block text-sm font-medium text-gray-700">
+                  License Type
+                </label>
+                <div className="mt-1 relative">
+                  <select
+                    name="License_type"
+                    required
+                    onChange={handleChange}
+                    value={inputs.License_type}
+                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  >
+                    <option value="" disabled>
+                      Select Option
+                    </option>
+                    <option value="New"> New</option>
+                    <option value="Renew"> Renew</option>
+                    <option value="Sevices">Sevices</option>
                   </select>
                 </div>
               </div>

@@ -22,7 +22,7 @@ router.post("/acknowledge",acknowledge);
 router.post("/PoLost",PoLost);
 router.get("/sendAlert",sendAlert);
 router.get("/sendPo",sendPo);
-router.get("/reminder",reminder);
+router.post("/reminder",reminder);
 router.get("/customerEntityAlert",customerEntityAlert);
 router.delete("/deleteOpportunity", deleteOpportunity);
 module.exports = router; 

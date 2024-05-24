@@ -8,7 +8,7 @@ const SideNavBar = () => {
   const Menus = [
 
     { title: "User", src: "User", link: "/user" },
-
+    { title: "Summary", src: "Setting", link: "/Summary" },
     { title: "Customer", src: "Setting", link: "/Customer" },
     { title: "Opportunity", src: "Setting", link: "/Opportunity" },
     { title: "Alert", src: "Setting", link: "/Alert" },

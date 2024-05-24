@@ -60,7 +60,7 @@ const Main = () => {
         body: JSON.stringify({ id }),
       });
 
-     // window.location.reload(); // Reload the page after acknowledgment
+     window.location.reload(); // Reload the page after acknowledgment
     } catch (error) {
       console.error("Error acknowledging alert:", error);
     }

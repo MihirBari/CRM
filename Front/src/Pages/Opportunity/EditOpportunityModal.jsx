@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import {  useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import API_BASE_URL from "../../config";
 import axios from "axios";
@@ -12,6 +12,7 @@ const EditOpportunityModal = ({ isOpen, onClose }) => {
         name: "",
         description: "",
         type: "",
+        License_type:"",
         value: "",
         closure_time: "",
         status: "",
@@ -46,6 +47,7 @@ const EditOpportunityModal = ({ isOpen, onClose }) => {
               name: orderData.name,
               description: orderData.description,
               type: orderData.type,
+              License_type: orderData.License_type,
               value: orderData.value,
               closure_time: formatDate(orderData.closure_time),
               status: orderData.status,
@@ -134,6 +136,13 @@ const EditOpportunityModal = ({ isOpen, onClose }) => {
                   { value: "BigFix Renew", label: "BigFix Renew" },
                   { value: "SolarWinds New", label: "SolarWinds New" },
                   { value: "SolarWinds Renew", label: "SolarWinds Renew" },
+                  { value: "Services", label: "Services" },
+                ])}
+              </div>
+              <div>
+                {renderSelect("License_type", "License Type", [
+                  { value: " New", label: " New" },
+                  { value: " Renew", label: " Renew" },
                   { value: "Services", label: "Services" },
                 ])}
               </div>

@@ -1,17 +1,11 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import Modal from "react-modal";
-import Select from "react-select";
 import API_BASE_URL from "../../config";
 
 const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
-  const [customerEntities, setCustomerEntities] = useState([]);
-  const [customerEntitiess, setCustomerEntitiess] = useState([]);
   const [type, setType] = useState("");
   const [LicenseType, setLicenseType] = useState("");
-  const [value, setValue] = useState("");
-  const [status, setStatus] = useState([]);
-  const [closureTime, setClosureTime] = useState("");
   const [licenseFrom, setLicenseFrom] = useState("");
   const [licenseTo, setLicenseTo] = useState("");
   const [dateFilterType, setDateFilterType] = useState("");
@@ -22,21 +16,6 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
   const [endDate, setEndDate] = useState(null);
   const [shouldApplyFilters, setShouldApplyFilters] = useState(false);
 
-  useEffect(() => {
-    const fetchCustomerEntities = async () => {
-      try {
-        const response = await axios.get(
-          `${API_BASE_URL}/api/Contact/customerentity`
-        );
-        setCustomerEntitiess(response.data);
-        console.log(response.data);
-      } catch (error) {
-        console.error("Error fetching customer entities:", error);
-      }
-    };
-
-    fetchCustomerEntities();
-  }, []);
 
   const applyFilters = async () => {
     try {
@@ -44,12 +23,8 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
         `${API_BASE_URL}/api/Opportunity/showOpportunity`,
         {
           params: {
-            customerEntities,
             type,
             LicenseType,
-            value,
-            status,
-            closureTime,
             licenseFrom,
             licenseTo,
             dateFilterType,
@@ -64,12 +39,8 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
       localStorage.setItem(
         "OrderFilters",
         JSON.stringify({
-          customerEntities,
           type,
           LicenseType,
-          value,
-          status,
-          closureTime,
           licenseFrom,
           licenseTo,
           dateFilterType,
@@ -87,12 +58,8 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
     const storedFilters = localStorage.getItem("OrderFilters");
     if (storedFilters) {
       const {
-        customerEntities: storedCustomerEntities,
         type: storedType,
         LicenseType: storedLicenseType,
-        value: storedValue,
-        status: storedStatus,
-        closureTime: storedClosureTime,
         licenseFrom: storedLicenseFrom,
         licenseTo: storedLicenseTo,
         dateFilterType: storedDateFilterType,
@@ -101,12 +68,9 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
         endDate: storedEndDate,
       } = JSON.parse(storedFilters);
 
-      setCustomerEntities(storedCustomerEntities);
+
       setType(storedType);
       setLicenseType(storedLicenseType)
-      setValue(storedValue);
-      setStatus(storedStatus);
-      setClosureTime(storedClosureTime);
       setLicenseFrom(storedLicenseFrom);
       setLicenseTo(storedLicenseTo);
       setDateFilterType(storedDateFilterType);
@@ -126,12 +90,8 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
   }, [shouldApplyFilters]);
 
   const handleResetFilters = () => {
-    setCustomerEntities([]);
     setType("");
     setLicenseType("");
-    setValue("");
-    setStatus([]);
-    setClosureTime("");
     setLicenseFrom("");
     setLicenseTo("");
     setDateFilterType("");
@@ -141,10 +101,6 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
     resetFilters();
   };
 
-  const customerEntityOptions = customerEntitiess.map((entity) => ({
-    value: entity.customer_entity,
-    label: entity.customer_entity,
-  }));
 
   return (
     <Modal
@@ -161,18 +117,6 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
       }}
     >
       <div className="filter-modal">
-        <Select
-          isMulti
-          options={customerEntityOptions}
-          value={customerEntityOptions.filter(option =>
-            customerEntities.includes(option.value)
-          )}
-          onChange={(selectedOptions) =>
-            setCustomerEntities(selectedOptions ? selectedOptions.map(option => option.value) : [])
-          }
-          placeholder="Select Customer Entity"
-          className="p-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2"
-        />
 
         <select
           value={type}
@@ -180,11 +124,10 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
           className="p-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2"
         >
           <option value="" disabled>Opportunity Type</option>
-          <option value="BigFix New">BigFix New</option>
-          <option value="BigFix Renew">BigFix Renew</option>
-          <option value="SolarWinds New">SolarWinds New</option>
-          <option value="SolarWinds Renew">SolarWinds Renew</option>
+          <option value="BigFix New">BigFix</option>
+          <option value="SolarWinds New">SolarWinds </option>
           <option value="Services">Services</option>
+          <option value="Services">All</option>
         </select>
 
         <select
@@ -196,43 +139,8 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
           <option value="New">New</option>
           <option value="Renew">Renew</option>
           <option value="Services">Services</option>
+          <option value="Services">All</option>
         </select>
-
-        <input
-          type="number"
-          placeholder="Opportunity Value"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          className="p-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2"
-        />
-
-        <select
-          value={status}
-          onChange={(e) =>
-            setStatus(
-              Array.from(e.target.selectedOptions, (option) => option.value)
-            )
-          }
-          className="p-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2"
-        >
-          <option value="" disabled>Opportunity Status</option>
-          <option value="Quotation Done">Quotation Done</option>
-          <option value="Demo Done">Demo Done</option>
-          <option value="POC Done">POC Done</option>
-          <option value="Progress Sub">Progress Sub</option>
-          <option value="Won">Won</option>
-          <option value="Lost">Lost</option>
-        </select>
-
-        <div className="p-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2">
-          <label>Closure Time:</label>
-          <input
-            type="date"
-            value={closureTime}
-            onChange={(e) => setClosureTime(e.target.value)}
-          />
-        </div>
-
         <div className="p-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2">
           <label>License From:</label>
           <input

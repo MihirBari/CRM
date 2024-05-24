@@ -23,6 +23,7 @@ const TableOpportunity = () => {
   const [filters, setFilters] = useState({
     customerEntities: "",
     type: "",
+    LicenseType: "",
     value: "",
     closureTime: "",
     status: "",
@@ -124,6 +125,12 @@ const TableOpportunity = () => {
     {
       name: "Opportunity Type",
       selector: (row) => row.type,
+      sortable: true,
+      width: "200px",
+    },
+    {
+      name: "License Type",
+      selector: (row) => row.License_type,
       sortable: true,
       width: "200px",
     },
@@ -276,6 +283,7 @@ const TableOpportunity = () => {
   const initialFilters = {
     customerEntities: "",
     type: "",
+    LicenseType:"",
     value: "",
     closureTime: "",
     status: "",

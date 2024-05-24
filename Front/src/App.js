@@ -24,6 +24,7 @@ import EditOpportunity from './Pages/Opportunity/editOpportunity.jsx';
 import Alert from './Pages/Alert/Alert.jsx';
 import PO from './Pages/PO/PO.jsx';
 import ViewOpportunity from './Pages/Opportunity/viewOpportunity.jsx';
+import Summary from './Pages/Summary/Summary.jsx';
 
 
 function App() {
@@ -37,6 +38,7 @@ function App() {
         <Route path='/user/edit/:id' element={currentUser ? <EditUser /> : <Navigate to='/' />} />
         <Route path='/adduser' element={ <AddUser /> } />
         <Route path='/Customer' element={currentUser ? <Expense /> : <Navigate to='/' />} />
+        <Route path='/Summary' element={currentUser ? <Summary /> : <Navigate to='/' />} />
         <Route path='/Leave' element={currentUser ? <Seller /> : <Navigate to='/' />} />
         <Route path='/Alert' element={currentUser ? <Alert /> : <Navigate to='/' />} />
         <Route path='/Opportunity' element={currentUser ? <Opportunity /> : <Navigate to='/' />} />
