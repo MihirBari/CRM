@@ -78,7 +78,7 @@ const TableOpportunity = () => {
           }
         );
         setUsers(response.data.products);
-        console.log(response.data.products);
+        //console.log(response.data.products);
         setFilteredUsers(response.data.products);
       } catch (err) {
         console.error("Error fetching orders:", err);
@@ -120,19 +120,19 @@ const TableOpportunity = () => {
       name: "Customer Entity",
       selector: (row) => row.customer_entity,
       sortable: true,
-      width: "200px",
+      width: "150px",
     },
     {
       name: "Opportunity Type",
       selector: (row) => row.type,
       sortable: true,
-      width: "200px",
+      width: "150px",
     },
     {
       name: "License Type",
       selector: (row) => row.License_type,
       sortable: true,
-      width: "200px",
+      width: "150px",
     },
     {
       name: "Value",
@@ -158,7 +158,7 @@ const TableOpportunity = () => {
       name: "Opportunity Status",
       selector: (row) => row.status,
       sortable: true,
-      width: "200px",
+      width: "150px",
     },
     {
       name: "License From",

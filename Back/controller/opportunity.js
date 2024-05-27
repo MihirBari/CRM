@@ -52,13 +52,30 @@ const showOpportunity = (req, res) => {
         filterConditions.push(`customer_entity IN (${customerEntitiesList})`);
       }
 
-      if (type) {
-        filterConditions.push(`type LIKE '%${type}%'`);
+      if (type && Array.isArray(type)) {
+        const TypeConditions = type.map(type => `type LIKE '%${type}%'`);
+        if (TypeConditions.length > 0) {
+          filterConditions.push(`(${TypeConditions.join(" OR ")})`);
+        }
+      } else if (type) {
+        filterConditions.push(`type LIKE '${type}'`);
       }
+      // if (type) {
+      //   filterConditions.push(`type LIKE '%${type}%'`);
+      // }
 
-      if (LicenseType) {
+      if (LicenseType && Array.isArray(LicenseType)) {
+        const LicenseTypeConditions = LicenseType.map(LicenseType => `License_type LIKE '%${LicenseType}%'`);
+        if (LicenseTypeConditions.length > 0) {
+          filterConditions.push(`(${LicenseTypeConditions.join(" OR ")})`);
+        }
+      } else if (LicenseType) {
         filterConditions.push(`License_type LIKE '${LicenseType}'`);
       }
+
+      // if (LicenseType) {
+      //   filterConditions.push(`License_type LIKE '${LicenseType}'`);
+      // }
 
       if (value) {
         filterConditions.push(`value LIKE '%${value}%'`);
@@ -77,11 +94,13 @@ const showOpportunity = (req, res) => {
       }
 
       if (licenseFrom) {
-        filterConditions.push(`license_from = '${licenseFrom}'`);
+        // Include data where license_from is equal to or later than the provided licenseFrom
+        filterConditions.push(`license_from >= '${licenseFrom}'`);
       }
 
       if (licenseTo) {
-        filterConditions.push(`license_to = '${licenseTo}'`);
+        // Include data where license_to is equal to or earlier than the provided licenseTo
+        filterConditions.push(`license_to <= '${licenseTo}'`);
       }
 
       if (dateFilterType && fromDate && toDate) {
@@ -146,7 +165,6 @@ const showOpportunity = (req, res) => {
     });
   });
 };
-
 
 const showOneOpportunity = async (req, res) => {
   const dealerQuery = `
@@ -338,7 +356,9 @@ const sendEmailAlert = (alertDetails) => {
     to: "mihir.b@techsa.net",
     cc: "kajal.u@techsa.net",
     subject: "Opportunity Expiry Alert",
-    text: alertMessage,
+    text: `
+    Opportunity for ${alertDetails.customer_entity} for ${alertDetails.description} in ${alertDetails.type} for ${alertDetails.License_type} license type expiring in ${alertDetails.daysLeft} days on ${alertDetails.license_to}
+    `,
   };
 
   transporter.sendMail(mailOptions, (error, info) => {
@@ -351,26 +371,142 @@ const sendEmailAlert = (alertDetails) => {
 };
 
 const storeAlertInDatabase = (alertDetails) => {
+  
+console.log(alertDetails)
   const query = `
     INSERT INTO alert (alert_entity, alert_description, license_to, alert_type, License_type, daysLeft, acknowledge, po_lost, reminder)
     VALUES (?, ?, ?, ?, ?, ?, 'No', 'No', 'No')
+    `
+
+  console.log("Days Left:", alertDetails.daysLeft);
+  pool.query(
+    query,
+    [
+      alertDetails.customer_entity,
+      alertDetails.description,
+      alertDetails.license_to,
+      alertDetails.type,
+      alertDetails.License_type,
+      alertDetails.daysLeft,
+    ],
+    (error, results) => {
+      if (error) {
+        console.error("Error storing/updating alert in database:", error);
+      } else {
+        console.log("Alert stored/updated in database:", results.insertId);
+      }
+    }
+  );
+};
+
+
+const checkOpportunities = () => {
+  console.log(`Task started`);
+
+  const query = `
+    SELECT id, customer_entity, description, license_from, license_to, type, License_type, period
+    FROM opportunity
   `;
 
-  pool.query(query, [
-    alertDetails.customer_entity,
-    alertDetails.description,
-    alertDetails.license_to,
-    alertDetails.type,
-    alertDetails.License_type,
-    alertDetails.daysLeft
-  ], (error, results) => {
+  pool.query(query, (error, results) => {
     if (error) {
-      console.error("Error storing alert in database:", error);
-    } else {
-      console.log("Alert stored in database:", results.insertId);
+      console.error("Error executing query:", error);
+      return;
     }
+
+    results.forEach((opportunity) => {
+      const today = new Date();
+      const licenseTo = new Date(opportunity.license_to);
+
+      const daysBeforeAlert = [45, 30, 15];
+      const formattedLicenseToDate = moment(opportunity.license_to)
+        .tz('Asia/Kolkata')
+        .format('ddd MMM D YYYY');
+
+      const formattedLicenseFromDate = moment(opportunity.license_from)
+        .tz('Asia/Kolkata')
+        .format('ddd MMM D YYYY');
+
+      daysBeforeAlert.forEach(days => {
+        const alertDate = new Date(licenseTo);
+        alertDate.setDate(alertDate.getDate() - days);
+
+        if (alertDate.toDateString() === today.toDateString()) {
+          const daysLeft = Math.ceil((licenseTo - today) / (1000 * 60 * 60 * 24));
+
+          if (daysLeft === 45 || daysLeft === 30 || daysLeft === 15) {
+            const alertDetails = {
+              customer_entity: opportunity.customer_entity,
+              description: opportunity.description,
+              license_from: formattedLicenseFromDate,
+              license_to: formattedLicenseToDate,
+              type: opportunity.type,
+              License_type: opportunity.License_type,
+              daysLeft: daysLeft,
+              period: opportunity.period
+            };
+
+            // Store alert details in the database
+            storeAlertInDatabase(alertDetails);
+            sendEmailAlert(alertDetails);
+            console.log(`Alert stored for opportunity ID ${opportunity.id}:`, alertDetails);
+          }
+        }
+      });
+    });
+
+    console.log(`Task completed`);
   });
 };
+
+const updateDaysLeftInAlerts = () => {
+  console.log('Updating daysLeft for all alerts...');
+
+  const selectQuery = `
+    SELECT id, license_to
+    FROM alert
+  `;
+
+  pool.query(selectQuery, (error, results) => {
+    if (error) {
+      console.error('Error fetching alerts from database:', error);
+      return;
+    }
+
+    const currentDate = moment().tz('Asia/Kolkata').startOf('day');
+
+    results.forEach(alert => {
+      const licenseToDate = moment(alert.license_to);
+      const daysLeft = licenseToDate.diff(currentDate, 'days');
+
+      const updateQuery = `
+        UPDATE alert
+        SET daysLeft = ?
+        WHERE id = ?
+      `;
+
+      pool.query(updateQuery, [daysLeft, alert.id], (updateError) => {
+        if (updateError) {
+          console.error(`Error updating daysLeft for alert id ${alert.id}:`, updateError);
+        } else {
+          console.log(`Updated daysLeft for alert id ${alert.id}`);
+        }
+      });
+    });
+  });
+};
+
+// Schedule the task to run daily at 1:10 PM IST
+cron.schedule('30 11 * * *', () => {
+  console.log(`[${moment().tz('Asia/Kolkata').format()}] Scheduled task triggered`);
+  checkOpportunities();
+  updateDaysLeftInAlerts();
+},
+{
+  scheduled: true,
+  timezone: "Asia/Kolkata"
+}
+);
 
 const sendAlert = async (req, res) => {
   const { customerEntity, status } = req.query;
@@ -441,75 +577,6 @@ const sendPo = async (req, res) => {
   });
 };
 
-const checkOpportunities = () => {
-  console.log(`Task started`);
-
-  const query = `
-    SELECT id, customer_entity, description, license_from, license_to, type, License_type, period
-    FROM opportunity
-  `;
-
-  pool.query(query, (error, results) => {
-    if (error) {
-      console.error("Error executing query:", error);
-      return;
-    }
-
-    results.forEach((opportunity) => {
-      const today = new Date();
-      const licenseTo = new Date(opportunity.license_to);
-
-      const daysBeforeAlert = [45, 30, 15];
-      const formattedLicenseToDate = moment(opportunity.license_to)
-        .tz('Asia/Kolkata')
-        .format('ddd MMM D YYYY');
-
-      const formattedLicenseFromDate = moment(opportunity.license_from)
-        .tz('Asia/Kolkata')
-        .format('ddd MMM D YYYY');
-
-      daysBeforeAlert.forEach(days => {
-        const alertDate = new Date(licenseTo);
-        alertDate.setDate(alertDate.getDate() - days);
-
-        if (alertDate.toDateString() === today.toDateString()) {
-          const daysLeft = Math.ceil((licenseTo - today) / (1000 * 60 * 60 * 24));
-
-          const alertDetails = {
-            customer_entity: opportunity.customer_entity,
-            description: opportunity.description,
-            license_from: formattedLicenseFromDate,
-            license_to: formattedLicenseToDate,
-            type: opportunity.type,
-            License_type: opportunity.License_type,
-            daysLeft: daysLeft,
-            period: opportunity.period
-          };
-
-          // Store alert details in the database
-          storeAlertInDatabase(alertDetails);
-          //sendEmailAlert(alertDetails)
-          console.log(
-            `Alert for opportunity ID ${opportunity.id}:`, alertDetails
-          );
-        }
-      });
-    });
-
-    console.log(`Task completed`);
-  });
-};
-
-// Schedule the task to run daily at 1:10 PM IST
-cron.schedule('44 12 * * *', () => {
-  console.log(`[${moment().tz('Asia/Kolkata').format()}] Scheduled task triggered`);
-  checkOpportunities();
-},
-{
-  scheduled: true,
-  timezone: "Asia/Kolkata"
-}
-);
 
 const acknowledge = async (req, res) => {
   const { id } = req.body;

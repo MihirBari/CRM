@@ -16,7 +16,6 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
   const [endDate, setEndDate] = useState(null);
   const [shouldApplyFilters, setShouldApplyFilters] = useState(false);
 
-
   const applyFilters = async () => {
     try {
       const response = await axios.get(
@@ -34,8 +33,8 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
           },
         }
       );
-      console.log("Server Response:", response.data); // Log the response
       onApplyFilters(response.data.products);
+      console.log("server",response.data.aggregates)
       localStorage.setItem(
         "OrderFilters",
         JSON.stringify({
@@ -68,9 +67,8 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
         endDate: storedEndDate,
       } = JSON.parse(storedFilters);
 
-
       setType(storedType);
-      setLicenseType(storedLicenseType)
+      setLicenseType(storedLicenseType);
       setLicenseFrom(storedLicenseFrom);
       setLicenseTo(storedLicenseTo);
       setDateFilterType(storedDateFilterType);
@@ -101,7 +99,6 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
     resetFilters();
   };
 
-
   return (
     <Modal
       isOpen={isOpen}
@@ -117,17 +114,16 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
       }}
     >
       <div className="filter-modal">
-
         <select
           value={type}
           onChange={(e) => setType(e.target.value)}
           className="p-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2"
         >
           <option value="" disabled>Opportunity Type</option>
-          <option value="BigFix New">BigFix</option>
-          <option value="SolarWinds New">SolarWinds </option>
+          <option value="BigFix">BigFix</option>
+          <option value="SolarWinds">SolarWinds</option>
           <option value="Services">Services</option>
-          <option value="Services">All</option>
+
         </select>
 
         <select
@@ -135,12 +131,13 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
           onChange={(e) => setLicenseType(e.target.value)}
           className="p-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2"
         >
-          <option value="" disabled>Opportunity Type</option>
+          <option value="" disabled>License Type</option>
           <option value="New">New</option>
           <option value="Renew">Renew</option>
           <option value="Services">Services</option>
-          <option value="Services">All</option>
+       
         </select>
+
         <div className="p-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2">
           <label>License From:</label>
           <input

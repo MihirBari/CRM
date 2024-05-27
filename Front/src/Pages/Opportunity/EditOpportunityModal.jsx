@@ -132,17 +132,15 @@ const EditOpportunityModal = ({ isOpen, onClose }) => {
               </div>
               <div>
                 {renderSelect("type", "Opportunity Type", [
-                  { value: "BigFix New", label: "BigFix New" },
-                  { value: "BigFix Renew", label: "BigFix Renew" },
-                  { value: "SolarWinds New", label: "SolarWinds New" },
-                  { value: "SolarWinds Renew", label: "SolarWinds Renew" },
+                  { value: "BigFix", label: "BigFix" },
+                  { value: "SolarWinds", label: "SolarWinds" },
                   { value: "Services", label: "Services" },
                 ])}
               </div>
               <div>
                 {renderSelect("License_type", "License Type", [
-                  { value: " New", label: " New" },
-                  { value: " Renew", label: " Renew" },
+                  { value: "New", label: "New" },
+                  { value: "Renew", label: "Renew" },
                   { value: "Services", label: "Services" },
                 ])}
               </div>

@@ -133,12 +133,20 @@ const Main = () => {
                   <div>{user.value}</div>
                 </div>
               ))}
-            <div style={{ marginTop: "20px", textAlign: "left" }}>
               <h2>Totals:</h2>
-              <div>Total Customer Entities: {aggregates.TotalEntity}</div>
-              <div>Total License Types: {aggregates.TotalLicenseType}</div>
-              <div>Total Opportunity Types: {aggregates.TotalType}</div>
-              <div>Total Value: {aggregates.TotalValue}</div>
+            <div style={{   border: "1px solid #ccc",
+                    padding: "10px",
+                    margin: "10px",
+                    height: "auto",
+                    width: "90%",
+                    display: "flex",
+                    flexWrap: "wrap",
+                    justifyContent: "space-between",}}>
+              
+              <div> {aggregates.TotalEntity}</div>
+              <div>{aggregates.TotalType}</div>
+              <div> {aggregates.TotalLicenseType}</div>
+              <div> {aggregates.TotalValue}</div>
             </div>
           </div>
         )}

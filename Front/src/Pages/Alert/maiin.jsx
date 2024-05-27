@@ -130,8 +130,7 @@ const Main = () => {
                 </h2>
                 <p>
                   Opportunity for <b>{alert.alert_entity}</b> for{" "}
-                  {alert.alert_description} in {alert.alert_type} expiring in{" "}
-                  {alert.daysLeft} days on {alert.license_to}
+                  {alert.alert_description} in {alert.alert_type} for <b>{alert.License_type} License Type</b> expiring in {alert.daysLeft} days on {alert.license_to}
                 </p>
                 {alert.daysLeft <= 15 ? (
                   <div className="button-container">

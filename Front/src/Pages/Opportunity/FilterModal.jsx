@@ -29,7 +29,7 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
           `${API_BASE_URL}/api/Contact/customerentity`
         );
         setCustomerEntitiess(response.data);
-        console.log(response.data);
+        console.log("Customer Entity", response.data);
       } catch (error) {
         console.error("Error fetching customer entities:", error);
       }
@@ -59,7 +59,6 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
           },
         }
       );
-      console.log("Server Response:", response.data); // Log the response
       onApplyFilters(response.data.products);
       localStorage.setItem(
         "OrderFilters",
@@ -101,18 +100,18 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
         endDate: storedEndDate,
       } = JSON.parse(storedFilters);
 
-      setCustomerEntities(storedCustomerEntities);
-      setType(storedType);
-      setLicenseType(storedLicenseType)
-      setValue(storedValue);
-      setStatus(storedStatus);
-      setClosureTime(storedClosureTime);
-      setLicenseFrom(storedLicenseFrom);
-      setLicenseTo(storedLicenseTo);
-      setDateFilterType(storedDateFilterType);
-      setSelectedDate(storedSelectedDate);
-      setStartDate(storedStartDate);
-      setEndDate(storedEndDate);
+      setCustomerEntities(storedCustomerEntities || []);
+      setType(storedType || "");
+      setLicenseType(storedLicenseType || "");
+      setValue(storedValue || "");
+      setStatus(storedStatus || []);
+      setClosureTime(storedClosureTime || "");
+      setLicenseFrom(storedLicenseFrom || "");
+      setLicenseTo(storedLicenseTo || "");
+      setDateFilterType(storedDateFilterType || "");
+      setSelectedDate(storedSelectedDate || new Date().toISOString().split("T")[0]);
+      setStartDate(storedStartDate || null);
+      setEndDate(storedEndDate || null);
 
       setShouldApplyFilters(true);
     }
@@ -180,10 +179,8 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
           className="p-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2"
         >
           <option value="" disabled>Opportunity Type</option>
-          <option value="BigFix New">BigFix New</option>
-          <option value="BigFix Renew">BigFix Renew</option>
-          <option value="SolarWinds New">SolarWinds New</option>
-          <option value="SolarWinds Renew">SolarWinds Renew</option>
+          <option value="BigFix">BigFix</option>
+          <option value="SolarWinds">SolarWinds</option>
           <option value="Services">Services</option>
         </select>
 
@@ -192,7 +189,7 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
           onChange={(e) => setLicenseType(e.target.value)}
           className="p-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2"
         >
-          <option value="" disabled>Opportunity Type</option>
+          <option value="" disabled>License Type</option>
           <option value="New">New</option>
           <option value="Renew">Renew</option>
           <option value="Services">Services</option>
