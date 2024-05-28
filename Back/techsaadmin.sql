@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 27, 2024 at 02:59 PM
+-- Generation Time: May 28, 2024 at 02:58 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -45,11 +45,12 @@ CREATE TABLE `alert` (
 --
 
 INSERT INTO `alert` (`id`, `acknowledge`, `po_lost`, `alert_description`, `alert_type`, `License_type`, `alert_entity`, `daysLeft`, `license_to`, `reminder`) VALUES
-(25, 'No', 'No', '1000 license', 'BigFix', 'New', 'Techsa', 42, 'Mon Jul 8 2024', 'No'),
-(26, 'No', 'No', '3000', 'Services', 'Services', 'Techsa', 26, 'Sat Jun 22 2024', 'No'),
-(27, 'No', 'No', '200 License', 'BigFix', 'Renew', 'Techsa', 27, 'Sun Jun 23 2024', 'No'),
-(28, 'No', 'No', '400 License ', 'SolarWinds', 'New', 'Techsa', 41, 'Sun Jul 7 2024', 'No'),
-(35, 'No', 'No', '500 Licenses', 'SolarWinds ', 'Renew', 'Techsa1', 45, 'Thu Jul 11 2024', 'No');
+(25, 'No', 'No', '1000 license', 'BigFix', 'New', 'Techsa', 41, 'Mon Jul 8 2024', 'Yes'),
+(26, 'No', 'No', '3000', 'Services', 'Services', 'Techsa', 25, 'Sat Jun 22 2024', 'No'),
+(27, 'No', 'No', '200 License', 'BigFix', 'Renew', 'Techsa', 26, 'Sun Jun 23 2024', 'No'),
+(28, 'No', 'No', '400 License ', 'SolarWinds', 'New', 'Techsa', 40, 'Sun Jul 7 2024', 'No'),
+(35, 'No', 'No', '500 Licenses', 'SolarWinds ', 'Renew', 'Techsa1', 44, 'Thu Jul 11 2024', 'No'),
+(40, 'No', 'No', '1000 License', 'SolarWinds', 'Services', 'BSE', 15, 'Wed Jun 12 2024', 'No');
 
 -- --------------------------------------------------------
 
@@ -166,11 +167,25 @@ CREATE TABLE `opportunity` (
 
 INSERT INTO `opportunity` (`id`, `customer_entity`, `name`, `description`, `type`, `License_type`, `value`, `closure_time`, `status`, `period`, `license_from`, `license_to`, `pdf`) VALUES
 (11, 'Techsa', 'Diana', '1000 license', 'BigFix', 'New', 800000, '2024-05-25', 'Won', '3 Years period', '2023-07-08', '2024-07-08', NULL),
-(12, 'Techsa', 'Diana', '200 License', 'BigFix', 'Renew', 800000, '2024-05-23', 'Won', '3 Years period', '2023-11-16', '2024-06-23', NULL),
-(13, 'Techsa', 'Rohit', '400 License ', 'SolarWinds', 'New', 800000, '2024-05-23', 'Won', '3 Years period', '2023-07-01', '2024-07-07', NULL),
+(12, 'Techsa', 'Diana', '100 License', 'BigFix', 'Renew', 800000, '2024-05-23', 'Won', '3 Years period', '2023-11-16', '2024-06-23', NULL),
+(13, 'Techsa', 'Rohit', '400 License ', 'SolarWinds', 'New', 800000, '2024-05-23', 'Won', '2 Years period', '2023-07-01', '2024-07-07', NULL),
 (14, 'Techsa', 'Diana', '3000', 'Services', 'Services', 800000, '2024-05-24', 'Won', '3 Years period', '2023-06-24', '2024-06-22', NULL),
 (15, 'Techsa1', 'Kushal', '400 license', 'Services', 'Services', 770000, '2024-05-27', 'Won', '2 Years period', '2023-07-27', '2024-07-10', NULL),
-(16, 'Techsa1', 'Mihir bari', '500 Licenses', 'SolarWinds ', 'Renew', 770000, '2024-05-27', 'Won', '2 Years period', '2023-07-27', '2024-07-11', NULL);
+(16, 'Techsa1', 'Mihir bari', '500 Licenses', 'SolarWinds', 'Renew', 770000, '2024-05-27', 'Won', '2 Years period', '2023-07-27', '2024-07-11', NULL),
+(19, 'BSE', 'Himani', '1000 License', 'SolarWinds', 'Services', 800000, '2024-05-28', 'Won', '3 Years period', '2023-06-12', '2024-06-12', NULL),
+(20, 'Techsa1', 'Kushal', '100 Licenses', 'BigFix', 'Services', 68000, '2024-05-28', 'POC Done', '1 Years period', '1970-01-01', '1970-01-01', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `sessions`
+--
+
+CREATE TABLE `sessions` (
+  `session_id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+  `expires` int(11) UNSIGNED NOT NULL,
+  `data` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -231,6 +246,12 @@ ALTER TABLE `opportunity`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `sessions`
+--
+ALTER TABLE `sessions`
+  ADD PRIMARY KEY (`session_id`);
+
+--
 -- Indexes for table `user`
 --
 ALTER TABLE `user`
@@ -244,7 +265,7 @@ ALTER TABLE `user`
 -- AUTO_INCREMENT for table `alert`
 --
 ALTER TABLE `alert`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
 
 --
 -- AUTO_INCREMENT for table `contact`
@@ -268,7 +289,7 @@ ALTER TABLE `leaveapplication`
 -- AUTO_INCREMENT for table `opportunity`
 --
 ALTER TABLE `opportunity`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `user`

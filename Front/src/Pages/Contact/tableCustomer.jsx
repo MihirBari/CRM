@@ -98,7 +98,7 @@ const TableCustomer = () => {
         <span
           className="view-link"
           onClick={() => handleViewClick(row.customer_entity)}
-          style={{ cursor: "pointer" }}
+          style={{ cursor: "pointer", width: "100%", height: "100%" }}
         >
           {row.customer_entity}
         </span>
@@ -244,12 +244,12 @@ const TableCustomer = () => {
         <div
           style={{ display: "flex", alignItems: "center", marginLeft: "10px" }}
         >
-          <button
+          {/* <button
             className="bg-blue-500 text-white px-4 py-2 rounded"
             onClick={handleExportClick}
           >
             Export
-          </button>
+          </button> */}
           <ExportTable
             data={filteredUsers}
             isOpen={exportModalIsOpen}

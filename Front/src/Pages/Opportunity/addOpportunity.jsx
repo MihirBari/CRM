@@ -170,8 +170,8 @@ const AddOpportunity = () => {
                     <option value="" disabled>
                       Select Option
                     </option>
-                    <option value="BigFix ">BigFix </option>
-                    <option value="SolarWinds ">SolarWinds </option>
+                    <option value="BigFix">BigFix</option>
+                    <option value="SolarWinds">SolarWinds</option>
                     <option value="Services">Services</option>
                   </select>
                 </div>
@@ -192,8 +192,8 @@ const AddOpportunity = () => {
                     <option value="" disabled>
                       Select Option
                     </option>
-                    <option value="New"> New</option>
-                    <option value="Renew"> Renew</option>
+                    <option value="New">New</option>
+                    <option value="Renew">Renew</option>
                     <option value="Services">Services</option>
                   </select>
                 </div>

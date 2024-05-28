@@ -168,19 +168,41 @@ const showOpportunity = (req, res) => {
 
 const showOneOpportunity = async (req, res) => {
   const dealerQuery = `
-  SELECT o.id, o.customer_entity, o.name, o.description, o.type, o.License_type, o.period, o.value, o.closure_time, o.status, o.license_from, o.license_to, c.phone, c.email
-  FROM 
-      opportunity o
-  LEFT JOIN 
-      (
-          SELECT customer_entity, name, phone, email
-          FROM 
-              contact
-          GROUP BY 
-              customer_entity, 
-              name
-      ) c ON customer_entity = c.customer_entity AND name = c.name
-  WHERE id = ?
+  SELECT 
+    o.id, 
+    o.customer_entity, 
+    o.name, 
+    o.description, 
+    o.type, 
+    o.License_type, 
+    o.period, 
+    o.value, 
+    o.closure_time, 
+    o.status, 
+    o.license_from, 
+    o.license_to, 
+    c.phone, 
+    c.email
+FROM 
+    opportunity o
+LEFT JOIN 
+    (
+        SELECT 
+            customer_entity, 
+            name, 
+            phone, 
+            email
+        FROM 
+            contact
+        GROUP BY 
+            customer_entity, 
+            name
+    ) c 
+ON 
+    o.customer_entity = c.customer_entity 
+    AND o.name = c.name
+WHERE 
+    o.id = ?
   `;
 
   pool.query(dealerQuery, [req.params.id], (error, results) => {
@@ -197,11 +219,11 @@ const showOneOpportunity = async (req, res) => {
 const addOpportunity = async (req, res) => {
   const addDealer = `
     INSERT INTO opportunity
-    (customer_entity, name,  description, type,License_type, value, closure_time, status,period, license_from, license_to)
-    VALUES (?, ?, ?, ?, ?,?, ?, ?,?, ?,?)
-    `;
+    (customer_entity, name, description, type, License_type, value, closure_time, status, period, license_from, license_to)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `;
 
-  // Extract common values from the request body
+  // Extract values from the request body
   const {
     customer_entity,
     name,
@@ -216,36 +238,38 @@ const addOpportunity = async (req, res) => {
     license_to,
   } = req.body;
 
+  // Set default values for license_from and license_to if they are not provided
+  const licenseFrom = license_from || null;
+  const licenseTo = license_to || null;
+
+  const values = [
+    customer_entity,
+    name,
+    description,
+    type,
+    License_type,
+    value,
+    closure_time,
+    status,
+    period,
+    licenseFrom,
+    licenseTo,
+  ];
+
   try {
-    // Iterate over each contact and insert into the database
-
-    const values = [
-      customer_entity,
-      name,
-      description,
-      type,
-      License_type,
-      value,
-      closure_time,
-      status,
-      period,
-      license_from,
-      license_to,
-    ];
-
     await new Promise((resolve, reject) => {
       pool.query(addDealer, values, (error, results) => {
         if (error) {
           console.error("Error executing query:", error);
           reject(error);
         } else {
-          console.log("Contact added successfully:", results);
+          console.log("Opportunity added successfully:", results);
           resolve();
         }
       });
     });
 
-    res.json({ message: "Customer added successfully" });
+    res.json({ message: "Opportunity added successfully" });
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -253,6 +277,11 @@ const addOpportunity = async (req, res) => {
 };
 
 const editOpportunity = (req, res) => {
+  // Parse and format closure_time
+  const closureTime = new Date(req.body.closure_time).toISOString().split('T')[0];
+  const LicenseFrom = new Date(req.body.license_from).toISOString().split('T')[0];
+  const LicenseTo = new Date(req.body.license_to).toISOString().split('T')[0];
+
   const updateDealer = `
     UPDATE opportunity 
     SET
@@ -264,7 +293,7 @@ const editOpportunity = (req, res) => {
     value = ?,
     closure_time= ?,
     status =?,
-    period=?,	
+    period=?,  
     license_from = ?,
     license_to = ?
     WHERE
@@ -278,11 +307,11 @@ const editOpportunity = (req, res) => {
     req.body.type,
     req.body.License_type,
     req.body.value,
-    req.body.closure_time,
+    closureTime, // Use formatted closure_time here
     req.body.status,
     req.body.period,
-    req.body.license_from,
-    req.body.license_to,
+    LicenseFrom,
+    LicenseTo,
     req.params.id,
   ];
 
@@ -352,12 +381,12 @@ const transporter = nodemailer.createTransport({
 // Function to send email alerts
 const sendEmailAlert = (alertDetails) => {
   const mailOptions = {
-    from: process.env.EMAIL,
-    to: "mihir.b@techsa.net",
-    cc: "kajal.u@techsa.net",
+    from: process.env.SMPT_MAIL,
+    to: "madhu.i@techsa.net",
+    cc: ["himani.g@techsa.net", "sanjiv.s@techsa.net"],
     subject: "Opportunity Expiry Alert",
     text: `
-    Opportunity for ${alertDetails.customer_entity} for ${alertDetails.description} in ${alertDetails.type} for ${alertDetails.License_type} license type expiring in ${alertDetails.daysLeft} days on ${alertDetails.license_to}
+    An opportunity has arisen ${alertDetails.customer_entity} to acquire ${alertDetails.description} in ${alertDetails.type} for the ${alertDetails.License_type} license type. These licenses are set to expire in ${alertDetails.daysLeft} days, on ${alertDetails.license_to}.
     `,
   };
 
@@ -476,7 +505,12 @@ const updateDaysLeftInAlerts = () => {
     const currentDate = moment().tz('Asia/Kolkata').startOf('day');
 
     results.forEach(alert => {
-      const licenseToDate = moment(alert.license_to);
+      const licenseToDate = moment(alert.license_to, 'ddd MMM DD YYYY');
+      if (!licenseToDate.isValid()) {
+        console.error(`Invalid date format for alert id ${alert.id}: ${alert.license_to}`);
+        return;
+      }
+
       const daysLeft = licenseToDate.diff(currentDate, 'days');
 
       const updateQuery = `
@@ -496,8 +530,9 @@ const updateDaysLeftInAlerts = () => {
   });
 };
 
+
 // Schedule the task to run daily at 1:10 PM IST
-cron.schedule('30 11 * * *', () => {
+cron.schedule('08 15 * * *', () => {
   console.log(`[${moment().tz('Asia/Kolkata').format()}] Scheduled task triggered`);
   checkOpportunities();
   updateDaysLeftInAlerts();
@@ -534,6 +569,8 @@ const sendAlert = async (req, res) => {
     dealerQuery += ` AND ${filterConditions.join(" AND ")}`;
   }
 
+  dealerQuery += ` ORDER BY daysLeft`;
+
   pool.query(dealerQuery, (error, results) => {
     if (error) {
       console.error("Error executing query:", error);
@@ -542,6 +579,7 @@ const sendAlert = async (req, res) => {
     }
     //console.log("Dealer details:", results);
     res.status(200).json({ products: results });
+    console.log(results)
   });
 };
 

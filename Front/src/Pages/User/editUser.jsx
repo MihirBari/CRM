@@ -28,6 +28,7 @@ const EditUser = () => {
           name: userData.name,
           email: userData.email,
           password: userData.password,
+          role: userData.role,
         });
       } catch (err) {
         console.error(err);

@@ -109,7 +109,7 @@ const TableOpportunity = () => {
         <span
           className="view-link"
           onClick={() => handleViewClick(row.id)}
-          style={{ cursor: "pointer" }}
+          style={{ cursor: "pointer", width: "100%", height: "100%" }}
         >
           {row.id}
         </span>
@@ -140,20 +140,20 @@ const TableOpportunity = () => {
       sortable: true,
       width: "150px",
     },
-    {
-      name: "Closure Time",
-      selector: (row) => {
-        const date = new Date(row.closure_time);
-        return date.toLocaleString("en-Uk", {
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-          timeZone: "IST",
-        });
-      },
-      sortable: true,
-      width: "150px",
-    },
+    // {
+    //   name: "Closure Time",
+    //   selector: (row) => {
+    //     const date = new Date(row.closure_time);
+    //     return date.toLocaleString("en-Uk", {
+    //       year: "numeric",
+    //       month: "2-digit",
+    //       day: "2-digit",
+    //       timeZone: "IST",
+    //     });
+    //   },
+    //   sortable: true,
+    //   width: "150px",
+    // },
     {
       name: "Opportunity Status",
       selector: (row) => row.status,
@@ -298,12 +298,12 @@ const TableOpportunity = () => {
   return (
     <div className="order">
       <div className="flex items-center">
-        <button
+        {/* <button
           className="bg-blue-500 text-white px-4 py-2 rounded"
           onClick={handleExportClick}
         >
           Export
-        </button>
+        </button> */}
         <ExportTable
           data={filteredUsers}
           isOpen={exportModalIsOpen}

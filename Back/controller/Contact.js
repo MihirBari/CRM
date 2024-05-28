@@ -2,7 +2,7 @@ const { pool } = require("../database");
 
 const addContact = async (req, res) => {
   const addDealer = `
-    INSERT INTO Contact
+    INSERT INTO contact
     (customer_entity, name, designation, phone, email, created_at)
     VALUES (?, ?, ?, ?, ?, NOW())
   `;
@@ -95,7 +95,7 @@ const showContact = (req, res) => {
       let query = `
       SELECT 
       id, customer_entity, name, designation,phone,email, created_at
-      FROM Contact 
+      FROM contact 
       where customer_entity = ?
           `;
 
@@ -210,7 +210,7 @@ const showCustomer = (req, res) => {
 const showOneContact = async (req, res) => {
   const dealerQuery = `
     SELECT  customer_entity, name, designation, phone, email
-    FROM Contact
+    FROM contact
     WHERE id = ?
   `;
 
@@ -245,7 +245,7 @@ const showOneCustomer = async (req, res) => {
 
 const editContact = (req, res) => {
   const updateDealer = `
-    UPDATE Contact
+    UPDATE contact
     SET
     customer_entity = ?,
     name = ?,
@@ -279,7 +279,7 @@ const editContact = (req, res) => {
 
 const editCustomer = (req, res) => {
   const updateDealer = `
-    UPDATE Customer
+    UPDATE customer
     SET
     customer_entity = ?,
     email=?,
@@ -313,7 +313,7 @@ const editCustomer = (req, res) => {
 };
 
 const deleteContact = (req, res) => {
-  const query = "DELETE FROM Contact WHERE id = ?";
+  const query = "DELETE FROM contact WHERE id = ?";
   const debitorName = req.body.id;
 
   pool.query(query, [debitorName], (error, results) => {
@@ -334,7 +334,7 @@ const deleteContact = (req, res) => {
 };
 
 const deleteCustomer = (req, res) => {
-  const query = "DELETE FROM Customer WHERE id = ?";
+  const query = "DELETE FROM customer WHERE id = ?";
   const debitorName = req.body.id;
 
   pool.query(query, [debitorName], (error, results) => {

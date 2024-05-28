@@ -122,8 +122,8 @@ const EditOpportunity = () => {
               </div>
               <div>
                 {renderSelect("License_type", "License Type", [
-                  { value: " New", label: " New" },
-                  { value: " Renew", label: " Renew" },
+                  { value: "New", label: "New" },
+                  { value: "Renew", label: "Renew" },
                   { value: "Services", label: "Services" },
                 ])}
               </div>

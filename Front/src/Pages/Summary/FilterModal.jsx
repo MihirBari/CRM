@@ -6,6 +6,7 @@ import API_BASE_URL from "../../config";
 const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
   const [type, setType] = useState("");
   const [LicenseType, setLicenseType] = useState("");
+  const [status, setStatus] = useState([]);
   const [licenseFrom, setLicenseFrom] = useState("");
   const [licenseTo, setLicenseTo] = useState("");
   const [dateFilterType, setDateFilterType] = useState("");
@@ -23,6 +24,7 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
         {
           params: {
             type,
+            status,
             LicenseType,
             licenseFrom,
             licenseTo,
@@ -39,6 +41,7 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
         "OrderFilters",
         JSON.stringify({
           type,
+          status,
           LicenseType,
           licenseFrom,
           licenseTo,
@@ -58,6 +61,7 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
     if (storedFilters) {
       const {
         type: storedType,
+        status: storedStatus,
         LicenseType: storedLicenseType,
         licenseFrom: storedLicenseFrom,
         licenseTo: storedLicenseTo,
@@ -69,6 +73,7 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
 
       setType(storedType);
       setLicenseType(storedLicenseType);
+      setStatus(storedStatus);
       setLicenseFrom(storedLicenseFrom);
       setLicenseTo(storedLicenseTo);
       setDateFilterType(storedDateFilterType);
@@ -89,6 +94,7 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
 
   const handleResetFilters = () => {
     setType("");
+    setStatus("")
     setLicenseType("");
     setLicenseFrom("");
     setLicenseTo("");
@@ -123,7 +129,6 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
           <option value="BigFix">BigFix</option>
           <option value="SolarWinds">SolarWinds</option>
           <option value="Services">Services</option>
-
         </select>
 
         <select
@@ -136,6 +141,24 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
           <option value="Renew">Renew</option>
           <option value="Services">Services</option>
        
+        </select>
+
+        <select
+          value={status}
+          onChange={(e) =>
+            setStatus(
+              Array.from(e.target.selectedOptions, (option) => option.value)
+            )
+          }
+          className="p-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2"
+        >
+          <option value="" disabled>Opportunity Status</option>
+          <option value="Quotation Done">Quotation Done</option>
+          <option value="Demo Done">Demo Done</option>
+          <option value="POC Done">POC Done</option>
+          <option value="Progress Sub">Progress Sub</option>
+          <option value="Won">Won</option>
+          <option value="Lost">Lost</option>
         </select>
 
         <div className="p-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2">

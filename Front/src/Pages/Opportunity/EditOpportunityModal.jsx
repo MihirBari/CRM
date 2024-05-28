@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {  useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import API_BASE_URL from "../../config";
 import axios from "axios";
@@ -22,7 +22,6 @@ const EditOpportunityModal = ({ isOpen, onClose }) => {
       };
     
       const { id } = useParams();
-      const navigate = useNavigate();
       const [inputs, setInputs] = useState(initialInputs);
       const [err, setError] = useState(null);
     
@@ -76,7 +75,7 @@ const EditOpportunityModal = ({ isOpen, onClose }) => {
     
       const handleSubmit = async (e) => {
         e.preventDefault();
-    
+      
         try {
           await axios.put(`${API_BASE_URL}/api/Opportunity/editOpportunity/${id}`, {
             ...inputs,
@@ -84,16 +83,19 @@ const EditOpportunityModal = ({ isOpen, onClose }) => {
             license_from: inputs.license_from ? new Date(inputs.license_from).toISOString() : null,
             license_to: inputs.license_to ? new Date(inputs.license_to).toISOString() : null,
           });
-    
+      
           setInputs(initialInputs);
-          navigate("/Opportunity");
-          toast.success("Opportnity updated successfully");
+          toast.success("Opportunity updated successfully");
+      
+          onClose();
+          window.location.reload()
         } catch (err) {
           console.error(err);
           setError(err.response);
           toast.error("Failed to update order");
         }
       };
+      
 
   return (
     <Modal
@@ -176,10 +178,7 @@ const EditOpportunityModal = ({ isOpen, onClose }) => {
               )}
             </div>
             <div className="flex  items-center mt-4">
-              {renderButton("Update")}
-        
-               
-              
+              {renderButton("Update")}   
             </div>
           </form>
         </div>

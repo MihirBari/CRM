@@ -123,7 +123,7 @@ const editUser = async (req, res) => {
 
     const userQuery = `
       UPDATE user
-      SET name = ?, email = ?, ${hashedPassword ? 'password = ?,' : ''}, role = ?
+      SET name = ?, email = ?, ${hashedPassword ? 'password = ?' : ''}, role = ?
       WHERE id = ?
     `;
 
