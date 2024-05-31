@@ -17,7 +17,7 @@ const TableOpportunity = () => {
   const [exportModalIsOpen, setExportModalIsOpen] = useState(false);
   const [filterModalIsOpen, setFilterModalIsOpen] = useState(false);
   const [filteredUsers, setFilteredUsers] = useState([]);
- 
+
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [deleteItemId, setDeleteItemId] = useState(null);
   const [filters, setFilters] = useState({
@@ -100,6 +100,23 @@ const TableOpportunity = () => {
     navigate(`view/${id}`);
   };
 
+  const formatDate = (date) => {
+    const formattedDate = new Date(date);
+    if (formattedDate.getTime() === new Date("1970-01-01T00:00:00Z").getTime()) {
+      return "";
+    }
+    return formattedDate.toLocaleString("en-Uk", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      timeZone: "IST",
+    });
+  };
+
+  const formatIndianNumber = (value) => {
+    return new Intl.NumberFormat("en-IN").format(value);
+  };
+
   const columns = [
     {
       name: "ID",
@@ -136,24 +153,10 @@ const TableOpportunity = () => {
     },
     {
       name: "Value",
-      selector: (row) => row.value,
+      selector: (row) => formatIndianNumber(row.value),
       sortable: true,
       width: "150px",
     },
-    // {
-    //   name: "Closure Time",
-    //   selector: (row) => {
-    //     const date = new Date(row.closure_time);
-    //     return date.toLocaleString("en-Uk", {
-    //       year: "numeric",
-    //       month: "2-digit",
-    //       day: "2-digit",
-    //       timeZone: "IST",
-    //     });
-    //   },
-    //   sortable: true,
-    //   width: "150px",
-    // },
     {
       name: "Opportunity Status",
       selector: (row) => row.status,
@@ -162,29 +165,13 @@ const TableOpportunity = () => {
     },
     {
       name: "License From",
-      selector: (row) => {
-        const date = new Date(row.license_from);
-        return date.toLocaleString("en-Uk", {
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-          timeZone: "IST",
-        });
-      },
+      selector: (row) => formatDate(row.license_from),
       sortable: true,
       width: "150px",
     },
     {
       name: "License To",
-      selector: (row) => {
-        const date = new Date(row.license_to);
-        return date.toLocaleString("en-Uk", {
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-          timeZone: "IST",
-        });
-      },
+      selector: (row) => formatDate(row.license_to),
       sortable: true,
       width: "150px",
     },

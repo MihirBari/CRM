@@ -27,7 +27,7 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
   const applyFilters = async () => {
     try {
       const response = await axios.get(
-        `${API_BASE_URL}/api/contact/showContact`,
+        `${API_BASE_URL}/api/contact/showCustomer`,
         {
           params: {
             city,

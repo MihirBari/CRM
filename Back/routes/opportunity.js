@@ -11,12 +11,15 @@ const {     showOpportunity,
     sendPo,
     reminder} = require("../controller/opportunity");
 const router = express.Router();
-
+const multer = require('multer');
+const upload = multer({
+    limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB limit
+  });
 
 router.get("/showOpportunity",showOpportunity);
 router.get("/showOneOpportunity/:id", showOneOpportunity);
-router.post("/addOpportunity", addOpportunity);
-router.put("/editOpportunity/:id", editOpportunity);
+router.post("/addOpportunity",upload.single('file'), addOpportunity);
+router.put("/editOpportunity/:id", upload.single('file'),  editOpportunity);
 router.post("/name",name);
 router.post("/acknowledge",acknowledge);
 router.post("/PoLost",PoLost);

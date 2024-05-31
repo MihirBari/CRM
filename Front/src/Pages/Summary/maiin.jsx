@@ -71,88 +71,84 @@ const Main = () => {
     fetchOpportunities();
   }, [filters]);
 
-  return (
-    <div className="h-screen flex-1 p-7">
-      <div>
-        <h1 className="text-2xl font-semibold text-center">Summary</h1>
-      </div>
-      <div style={{ float: "right" }}>
-        <CiFilter
-          size={40}
-          style={{ marginLeft: "25px" }}
-          onClick={handleCiFilterClick}
-        />
-        <FilterModal
-          isOpen={filterModalIsOpen}
-          onClose={() => setFilterModalIsOpen(false)}
-          onApplyFilters={onApplyFilters}
-          filters={filters}
-          resetFilters={() => setFilters(initialFilters)}
-        />
-      </div>
+  const formatIndianNumber = (value) => {
+    return new Intl.NumberFormat('en-IN').format(value);
+  };
 
+  return (
+<div className="h-screen flex-1 p-7">
+  <div>
+    <h1 className="text-2xl font-semibold text-center">Summary</h1>
+  </div>
+  <div style={{ float: "right" }}>
+    <CiFilter
+      size={40}
+      style={{ marginLeft: "25px" }}
+      onClick={handleCiFilterClick}
+    />
+    <FilterModal
+      isOpen={filterModalIsOpen}
+      onClose={() => setFilterModalIsOpen(false)}
+      onApplyFilters={onApplyFilters}
+      filters={filters}
+      resetFilters={() => setFilters(initialFilters)}
+    />
+  </div>
+
+  <div>
+    {loading ? (
+      <div>Loading...</div>
+    ) : users.length === 0 ? (
+      <div className="text-xl font text-center">Please add details.</div>
+    ) : (
       <div>
-        {loading ? (
-          <div>Loading...</div>
-        ) : users.length === 0 ? (
-          <div className="text-xl font text-center">Please add details.</div>
-        ) : (
-          <div>
-            <div style={{ display: "flex", justifyContent: "space-between", padding: "10px", backgroundColor: "#f0f0f0", marginBottom: "10px" }}>
-              <div>
-                <h2>Entity</h2>
-              </div>
-              <div>
-                <h2>Opportunity Type</h2>
-              </div>
-              <div>
-                <h2>License Type</h2>
-              </div>
-              <div>
-                <h2>Total Amount</h2>
-              </div>
-            </div>
-            {Array.isArray(users) &&
-              filteredUsers.map((user) => (
-                <div
-                  key={user.id}
-                  style={{
-                    border: "1px solid #ccc",
-                    padding: "10px",
-                    margin: "10px",
-                    height: "auto",
-                    width: "90%",
-                    display: "flex",
-                    flexWrap: "wrap",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <div>{user.customer_entity}</div>
-                  <div>{user.type}</div>
-                  <div>{user.License_type}</div>
-                  <div>{user.value}</div>
-                </div>
-              ))}
-              <h2>Totals:</h2>
-            <div style={{   border: "1px solid #ccc",
-                    padding: "10px",
-                    margin: "10px",
-                    height: "auto",
-                    width: "90%",
-                    display: "flex",
-                    flexWrap: "wrap",
-                    justifyContent: "space-between",}}>
-              
-              <div> {aggregates.TotalEntity}</div>
-              <div>{aggregates.TotalType}</div>
-              <div> {aggregates.TotalLicenseType}</div>
-              <div> {aggregates.TotalValue}</div>
-            </div>
-          </div>
-        )}
+        <div style={{ overflowX: "auto", width: "100%" }}>
+          <table className="table-auto" style={{ width: "100%" }}>
+            <thead>
+              <tr style={{ textAlign: "center" }}>
+                <th className="border px-4 py-2">Entity</th>
+                <th className="border px-4 py-2">Opportunity Type</th>
+                <th className="border px-4 py-2">License Type</th>
+                <th className="border px-4 py-2">Total Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Array.isArray(users) &&
+                filteredUsers.map((user) => (
+                  <tr style={{ textAlign: "center" }} key={user.id}>
+                    <td className="border px-4 py-2">{user.customer_entity}</td>
+                    <td className="border px-4 py-2">{user.type}</td>
+                    <td className="border px-4 py-2">{user.License_type}</td>
+                    <td className="border px-4 py-2">{formatIndianNumber(user.value)}</td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </div>
+        <div style={{ overflowX: "auto", width: "100%" }}>
+          <table className="table-auto" style={{ width: "100%" }}>
+            <tbody>
+              <tr style={{ textAlign: "center" }}>
+                <th className="px-4 py-2">Total Entity</th>
+                <th className="px-4 py-2">Total Type</th>
+                <th className="px-4 py-2">Total License Type</th>
+                <th className="px-4 py-2">Total Value</th>
+              </tr>
+              <tr style={{ textAlign: "center" }}>
+                <td className="border px-4 py-2">{aggregates.TotalEntity}</td>
+                <td className="border px-4 py-2">{aggregates.TotalType}</td>
+                <td className="border px-4 py-2">{aggregates.TotalLicenseType}</td>
+                <td className="border px-4 py-2">{formatIndianNumber(aggregates.TotalValue)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
-  );
+    )}
+  </div>
+</div>
+
+  );  
 };
 
 export default Main;

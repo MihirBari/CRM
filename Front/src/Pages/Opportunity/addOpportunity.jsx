@@ -18,6 +18,7 @@ const AddOpportunity = () => {
     period: "",
     license_from: "",
     license_to: "",
+    pdf: null,
   };
 
   const [inputs, setInputs] = useState(initialInputs);
@@ -60,6 +61,26 @@ const AddOpportunity = () => {
     }
   };
 
+  const handlePdfChange = (e) => {
+    const file = e.target.files[0];
+    const maxSize = 50 * 1024 * 1024; // 50 MB
+  
+    if (file && file.size > maxSize) {
+      toast.error("File size exceeds the maximum limit of 50 MB.");
+      return;
+    }
+  
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setInputs((prev) => ({
+          ...prev,
+          pdf: reader.result,
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
   const handleSelectChange = (selectedOption) => {
     setInputs((prev) => ({
       ...prev,
@@ -94,10 +115,11 @@ const AddOpportunity = () => {
           Add Opportunity
         </h2>
       </div>
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+      <div className="mt-8  sm:w-full">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
+              
               <div>
                 <label htmlFor="customer_entity" className="block text-sm font-medium text-gray-700">
                   Name Of Customer Entity
@@ -310,10 +332,26 @@ const AddOpportunity = () => {
                       />
                     </div>
                   </div>
+              
                 </>
               )}
 
-              
+              <div>
+                <label
+                  htmlFor="pdf"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Upload PDF
+                </label>
+                <div className="mt-1 relative">
+                  <input
+                    type="file"
+                    name="pdf"
+                    onChange={(e) => handlePdfChange(e)}
+                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  />
+                </div>
+              </div>
 
             </div>
 

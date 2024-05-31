@@ -157,7 +157,7 @@ const showOpportunity = (req, res) => {
               });
             }
             connection.release();
-            console.log(results2[0] )
+           // console.log(results2[0] )
             res.status(200).json({ products: results, aggregates: results2[0] });
           });
         });
@@ -181,6 +181,7 @@ const showOneOpportunity = async (req, res) => {
     o.status, 
     o.license_from, 
     o.license_to, 
+    o.pdf,
     c.phone, 
     c.email
 FROM 
@@ -211,7 +212,12 @@ WHERE
       res.status(500).json({ error: "Internal Server Error" });
       return;
     }
-    //console.log("Dealer details:", results);
+    if (results.length > 0) {
+      const opportunity = results[0];
+      if (opportunity.pdf) {
+        opportunity.pdf = opportunity.pdf.toString('base64');
+      }
+    }
     res.status(200).json(results);
   });
 };
@@ -219,8 +225,8 @@ WHERE
 const addOpportunity = async (req, res) => {
   const addDealer = `
     INSERT INTO opportunity
-    (customer_entity, name, description, type, License_type, value, closure_time, status, period, license_from, license_to)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    (customer_entity, name, description, type, License_type, value, closure_time, status, period, license_from, license_to, pdf)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   // Extract values from the request body
@@ -236,11 +242,15 @@ const addOpportunity = async (req, res) => {
     period,
     license_from,
     license_to,
+    pdf
   } = req.body;
 
   // Set default values for license_from and license_to if they are not provided
   const licenseFrom = license_from || null;
   const licenseTo = license_to || null;
+
+  // Decode the base64 PDF data
+  const pdfBuffer = Buffer.from(pdf.split(',')[1], 'base64');
 
   const values = [
     customer_entity,
@@ -254,6 +264,7 @@ const addOpportunity = async (req, res) => {
     period,
     licenseFrom,
     licenseTo,
+    pdfBuffer
   ];
 
   try {
@@ -263,7 +274,7 @@ const addOpportunity = async (req, res) => {
           console.error("Error executing query:", error);
           reject(error);
         } else {
-          console.log("Opportunity added successfully:", results);
+          //console.log("Opportunity added successfully:", results);
           resolve();
         }
       });
@@ -277,43 +288,50 @@ const addOpportunity = async (req, res) => {
 };
 
 const editOpportunity = (req, res) => {
-  // Parse and format closure_time
-  const closureTime = new Date(req.body.closure_time).toISOString().split('T')[0];
-  const LicenseFrom = new Date(req.body.license_from).toISOString().split('T')[0];
-  const LicenseTo = new Date(req.body.license_to).toISOString().split('T')[0];
+  const { customer_entity, name, description, type, License_type, value, closure_time, status, period, license_from, license_to } = req.body;
+  const pdf = req.files && req.files.length > 0 ? req.files[0].buffer : null; 
 
-  const updateDealer = `
+  const closureTime = closure_time ? new Date(closure_time).toISOString().split('T')[0] : null;
+  const LicenseFrom = license_from ? new Date(license_from).toISOString().split('T')[0] : null;
+  const LicenseTo = license_to ? new Date(license_to).toISOString().split('T')[0] : null;
+
+  let updateDealer = `
     UPDATE opportunity 
     SET
-    customer_entity = ?,
-    name = ?,
-    description = ?,
-    type = ?,
-    License_type = ?,
-    value = ?,
-    closure_time= ?,
-    status =?,
-    period=?,  
-    license_from = ?,
-    license_to = ?
-    WHERE
-    id = ? ;
-    `;
+      customer_entity = ?,
+      name = ?,
+      description = ?,
+      type = ?,
+      License_type = ?,
+      value = ?,
+      closure_time = ?,
+      status = ?,
+      period = ?,  
+      license_from = ?,
+      license_to = ?
+  `;
 
   const values = [
-    req.body.customer_entity,
-    req.body.name,
-    req.body.description,
-    req.body.type,
-    req.body.License_type,
-    req.body.value,
-    closureTime, // Use formatted closure_time here
-    req.body.status,
-    req.body.period,
+    customer_entity,
+    name,
+    description,
+    type,
+    License_type,
+    value,
+    closureTime,
+    status,
+    period,
     LicenseFrom,
-    LicenseTo,
-    req.params.id,
+    LicenseTo
   ];
+
+  if (pdf) {
+    updateDealer += `, pdf = ?`;
+    values.push(pdf);
+  }
+
+  updateDealer += ` WHERE id = ?;`;
+  values.push(req.params.id);
 
   pool.query(updateDealer, values, (error, results) => {
     if (error) {
@@ -322,7 +340,6 @@ const editOpportunity = (req, res) => {
       return;
     }
 
-    console.log("Updated dealer:", results);
     res.json(results);
   });
 };
@@ -343,7 +360,7 @@ const deleteOpportunity = (req, res) => {
       });
     }
 
-    console.log("Deleted", results);
+    //console.log("Deleted", results);
     res.json({ message: "Opportunity deleted successfully" });
   });
 };
@@ -351,7 +368,7 @@ const deleteOpportunity = (req, res) => {
 const name = async (req, res) => {
   // Use the promisified pool.query function
   const customerEntity = req.body.customer_entity;
-  console.log(customerEntity);
+  //console.log(customerEntity);
   const dealerQuery = `
       SELECT  name FROM contact
       where customer_entity = ?
@@ -381,33 +398,33 @@ const transporter = nodemailer.createTransport({
 // Function to send email alerts
 const sendEmailAlert = (alertDetails) => {
   const mailOptions = {
-    from: process.env.SMPT_MAIL,
+    from: process.env.SMTP_MAIL,
     to: "madhu.i@techsa.net",
     cc: ["himani.g@techsa.net", "sanjiv.s@techsa.net"],
     subject: "Opportunity Expiry Alert",
     text: `
-    An opportunity has arisen ${alertDetails.customer_entity} to acquire ${alertDetails.description} in ${alertDetails.type} for the ${alertDetails.License_type} license type. These licenses are set to expire in ${alertDetails.daysLeft} days, on ${alertDetails.license_to}.
-    `,
+    An opportunity has arisen for ${alertDetails.customer_entity} to acquire ${alertDetails.description} in ${alertDetails.type} for the ${alertDetails.License_type} license type. These licenses are set to expire in ${alertDetails.daysLeft} days, on ${alertDetails.license_to}.
+    `
   };
 
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
       console.error("Error sending email:", error);
     } else {
-      console.log("Email sent:", infresponse);
+      console.log("Email sent:", info.response);
     }
   });
 };
 
 const storeAlertInDatabase = (alertDetails) => {
   
-console.log(alertDetails)
+//console.log(alertDetails)
   const query = `
     INSERT INTO alert (alert_entity, alert_description, license_to, alert_type, License_type, daysLeft, acknowledge, po_lost, reminder)
     VALUES (?, ?, ?, ?, ?, ?, 'No', 'No', 'No')
     `
 
-  console.log("Days Left:", alertDetails.daysLeft);
+  //console.log("Days Left:", alertDetails.daysLeft);
   pool.query(
     query,
     [
@@ -428,7 +445,6 @@ console.log(alertDetails)
   );
 };
 
-
 const checkOpportunities = () => {
   console.log(`Task started`);
 
@@ -444,24 +460,18 @@ const checkOpportunities = () => {
     }
 
     results.forEach((opportunity) => {
-      const today = new Date();
-      const licenseTo = new Date(opportunity.license_to);
+      const today = moment().tz('Asia/Kolkata').startOf('day');
+      const licenseTo = moment(opportunity.license_to).tz('Asia/Kolkata').startOf('day');
 
       const daysBeforeAlert = [45, 30, 15];
-      const formattedLicenseToDate = moment(opportunity.license_to)
-        .tz('Asia/Kolkata')
-        .format('ddd MMM D YYYY');
-
-      const formattedLicenseFromDate = moment(opportunity.license_from)
-        .tz('Asia/Kolkata')
-        .format('ddd MMM D YYYY');
+      const formattedLicenseToDate = licenseTo.format('ddd MMM D YYYY');
+      const formattedLicenseFromDate = moment(opportunity.license_from).tz('Asia/Kolkata').format('ddd MMM D YYYY');
 
       daysBeforeAlert.forEach(days => {
-        const alertDate = new Date(licenseTo);
-        alertDate.setDate(alertDate.getDate() - days);
+        const alertDate = moment(licenseTo).subtract(days, 'days');
 
-        if (alertDate.toDateString() === today.toDateString()) {
-          const daysLeft = Math.ceil((licenseTo - today) / (1000 * 60 * 60 * 24));
+        if (alertDate.isSame(today, 'day')) {
+          const daysLeft = licenseTo.diff(today, 'days');
 
           if (daysLeft === 45 || daysLeft === 30 || daysLeft === 15) {
             const alertDetails = {
@@ -505,7 +515,7 @@ const updateDaysLeftInAlerts = () => {
     const currentDate = moment().tz('Asia/Kolkata').startOf('day');
 
     results.forEach(alert => {
-      const licenseToDate = moment(alert.license_to, 'ddd MMM DD YYYY');
+      const licenseToDate = moment(alert.license_to, 'ddd MMM D YYYY').tz('Asia/Kolkata').startOf('day');
       if (!licenseToDate.isValid()) {
         console.error(`Invalid date format for alert id ${alert.id}: ${alert.license_to}`);
         return;
@@ -530,25 +540,21 @@ const updateDaysLeftInAlerts = () => {
   });
 };
 
-
 // Schedule the task to run daily at 1:10 PM IST
-cron.schedule('08 15 * * *', () => {
+cron.schedule('30 11 * * *', () => {
   console.log(`[${moment().tz('Asia/Kolkata').format()}] Scheduled task triggered`);
   checkOpportunities();
   updateDaysLeftInAlerts();
-},
-{
+}, {
   scheduled: true,
   timezone: "Asia/Kolkata"
-}
-);
+});
 
 const sendAlert = async (req, res) => {
   const { customerEntity, status } = req.query;
-  console.log(customerEntity);
-  
+
   let dealerQuery = `
-    SELECT id, alert_entity, alert_description, license_to, alert_type, daysLeft,License_type, acknowledge, po_lost 
+    SELECT id, alert_entity, alert_description, license_to, alert_type, daysLeft, License_type, acknowledge, po_lost 
     FROM alert 
     WHERE (acknowledge = "No" AND po_lost = "No" AND reminder = "No") 
        OR (daysLeft = 30 AND acknowledge = "No" AND po_lost = "No")
@@ -577,11 +583,25 @@ const sendAlert = async (req, res) => {
       res.status(500).json({ error: "Internal Server Error" });
       return;
     }
-    //console.log("Dealer details:", results);
+
+    results.forEach(alert => {
+      if (alert.daysLeft === 15) {
+        const alertDetails = {
+          customer_entity: alert.alert_entity,
+          description: alert.alert_description,
+          license_to: alert.license_to,
+          type: alert.alert_type,
+          License_type: alert.License_type,
+          daysLeft: alert.daysLeft
+        };
+        sendEmailAlert(alertDetails);
+      }
+    });
+
     res.status(200).json({ products: results });
-    console.log(results)
   });
 };
+
 
 const sendPo = async (req, res) => { 
   const { customerEntity, status } = req.query;
@@ -610,15 +630,14 @@ const sendPo = async (req, res) => {
       res.status(500).json({ error: "Internal Server Error" });
       return;
     }
-    console.log("Dealer details:", results);
+    //console.log("Dealer details:", results);
     res.status(200).json({ products: results });
   });
 };
 
-
 const acknowledge = async (req, res) => {
   const { id } = req.body;
-  console.log(id);
+  //console.log(id);
   const query = `
       UPDATE alert
       SET 	acknowledge = 'Yes'
@@ -637,7 +656,7 @@ const acknowledge = async (req, res) => {
 
 const reminder = async (req, res) => {
   const { id } = req.body;
-  console.log(id);
+  //console.log(id);
   const query = `
       UPDATE alert
       SET reminder = 'Yes'
@@ -656,7 +675,7 @@ const reminder = async (req, res) => {
 
 const PoLost = async (req, res) => {
   const { id } = req.body;
-  console.log(id);
+  //console.log(id);
   const query = `
       UPDATE alert
       SET 	po_lost = 'Yes'

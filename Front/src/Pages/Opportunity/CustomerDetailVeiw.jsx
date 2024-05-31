@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { MdEdit, MdDelete } from "react-icons/md";
-import AddContact from "./AddContact";
+import AddContact from "../Contact/AddContact";
 import axios from "axios";
 import API_BASE_URL from "../../config";
 import { toast } from "react-toastify";
 import DeleteConfirmationDialog from "../Contact/DeleteConfirmationDialog";
 import { Link, useParams } from "react-router-dom";
-import EditContact from "./editContact";
-import FilterModal from "./filterModalContact";
+import EditContact from "../Contact/editContact";
+import FilterModal from "../Contact/filterModalContact";
 import { CiFilter } from "react-icons/ci";
 
-const CustomerDetail = () => {
+const CustomerDetailVeiw = () => {
   const [addContactIsOpen, setAddContactIsOpen] = useState(false);
   const [filterModalIsOpen, setFilterModalIsOpen] = useState(false);
   const [edit, setEdit] = useState(false);
@@ -25,7 +25,7 @@ const CustomerDetail = () => {
     name: "",
   });
 
-  const { customer_entity } = useParams();
+  const { customer_entity,id } = useParams();
 
   const handleAddClick = () => {
     setAddContactIsOpen(true);
@@ -203,7 +203,7 @@ const CustomerDetail = () => {
           ))
         )}
       </div>
-      <Link to="/Customer">
+      <Link to={`/Opportunity/view/${id}`}>
         <button
           style={{
             backgroundColor: "blue",
@@ -221,4 +221,4 @@ const CustomerDetail = () => {
   );
 };
 
-export default CustomerDetail;
+export default CustomerDetailVeiw;

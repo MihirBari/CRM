@@ -25,6 +25,7 @@ import Alert from './Pages/Alert/Alert.jsx';
 import PO from './Pages/PO/PO.jsx';
 import ViewOpportunity from './Pages/Opportunity/viewOpportunity.jsx';
 import Summary from './Pages/Summary/Summary.jsx';
+import CustomerDetailVeiw from './Pages/Opportunity/CustomerDetailVeiw.jsx';
 
 
 function App() {
@@ -52,6 +53,7 @@ function App() {
         <Route path='/Customer/edit/:id' element={currentUser ? <EditCustomer /> : <Navigate to='/' />} />
         <Route path='/Leave/edit/:id' element={currentUser ? <EditSeller /> : <Navigate to='/' />} />
         <Route path='/Opportunity/edit/:id' element={currentUser ? <EditOpportunity /> : <Navigate to='/' />} />
+        <Route path='/Customer/view/:customer_entity/:id' element={currentUser ? <CustomerDetailVeiw /> : <Navigate to='/' />} />
         <Route path='/Customer/:customer_entity' element={currentUser ? <CustomerDetail /> : <Navigate to='/' />} />
       </Routes>
       

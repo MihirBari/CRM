@@ -20,6 +20,7 @@ const ViewOpportunity = () => {
             closure_time: formatDate(product.closure_time),
             license_from: formatDate(product.license_from),
             license_to: formatDate(product.license_to),
+            pdf: product.pdf ? `data:application/pdf;base64,${product.pdf}` : null
           }));
           setProducts(formattedProducts);
         })
@@ -36,8 +37,16 @@ const ViewOpportunity = () => {
     const day = String(date.getDate()).padStart(2, '0');
     const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
     const year = date.getFullYear();
+
+    // Check if the date is 01/01/1970
+    if (day === '01' && month === '01' && year === 1970) {
+      return '';
+    }
+
     return `${day}/${month}/${year}`;
   };
+
+  
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -47,7 +56,7 @@ const ViewOpportunity = () => {
           <h1 className="text-2xl font-semibold text-center">Opportunity Detail</h1>
         </div>
         {products.map((product) => (
-          <OpportunityDetail key={product.product_id} product={product} />
+          <OpportunityDetail key={product.id} product={product} />
         ))}
       </div>
     </div>

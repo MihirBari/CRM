@@ -1,12 +1,6 @@
-const express = require('express');
-const session = require('express-session');
-const MySQLStore = require('express-mysql-session')(session);
 const mysql = require('mysql');
-require('dotenv').config({
-  path: 'config/.env',
-});
-
-const app = express();
+const MySQLStore = require('express-mysql-session')(require('express-session'));
+require('dotenv').config({ path: 'config/.env' });
 
 const pool = mysql.createPool({
   connectionLimit: 10,
@@ -15,6 +9,8 @@ const pool = mysql.createPool({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_DATABASE,
   port: process.env.DB_PORT,
+  connectTimeout: 10000,  // 10 seconds
+  acquireTimeout: 10000,  // 10 seconds
   debug: false,
 });
 
@@ -32,27 +28,6 @@ pool.getConnection((err, connection) => {
   connection.release();
 });
 
-
 const sessionStore = new MySQLStore({}, pool);
 
-app.use(session({
-  key: 'session_cookie_name',
-  secret: 'your-secret-key',
-  store: sessionStore,
-  resave: false,
-  saveUninitialized: false,
-  cookie: { secure: false } // Set to true if using HTTPS
-}));
-
-app.get('/', (req, res) => {
-  if (req.session.views) {
-    req.session.views++;
-    res.send(`<p>Number of views: ${req.session.views}</p>`);
-  } else {
-    req.session.views = 1;
-    res.send('Welcome to the session demo. Refresh!');
-  }
-});
-
-
-module.exports = { pool };
+module.exports = { pool, sessionStore };

@@ -25,7 +25,7 @@ const addContact = async (req, res) => {
             console.error("Error executing query:", error);
             reject(error);
           } else {
-            console.log("Contact added successfully:", results);
+            //console.log("Contact added successfully:", results);
             resolve();
           }
         });
@@ -60,7 +60,7 @@ const addCustomer = async (req, res) => {
           console.error("Error executing query:", error);
           reject(error);
         } else {
-          console.log("Contact added successfully:", results);
+          //console.log("Contact added successfully:", results);
           resolve();
         }
       });
@@ -83,7 +83,7 @@ const showContact = (req, res) => {
       return;
     }
 
-    console.log(req.params.customer_entity)
+    //console.log(req.params.customer_entity)
 
     connection.beginTransaction((err) => {
       if (err) {
@@ -159,7 +159,7 @@ const showCustomer = (req, res) => {
         res.status(500).json({ error: "Internal Server Error" });
         return connection.release();
       }
-
+    
       let query = `SELECT 
       id,customer_entity, email, address, city, state, website
           FROM customer`;
@@ -199,7 +199,6 @@ const showCustomer = (req, res) => {
 
           // Release connection and send response
           connection.release();
-
           res.status(200).json({ products: results });
         });
       });
@@ -220,7 +219,7 @@ const showOneContact = async (req, res) => {
       res.status(500).json({ error: "Internal Server Error" });
       return;
     }
-    console.log("Dealer details:", results);
+    //console.log("Dealer details:", results);
     res.status(200).json(results);
   });
 };
@@ -238,7 +237,7 @@ const showOneCustomer = async (req, res) => {
       res.status(500).json({ error: "Internal Server Error" });
       return;
     }
-    console.log("Dealer details:", results);
+    //console.log("Dealer details:", results);
     res.status(200).json(results);
   });
 };
@@ -272,7 +271,7 @@ const editContact = (req, res) => {
       return;
     }
 
-    console.log("Updated dealer:", results);
+    //console.log("Updated dealer:", results);
     res.json(results);
   });
 };
@@ -307,7 +306,7 @@ const editCustomer = (req, res) => {
       return;
     }
 
-    console.log("Updated dealer:", results);
+    //console.log("Updated dealer:", results);
     res.json(results);
   });
 };
@@ -328,7 +327,7 @@ const deleteContact = (req, res) => {
       });
     }
 
-    console.log("Deleted", results);
+    //console.log("Deleted", results);
     res.json({ message: "Debitor deleted successfully" });
   });
 };
@@ -349,7 +348,7 @@ const deleteCustomer = (req, res) => {
       });
     }
 
-    console.log("Deleted", results);
+    //console.log("Deleted", results);
     res.json({ message: "Debitor deleted successfully" });
   });
 };
