@@ -31,7 +31,7 @@ const AddOpportunity = () => {
     const fetchCustomerEntities = async () => {
       try {
         const response = await axios.get(`${API_BASE_URL}/api/Contact/customerentity`);
-        setCustomerEntities(response.data); // Update customerEntities state with data from the backend
+        setCustomerEntities(response.data);
       } catch (error) {
         console.error("Error fetching customer entities:", error);
       }
@@ -143,7 +143,6 @@ const AddOpportunity = () => {
                 <div className="mt-1 relative">
                   <select
                     name="name"
-                    required
                     onChange={handleChange}
                     value={inputs.name}
                     className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
@@ -195,6 +194,8 @@ const AddOpportunity = () => {
                     <option value="BigFix">BigFix</option>
                     <option value="SolarWinds">SolarWinds</option>
                     <option value="Services">Services</option>
+                    <option value="Tenable">Tenable</option>
+                    <option value="Armis">Armis</option>
                   </select>
                 </div>
               </div>
@@ -215,8 +216,8 @@ const AddOpportunity = () => {
                       Select Option
                     </option>
                     <option value="New">New</option>
-                    <option value="Renew">Renew</option>
-                    <option value="Services">Services</option>
+                    <option value="Renewal">Renewal</option>
+                   
                   </select>
                 </div>
               </div>
@@ -263,7 +264,6 @@ const AddOpportunity = () => {
                   <input
                     type="text"
                     name="period"
-                    required
                     onChange={handleChange}
                     value={inputs.period}
                     placeholder="License Period"

@@ -2,6 +2,7 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import Modal from "react-modal";
 import API_BASE_URL from "../../config";
+import Select from "react-select";
 
 const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
   const [type, setType] = useState("");
@@ -36,9 +37,9 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
         }
       );
       onApplyFilters(response.data.products);
-      console.log("server",response.data.aggregates)
+      console.log("server", response.data.aggregates);
       localStorage.setItem(
-        "OrderFilters",
+        "SummaryFilters",
         JSON.stringify({
           type,
           status,
@@ -57,7 +58,7 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
   };
 
   useEffect(() => {
-    const storedFilters = localStorage.getItem("OrderFilters");
+    const storedFilters = localStorage.getItem("SummaryFilters");
     if (storedFilters) {
       const {
         type: storedType,
@@ -94,7 +95,7 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
 
   const handleResetFilters = () => {
     setType("");
-    setStatus("")
+    setStatus("");
     setLicenseType("");
     setLicenseFrom("");
     setLicenseTo("");
@@ -104,6 +105,28 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
     setEndDate(null);
     resetFilters();
   };
+
+  const opportunityTypeOptions = [
+    { value: "BigFix", label: "BigFix" },
+    { value: "SolarWinds", label: "SolarWinds" },
+    { value: "Services", label: "Services" },
+    { value: "Tenable", label: "Tenable" },
+    { value: "Armis", label: "Armis" },
+  ];
+
+  const opportunityStatusOptions = [
+    { value: "Quotation Done", label: "Quotation Done" },
+    { value: "Demo Done", label: "Demo Done" },
+    { value: "POC Done", label: "POC Done" },
+    { value: "Progress Sub", label: "Progress Sub" },
+    { value: "Won", label: "Won" },
+    { value: "Lost", label: "Lost" },
+  ];
+
+  const LicenseTypeOptions = [
+    { value: "New", label: "New" },
+    { value: "Renewal", label: "Renewal" },
+  ];
 
   return (
     <Modal
@@ -120,89 +143,103 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
       }}
     >
       <div className="filter-modal">
-        <select
-          value={type}
-          onChange={(e) => setType(e.target.value)}
-          className="p-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2"
-        >
-          <option value="" disabled>Opportunity Type</option>
-          <option value="BigFix">BigFix</option>
-          <option value="SolarWinds">SolarWinds</option>
-          <option value="Services">Services</option>
-        </select>
-
-        <select
-          value={LicenseType}
-          onChange={(e) => setLicenseType(e.target.value)}
-          className="p-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2"
-        >
-          <option value="" disabled>License Type</option>
-          <option value="New">New</option>
-          <option value="Renew">Renew</option>
-          <option value="Services">Services</option>
-       
-        </select>
-
-        <select
-          value={status}
-          onChange={(e) =>
-            setStatus(
-              Array.from(e.target.selectedOptions, (option) => option.value)
-            )
-          }
-          className="p-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2"
-        >
-          <option value="" disabled>Opportunity Status</option>
-          <option value="Quotation Done">Quotation Done</option>
-          <option value="Demo Done">Demo Done</option>
-          <option value="POC Done">POC Done</option>
-          <option value="Progress Sub">Progress Sub</option>
-          <option value="Won">Won</option>
-          <option value="Lost">Lost</option>
-        </select>
-
-        <div className="p-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2">
-          <label>License From:</label>
-          <input
-            type="date"
-            value={licenseFrom}
-            onChange={(e) => setLicenseFrom(e.target.value)}
+        <div className="flex flex-wrap">
+          <Select
+            isMulti
+            options={opportunityTypeOptions}
+            value={opportunityTypeOptions.filter((option) =>
+              type.includes(option.value)
+            )}
+            onChange={(selectedOptions) =>
+              setType(
+                selectedOptions
+                  ? selectedOptions.map((option) => option.value)
+                  : []
+              )
+            }
+            placeholder="Select Opportunity Type"
+            className="p-2 rounded w-full md:w-1/4 border border-gray-300 focus:outline-none focus:border-blue-500 ml-2 m-2"
           />
+
+          <Select
+            isMulti
+            options={LicenseTypeOptions}
+            value={LicenseTypeOptions.filter((option) =>
+              LicenseType.includes(option.value)
+            )}
+            onChange={(selectedOptions) =>
+              setLicenseType(
+                selectedOptions
+                  ? selectedOptions.map((option) => option.value)
+                  : []
+              )
+            }
+            placeholder="Select License Type"
+            className="p-2 rounded border w-full md:w-1/4 border-gray-300 focus:outline-none focus:border-blue-500 ml-2 m-2"
+          />
+
+          <Select
+            isMulti
+            options={opportunityStatusOptions}
+            value={opportunityStatusOptions.filter((option) =>
+              status.includes(option.value)
+            )}
+            onChange={(selectedOptions) =>
+              setStatus(
+                selectedOptions
+                  ? selectedOptions.map((option) => option.value)
+                  : []
+              )
+            }
+            placeholder="Select Opportunity Status"
+            className="p-2 rounded w-full md:w-1/4 border border-gray-300 focus:outline-none focus:border-blue-500 ml-2 m-2"
+          />
+
+          <div className="p-2 rounded border w-full md:w-1/4 border-gray-300 focus:outline-none focus:border-blue-500 ml-2 m-2">
+            <label>License From:</label>
+            <input
+              type="date"
+              value={licenseFrom}
+              onChange={(e) => setLicenseFrom(e.target.value)}
+            />
+          </div>
+
+          <div className="p-2 rounded border w-full md:w-1/4 border-gray-300 focus:outline-none focus:border-blue-500 ml-2 m-2">
+            <label>License To:</label>
+            <input
+              type="date"
+              value={licenseTo}
+              onChange={(e) => setLicenseTo(e.target.value)}
+            />
+          </div>
         </div>
 
-        <div className="p-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2">
-          <label>License To:</label>
-          <input
-            type="date"
-            value={licenseTo}
-            onChange={(e) => setLicenseTo(e.target.value)}
-          />
+        <div className="mt-2">
+          <button
+            onClick={() => {
+              applyFilters();
+              onClose();
+            }}
+            className="bg-blue-500 text-white px-4 py-2 rounded"
+            style={{ marginLeft: "10px" }}
+          >
+            Apply Filters
+          </button>
+          <button
+            onClick={handleResetFilters}
+            className="bg-red-500 text-white px-4 py-2 rounded"
+            style={{ marginLeft: "10px" }}
+          >
+            Clear Filters
+          </button>
+          <button
+            onClick={onClose}
+            className="bg-blue-500 text-white px-4 py-2 rounded"
+            style={{ marginLeft: "10px" }}
+          >
+            Cancel
+          </button>
         </div>
-
-        <button
-          onClick={() => {
-            applyFilters();
-            onClose();
-          }}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-          style={{ marginLeft: "10px" }}
-        >
-          Apply Filters
-        </button>
-        <button
-          onClick={handleResetFilters}
-          className="bg-red-500 text-white px-4 py-2 rounded"
-          style={{ marginLeft: "10px" }}
-        >
-          Clear Filters
-        </button>
-        <button
-          onClick={onClose}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-          style={{ marginLeft: "10px" }}
-        >
-          Cancel
-        </button>
       </div>
     </Modal>
   );

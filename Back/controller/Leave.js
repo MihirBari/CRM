@@ -221,7 +221,7 @@ const value = [
           });
 
           const mailOptions = {
-            from: `${rows[0].sender}@techsa.com`,
+            from: `${rows[0].sender}`,
             to: rows[0].email,
             subject:`Leave Application Confirmation`,
             text: `Hi Sir,
@@ -325,7 +325,7 @@ const editApplicationAdmin = (req, res) => {
 
         // Nodemailer configuration
         const transporter = nodemailer.createTransport({
-          host: process.env.SMPT_HOST,
+          host: process.env.SMPT_HOST, 
           port: process.env.SMPT_PORT,
           service: process.env.SMPT_SERVICE,
           auth: {

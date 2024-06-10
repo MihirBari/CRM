@@ -143,8 +143,8 @@ const showContact = (req, res) => {
 };
 
 const showCustomer = (req, res) => {
-  const { customerentity, city } = req.query;
-
+  const { customerEntity, city } = req.query;
+  console.log(customerEntity)
   pool.getConnection((err, connection) => {
     if (err) {
       console.error("Error getting database connection:", err);
@@ -166,13 +166,31 @@ const showCustomer = (req, res) => {
 
       let filterConditions = [];
 
-      if (customerentity) {
-        filterConditions.push(`customer_entity LIKE '%${customerentity}%'`);
+      if (customerEntity && Array.isArray(customerEntity)) {
+        const customerEntityConditions = customerEntity.map(customerEntity => `customer_entity LIKE'%${customerEntity}%'`);
+        if (customerEntityConditions.length > 0) {
+          filterConditions.push(`(${customerEntityConditions.join(" OR ")})`);
+        }
+      } else if (customerEntity) {
+        filterConditions.push(`customer_entity LIKE '${customerEntity}'`);
       }
 
-      if (city) {
-        filterConditions.push(`city LIKE '%${city}%'`);
+      // if (customerentity) {
+      //   filterConditions.push(`customer_entity LIKE '%${customerentity}%'`);
+      // }
+
+      if (city && Array.isArray(city)) {
+        const cityConditions = city.map(city => `city LIKE '%${city}%'`);
+        if (cityConditions.length > 0) {
+          filterConditions.push(`(${cityConditions.join(" OR ")})`);
+        }
+      } else if (city) {
+        filterConditions.push(`city LIKE '${city}'`);
       }
+
+      // if (city) {
+      //   filterConditions.push(`city LIKE '%${city}%'`);
+      // }
 
       if (filterConditions.length > 0) {
         query += ` WHERE ${filterConditions.join(" AND ")}`;

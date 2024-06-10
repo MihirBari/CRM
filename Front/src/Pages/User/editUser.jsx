@@ -27,7 +27,6 @@ const EditUser = () => {
         setInputs({
           name: userData.name,
           email: userData.email,
-          password: userData.password,
           role: userData.role,
         });
       } catch (err) {

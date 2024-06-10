@@ -27,18 +27,29 @@ const TableCustomer = () => {
   });
 
   useEffect(() => {
+    const controller = new AbortController(); 
+    const signal = controller.signal; 
     const fetchOrders = async () => {
       try {
         const response = await axios.get(
-          `${API_BASE_URL}/api/contact/showCustomer`
+          `${API_BASE_URL}/api/contact/showCustomer`,{
+            signal: signal,
+          }
         );
         setUsers(response.data.products);
         setFilteredUsers(response.data.products);
         console.log(response.data.products);
         
       } catch (err) {
-        console.error("Error fetching orders:", err);
+        if (axios.isCancel(err)) {
+          console.log("Request canceled", err.message);
+        } else {
+          console.error("Error fetching orders:", err);
+        }
       }
+      return () => {
+        controller.abort(); // Cancel the request if the component unmounts
+      };
     };
 
     fetchOrders();
@@ -79,9 +90,7 @@ const TableCustomer = () => {
     navigate(`${customer_entity}`);
   };
 
-  const handleExportClick = () => {
-    setExportModalIsOpen(true);
-  };
+ 
 
   const columns = [
     {

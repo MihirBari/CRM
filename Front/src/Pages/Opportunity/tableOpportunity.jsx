@@ -70,33 +70,41 @@ const TableOpportunity = () => {
 
   useEffect(() => {
     const fetchOrders = async () => {
+      const controller = new AbortController(); 
+      const signal = controller.signal; 
       try {
         const response = await axios.get(
           `${API_BASE_URL}/api/Opportunity/showOpportunity`,
           {
             params: filters, // Pass filters as parameters to the backend
+            signal: signal, // Pass the signal to the request
           }
         );
         setUsers(response.data.products);
-        //console.log(response.data.products);
         setFilteredUsers(response.data.products);
       } catch (err) {
-        console.error("Error fetching orders:", err);
+        if (axios.isCancel(err)) {
+          console.log("Request canceled", err.message);
+        } else {
+          console.error("Error fetching orders:", err);
+        }
       }
+      return () => {
+        controller.abort(); // Cancel the request if the component unmounts
+      };
     };
 
-    // Fetch orders with filters when the component mounts
     fetchOrders();
   }, [filters]);
 
   const handleEditClick = (id) => {
-    console.log("Editing order with ID:", id);
+    //console.log("Editing order with ID:", id);
 
     navigate(`edit/${id}`);
   };
 
   const handleViewClick = (id) => {
-    console.log("Viewing order with ID:", id);
+    //console.log("Viewing order with ID:", id);
     navigate(`view/${id}`);
   };
 
@@ -164,13 +172,13 @@ const TableOpportunity = () => {
       width: "150px",
     },
     {
-      name: "License From",
+      name: "From",
       selector: (row) => formatDate(row.license_from),
       sortable: true,
       width: "150px",
     },
     {
-      name: "License To",
+      name: "To",
       selector: (row) => formatDate(row.license_to),
       sortable: true,
       width: "150px",
@@ -278,9 +286,6 @@ const TableOpportunity = () => {
     licenseTo: "",
   };
 
-  const handleExportClick = () => {
-    setExportModalIsOpen(true);
-  };
 
   return (
     <div className="order">

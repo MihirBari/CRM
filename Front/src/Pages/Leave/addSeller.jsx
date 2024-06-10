@@ -10,29 +10,35 @@ const AddSeller = () => {
     name: "",
     status: "request",
     fromDate: "",
-    toDate:"",
-    type:"",
-    duration:"",
-    days:"",
-    description:"",
-    history:"",
-    assignedTo:"Mihir",
-    
+    toDate: "",
+    type: "",
+    duration: "",
+    days: "",
+    description: "",
+    history: "",
+    assignedTo: "Mihir",
   };
 
   const [inputs, setInputs] = useState(initialInputs);
   const [err, setError] = useState(null);
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setInputs((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
-  };
-
+    let newInputs = { ...inputs, [name]: type === "checkbox" ? checked : value };
   
+    // Calculate number of days if both fromDate and toDate are available
+    if (newInputs.fromDate && newInputs.toDate) {
+      const fromDate = new Date(newInputs.fromDate);
+      const toDate = new Date(newInputs.toDate);
+      const timeDifference = toDate.getTime() - fromDate.getTime() + 1;
+      const daysDifference = Math.ceil(timeDifference / (1000 * 3600 * 24));
+      newInputs = { ...newInputs, days: daysDifference };
+      console.log(daysDifference)
+    }
+  
+    setInputs(newInputs);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -50,8 +56,8 @@ const AddSeller = () => {
       await axios.post(`${API_BASE_URL}/api/Leave/addApplicationLeave`, inputs);
       setInputs(initialInputs);
       toast.success("Leave Applied successfully");
-    
-     navigate('/Leave')
+
+      navigate('/Leave');
     } catch (err) {
       console.error(err);
       setError(err.response);
@@ -66,10 +72,10 @@ const AddSeller = () => {
           Ask For Leave
         </h2>
       </div>
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+      <div className="mt-8  sm:w-full">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
         <form className="space-y-6">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-4">
             <div>
               <label
                 htmlFor="name"
@@ -83,7 +89,7 @@ const AddSeller = () => {
                   name="name"
                   required
                   onChange={handleChange}
-                  placeholder="Enter Seller Name"
+                  placeholder="Enter Your Name"
                   className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 />
               </div>
@@ -186,24 +192,23 @@ const AddSeller = () => {
             </div>
 
             <div>
-              <label
-                htmlFor="days"
-                className="block text-sm font-medium text-gray-700"
-              >
-                No Of Days
-              </label>
-              <div className="mt-1 relative">
-                <input
-                  type="number"
-                  name="days"
-                  autoComplete="current-password"
-                  required
-                  onChange={handleChange}
-                  placeholder="Total Product"
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                />
+                <label
+                  htmlFor="days"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  No Of Days
+                </label>
+                <div className="mt-1 relative">
+                  <input
+                    type="number"
+                    name="days"
+                    required
+                    value={inputs.days}
+                    readOnly
+                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  />
+                </div>
               </div>
-            </div>
 
             <div>
               <label
@@ -219,7 +224,7 @@ const AddSeller = () => {
                   autoComplete="current-password"
                   required
                   onChange={handleChange}
-                  placeholder="Other cost"
+                  placeholder="Description / Summary"
                   className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 />
               </div>        
@@ -238,7 +243,7 @@ const AddSeller = () => {
                   name="history"
                   required
                   onChange={handleChange}
-                  placeholder="Remark"
+                  placeholder="Comments / History"
                   className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 />
               </div>

@@ -22,6 +22,7 @@ const EditOpportunity = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [inputs, setInputs] = useState(initialInputs);
+  const [nameOptions, setNameOptions] = useState([]);
   const [err, setError] = useState(null);
 
   useEffect(() => {
@@ -63,6 +64,12 @@ const EditOpportunity = () => {
     fetchOrder();
   }, [id]);
 
+  useEffect(() => {
+    if (inputs.customer_entity) {
+      fetchName(inputs.customer_entity);
+    }
+  }, [inputs.customer_entity]);
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
@@ -70,6 +77,19 @@ const EditOpportunity = () => {
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
+  };
+
+  const fetchName = async (customerEntity) => {
+    try {
+      const response = await axios.post(
+        `${API_BASE_URL}/api/Opportunity/name`,
+        { customer_entity: customerEntity }
+      );
+      setNameOptions(response.data);
+      console.log(response.data);
+    } catch (error) {
+      console.error("Error fetching names:", error);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -86,6 +106,7 @@ const EditOpportunity = () => {
       setInputs(initialInputs);
       navigate("/Opportunity");
       toast.success("Opportnity updated successfully");
+      Window.location.reload()
     } catch (err) {
       console.error(err);
       setError(err.response);
@@ -107,26 +128,25 @@ const EditOpportunity = () => {
               <div>
                 {renderInput("customer_entity", "Customer Entity", "Enter Customer Entity")}
               </div>
+              <div>{renderSelect("name", "Name", nameOptions)}</div>
               <div>
-                {renderInput("name", "Name", "Name")}
+                {renderInput("description", "Description", "Enter description")}
               </div>
               <div>
-                {renderInput("description", "description", "Enter description")}
-              </div>
-              <div>
-                {renderSelect("type", "Opportunity Type", [
-                  { value: "BigFix", label: "BigFix" },
-                  { value: "SolarWinds", label: "SolarWinds" },
-                  { value: "Services", label: "Services" },
-                ])}
-              </div>
-              <div>
-                {renderSelect("License_type", "License Type", [
-                  { value: "New", label: "New" },
-                  { value: "Renew", label: "Renew" },
-                  { value: "Services", label: "Services" },
-                ])}
-              </div>
+                  {renderSelect("type", "Opportunity Type", [
+                    { value: "BigFix", name: "BigFix" },
+                    { value: "SolarWinds", name: "SolarWinds" },
+                    { value: "Services", name: "Services" },
+                    { value: "Tenable", name: "Tenable" },
+                    { value: "Armis", name: "Armis" },
+                  ])}
+                </div>
+                <div>
+                  {renderSelect("License_type", "License Type", [
+                    { value: "New", name: "New" },
+                    { value: "Renewal", name: "Renewal" },
+                  ])}
+                </div>
               <div>
                 {renderInput("value", "Value", "Enter value")}
               </div>
@@ -137,15 +157,15 @@ const EditOpportunity = () => {
                 {renderInput("period", "Comment", "Comment")}
               </div>
               <div>
-                {renderSelect("status", "Status", [
-                  { value: "Quotation Done", label: "Quotation Done" },
-                  { value: "Demo Done", label: "Demo Done" },
-                  { value: "POC Done", label: "POC Done" },
-                  { value: "Progress Sub", label: "Progress Sub" },
-                  { value: "Won", label: "Won" },
-                  { value: "Lost", label: "Lost" },
-                ])}
-              </div>
+                  {renderSelect("status", "Status", [
+                    { value: "Quotation Done", name: "Quotation Done" },
+                    { value: "Demo Done", name: "Demo Done" },
+                    { value: "POC Done", name: "POC Done" },
+                    { value: "Progress Sub", name: "Progress Sub" },
+                    { value: "Won", name: "Won" },
+                    { value: "Lost", name: "Lost" },
+                  ])}
+                </div>
 
               {inputs.status === "Won" && (
                 <>
@@ -180,7 +200,7 @@ const EditOpportunity = () => {
           <input
             type={type}
             name={name}
-            required
+            
             onChange={handleChange}
             placeholder={placeholder}
             value={inputs[name]}
@@ -194,13 +214,15 @@ const EditOpportunity = () => {
   function renderSelect(name, label, options) {
     return (
       <>
-        <label htmlFor={name} className="block text-sm font-medium text-gray-700">
+        <label
+          htmlFor={name}
+          className="block text-sm font-medium text-gray-700"
+        >
           {label}
         </label>
         <div className="mt-1 relative">
           <select
             name={name}
-            required
             onChange={handleChange}
             value={inputs[name]}
             className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
@@ -208,7 +230,7 @@ const EditOpportunity = () => {
             <option value="" label="Select an option" disabled />
             {options.map((option) => (
               <option key={option.value} value={option.value}>
-                {option.label}
+                {option.name}
               </option>
             ))}
           </select>

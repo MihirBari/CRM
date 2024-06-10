@@ -29,6 +29,7 @@ const OpportunityDetail = ({ product }) => {
     phone,
     email,
     type,
+    License_type,
     value,
     closure_time,
     status,
@@ -50,6 +51,7 @@ const OpportunityDetail = ({ product }) => {
         <p className="text-gray-600 mb-2">Description : {description}</p>
         <p className="text-gray-800 font-semibold mb-2">Value: ₹{formatIndianNumber(value)}</p>
         <p className="text-gray-600 mb-2">Type : {type}</p>
+        <p className="text-gray-600 mb-2">License Type : {License_type}</p>
         <p className="text-gray-600 mb-2">Closure Time : {closure_time}</p>
         <p className="text-gray-600 mb-2">Current Status : {status}</p>
         <p className="text-gray-600 mb-2">Comments : {period}</p>

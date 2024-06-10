@@ -2,26 +2,58 @@ import React, { useEffect, useState } from "react";
 import Modal from "react-modal";
 import axios from "axios";
 import API_BASE_URL from "../../config";
+import Select from "react-select";
 
 const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
-  const [city, setCity] = useState("");
-  const [citys, setCitys] = useState("");
-  const [customerentity, setCustomerEntity] = useState("");
+  const [city, setCity] = useState([]);
+  const [cityOptions, setCityOptions] = useState([]);
+  const [customerEntity, setCustomerEntity] = useState([]);
+  const [customerEntityOptions, setCustomerEntityOptions] = useState([]);
   const [shouldApplyFilters, setShouldApplyFilters] = useState(false);
 
-
   useEffect(() => {
-    const fetchCity = async () => {
+    const controller = new AbortController();
+    const signal = controller.signal;
+
+    const fetchCityOptions = async () => {
       try {
         const response = await axios.get(`${API_BASE_URL}/api/contact/city`);
-        setCitys(response.data);
-        console.log(response.data);
+        console.log("City Response:", response.data); // Log response data
+        setCityOptions(
+          response.data.map((city) => ({ value: city.city, label: city.city }))
+        );
       } catch (error) {
-        console.error("Error fetching product types:", error.message);
+        console.error("Error fetching city options:", error.message);
       }
     };
 
-    fetchCity();
+    fetchCityOptions();
+
+    const fetchCustomerEntities = async () => {
+      try {
+        const response = await axios.get(
+          `${API_BASE_URL}/api/Contact/customerentity`,
+          { signal: signal }
+        );
+        setCustomerEntityOptions(
+          response.data.map((entity) => ({
+            value: entity.customer_entity,
+            label: entity.customer_entity,
+          }))
+        );
+      } catch (err) {
+        if (axios.isCancel(err)) {
+          console.log("Request canceled", err.message);
+        } else {
+          console.error("Error fetching customer entities:", err);
+        }
+      }
+    };
+    fetchCustomerEntities();
+
+    return () => {
+      controller.abort();
+    };
   }, []);
 
   const applyFilters = async () => {
@@ -30,23 +62,19 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
         `${API_BASE_URL}/api/contact/showCustomer`,
         {
           params: {
-            city,
-            
-            customerentity,
-            
+            city: city.map((c) => c.value),
+            customerEntity,
           },
         }
       );
 
       onApplyFilters(response.data.products);
-      // Update localStorage only if filters are applied successfully
+
       localStorage.setItem(
         "expenseFilters",
         JSON.stringify({
-          city,
-          
-          customerentity,
-          
+          city: city.map((c) => c.value),
+          customerEntity,
         })
       );
     } catch (error) {
@@ -55,41 +83,33 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
   };
 
   const retrieveAndSetFilters = async () => {
-    // Retrieve filter values from localStorage
     const storedFilters = localStorage.getItem("expenseFilters");
     if (storedFilters) {
-      const {
-        city: storedCity,
-        
-        customerEntity: storedCustomerEntity,
-      } = JSON.parse(storedFilters);
+      const { city: storedCity, customerEntity: storedCustomerEntity } =
+        JSON.parse(storedFilters);
 
-      // Set filter values to state
-      setCity(storedCity);
-
-      setCustomerEntity(storedCustomerEntity);
+      setCity(
+        storedCity ? storedCity.map((c) => ({ value: c, label: c })) : []
+      );
+      setCustomerEntity(storedCustomerEntity || []);
       setShouldApplyFilters(true);
     }
   };
 
   useEffect(() => {
-    // Retrieve and set filters from localStorage when the component mounts
     retrieveAndSetFilters();
   }, []);
 
   useEffect(() => {
-    // Apply filters when the flag is set to true
     if (shouldApplyFilters) {
       applyFilters();
-      // Reset the flag to false after applying filters
       setShouldApplyFilters(false);
     }
   }, [shouldApplyFilters]);
 
   const handleResetFilters = () => {
-    setCity("");
-    setCustomerEntity("");
-   
+    setCity([]);
+    setCustomerEntity([]);
     resetFilters();
   };
 
@@ -108,55 +128,60 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
       }}
     >
       <div className="filter-modal">
- 
-<input
-          type="text"
-          placeholder="Name of Customer Entity"
-          value={customerentity}
-          onChange={(e) => setCustomerEntity(e.target.value)}
-          className="p-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2"
-        />
+        <div className="flex flex-wrap">
+          <Select
+            isMulti
+            options={customerEntityOptions}
+            value={customerEntityOptions.filter((option) =>
+              customerEntity.includes(option.value)
+            )}
+            onChange={(selectedOptions) =>
+              setCustomerEntity(
+                selectedOptions
+                  ? selectedOptions.map((option) => option.value)
+                  : []
+              )
+            }
+            placeholder="Select Customer Entity"
+            className="p-2 w-full md:w-1/4 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2 m-2"
+          />
 
-        <select
-          value={city}
-          onChange={(e) => setCity(e.target.value)}
-          className="p-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2"
-        >
-          <option value="">Select City</option>
-          {citys &&
-            citys.map((data, index) => (
-              <option key={index} value={data.city}>
-                {data.city}
-              </option>
-            ))}
-        </select>
+          <Select
+            isMulti
+            options={cityOptions}
+            value={city}
+            onChange={(selectedOptions) => setCity(selectedOptions || [])}
+            placeholder="Select City"
+            className="p-2 w-full md:w-1/4 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2 m-2"
+          />
+        </div>
 
-
-        {/* Apply and Cancel buttons */}
-        <button
-          onClick={() => {
-            applyFilters();
-            onClose();
-          }}
-          className="bg-blue-500 text-white px-4 py-2 rounded ml-2"
-          style={{ marginLeft: "10px" }}
-        >
-          Apply Filters
-        </button>
-        <button
-          onClick={handleResetFilters}
-          className="bg-red-500 text-white px-4 py-2 rounded ml-2"
-          style={{ marginLeft: "10px" }}
-        >
-          Clear Filters
-        </button>
-        <button
-          onClick={onClose}
-          className="bg-blue-500 text-white px-4 py-2 rounded ml-2"
-          style={{ marginLeft: "10px" }}
-        >
-          Cancel
-        </button>
+        <div className="mt-2">
+          <button
+            onClick={() => {
+              applyFilters();
+              onClose();
+            }}
+            className="bg-blue-500 text-white px-4 py-2 rounded ml-2"
+            style={{ marginLeft: "10px" }}
+          >
+            Apply Filters
+          </button>
+          <button
+            onClick={handleResetFilters}
+            className="bg-red-500 text-white px-4 py-2 rounded ml-2"
+            style={{ marginLeft: "10px" }}
+          >
+            Clear Filters
+          </button>
+          <button
+            onClick={onClose}
+            className="bg-blue-500 text-white px-4 py-2 rounded ml-2"
+            style={{ marginLeft: "10px" }}
+          >
+            Cancel
+          </button>
+        </div>
       </div>
     </Modal>
   );

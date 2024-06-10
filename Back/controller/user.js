@@ -121,13 +121,23 @@ const editUser = async (req, res) => {
       hashedPassword = await bcrypt.hash(password, 10);
     }
 
-    const userQuery = `
+    // Construct query and values array dynamically
+    let userQuery = `
       UPDATE user
-      SET name = ?, email = ?, ${hashedPassword ? 'password = ?' : ''}, role = ?
-      WHERE id = ?
+      SET name = ?, email = ?, role = ?
     `;
+    const values = [name, email, role];
 
-    const values = [name, email, ...(hashedPassword ? [hashedPassword] : []),role, req.params.id];
+    if (hashedPassword) {
+      userQuery = `
+        UPDATE user
+        SET name = ?, email = ?, password = ?, role = ?
+      `;
+      values.splice(2, 0, hashedPassword); // Insert hashedPassword at the right position
+    }
+
+    userQuery += ` WHERE id = ?`;
+    values.push(req.params.id);
 
     pool.query(userQuery, values, (error, results) => {
       if (error) {

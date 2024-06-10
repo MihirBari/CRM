@@ -23,6 +23,7 @@ const EditOpportunityModal = ({ isOpen, onClose }) => {
 
   const { id } = useParams();
   const [inputs, setInputs] = useState(initialInputs);
+  const [nameOptions, setNameOptions] = useState([]);
   const [err, setError] = useState(null);
 
   useEffect(() => {
@@ -66,6 +67,12 @@ const EditOpportunityModal = ({ isOpen, onClose }) => {
     fetchOrder();
   }, [id]);
 
+  useEffect(() => {
+    if (inputs.customer_entity) {
+      fetchName(inputs.customer_entity);
+    }
+  }, [inputs.customer_entity]);
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setInputs((prev) => ({
@@ -73,49 +80,59 @@ const EditOpportunityModal = ({ isOpen, onClose }) => {
       [name]: type === "checkbox" ? checked : value,
     }));
   };
-  
-// Modify handleChangeFile function
-const handleChangeFile = (e) => {
-  const { name, files } = e.target;
-  const file = files[0];
-  // Convert the file to a Blob
-  const blob = new Blob([file]);
-  setInputs((prev) => ({
-    ...prev,
-    [name]: blob, // Set the Blob object to the pdf property
-  }));
-};
 
-// Modify handleSubmit function to send FormData with PDF data
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  try {
-    const formData = new FormData();
-    Object.keys(inputs).forEach((key) => {
-      formData.append(key, inputs[key]);
-    });
+  const handleChangeFile = (e) => {
+    const { name, files } = e.target;
+    const file = files[0];
+    const blob = new Blob([file]);
+    setInputs((prev) => ({
+      ...prev,
+      [name]: blob,
+    }));
+  };
 
-    await axios.put(
-      `${API_BASE_URL}/api/Opportunity/editOpportunity/${id}`,
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      }
-    );
+  const fetchName = async (customerEntity) => {
+    try {
+      const response = await axios.post(
+        `${API_BASE_URL}/api/Opportunity/name`,
+        { customer_entity: customerEntity }
+      );
+      setNameOptions(response.data);
+      console.log(response.data);
+    } catch (error) {
+      console.error("Error fetching names:", error);
+    }
+  };
 
-    setInputs(initialInputs);
-    toast.success("Opportunity updated successfully");
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const formData = new FormData();
+      Object.keys(inputs).forEach((key) => {
+        formData.append(key, inputs[key]);
+      });
 
-    onClose();
-    window.location.reload();
-  } catch (err) {
-    console.error(err);
-    setError(err.response);
-    toast.error("Failed to update opportunity");
-  }
-};
+      await axios.put(
+        `${API_BASE_URL}/api/Opportunity/editOpportunity/${id}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      setInputs(initialInputs);
+      toast.success("Opportunity updated successfully");
+
+      onClose();
+      window.location.reload();
+    } catch (err) {
+      console.error(err);
+      setError(err.response);
+      toast.error("Failed to update opportunity");
+    }
+  };
 
   return (
     <Modal
@@ -150,7 +167,7 @@ const handleSubmit = async (e) => {
                     "Enter Customer Entity"
                   )}
                 </div>
-                <div>{renderInput("name", "Name", "Name")}</div>
+                <div>{renderSelect("name", "Name", nameOptions)}</div>
                 <div>
                   {renderInput(
                     "description",
@@ -160,16 +177,17 @@ const handleSubmit = async (e) => {
                 </div>
                 <div>
                   {renderSelect("type", "Opportunity Type", [
-                    { value: "BigFix", label: "BigFix" },
-                    { value: "SolarWinds", label: "SolarWinds" },
-                    { value: "Services", label: "Services" },
+                    { value: "BigFix", name: "BigFix" },
+                    { value: "SolarWinds", name: "SolarWinds" },
+                    { value: "Services", name: "Services" },
+                    { value: "Tenable", name: "Tenable" },
+                    { value: "Armis", name: "Armis" },
                   ])}
                 </div>
                 <div>
                   {renderSelect("License_type", "License Type", [
-                    { value: "New", label: "New" },
-                    { value: "Renew", label: "Renew" },
-                    { value: "Services", label: "Services" },
+                    { value: "New", name: "New" },
+                    { value: "Renewal", name: "Renewal" },
                   ])}
                 </div>
                 <div>{renderInput("value", "Value", "Enter value")}</div>
@@ -184,15 +202,14 @@ const handleSubmit = async (e) => {
                 <div>{renderInput("period", "Comment", "Comment")}</div>
                 <div>
                   {renderSelect("status", "Status", [
-                    { value: "Quotation Done", label: "Quotation Done" },
-                    { value: "Demo Done", label: "Demo Done" },
-                    { value: "POC Done", label: "POC Done" },
-                    { value: "Progress Sub", label: "Progress Sub" },
-                    { value: "Won", label: "Won" },
-                    { value: "Lost", label: "Lost" },
+                    { value: "Quotation Done", name: "Quotation Done" },
+                    { value: "Demo Done", name: "Demo Done" },
+                    { value: "POC Done", name: "POC Done" },
+                    { value: "Progress Sub", name: "Progress Sub" },
+                    { value: "Won", name: "Won" },
+                    { value: "Lost", name: "Lost" },
                   ])}
                 </div>
-
                 {inputs.status === "Won" && (
                   <>
                     <div>
@@ -213,7 +230,9 @@ const handleSubmit = async (e) => {
                     </div>
                   </>
                 )}
-                <div>{renderInput("pdf", "Upload PDF", "Upload PDF", "file")}</div>
+                <div>
+                  {renderInput("pdf", "Upload PDF", "Upload PDF", "file")}
+                </div>
               </div>
               <div className="flex  items-center mt-4">
                 {renderButton("Update")}
@@ -229,7 +248,10 @@ const handleSubmit = async (e) => {
     if (type === "file") {
       return (
         <>
-          <label htmlFor={name} className="block text-sm font-medium text-gray-700">
+          <label
+            htmlFor={name}
+            className="block text-sm font-medium text-gray-700"
+          >
             {label}
           </label>
           <div className="mt-1">
@@ -246,14 +268,17 @@ const handleSubmit = async (e) => {
     } else {
       return (
         <>
-          <label htmlFor={name} className="block text-sm font-medium text-gray-700">
+          <label
+            htmlFor={name}
+            className="block text-sm font-medium text-gray-700"
+          >
             {label}
           </label>
           <div className="mt-1">
             <input
               type={type}
               name={name}
-              required
+              
               onChange={handleChange}
               placeholder={placeholder}
               value={inputs[name]}
@@ -264,7 +289,6 @@ const handleSubmit = async (e) => {
       );
     }
   }
-  
 
   function renderSelect(name, label, options) {
     return (
@@ -278,7 +302,7 @@ const handleSubmit = async (e) => {
         <div className="mt-1 relative">
           <select
             name={name}
-            required
+            
             onChange={handleChange}
             value={inputs[name]}
             className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
@@ -286,7 +310,7 @@ const handleSubmit = async (e) => {
             <option value="" label="Select an option" disabled />
             {options.map((option) => (
               <option key={option.value} value={option.value}>
-                {option.label}
+                {option.name}
               </option>
             ))}
           </select>

@@ -85,9 +85,18 @@ const showOpportunity = (req, res) => {
         filterConditions.push(`closure_time LIKE '%${closureTime}%'`);
       }
 
-      if (status) {
-        filterConditions.push(`status LIKE '%${status}%'`);
+      if (status && Array.isArray(status)) {
+        const statusConditions = status.map(status => `status LIKE '%${status}%'`);
+        if (statusConditions.length > 0) {
+          filterConditions.push(`(${statusConditions.join(" OR ")})`);
+        }
+      } else if (status) {
+        filterConditions.push(`status LIKE '${status}'`);
       }
+
+      // if (status) {
+      //   filterConditions.push(`status LIKE '%${status}%'`);
+      // }
 
       if (period) {
         filterConditions.push(`period LIKE '%${period}%'`);
@@ -249,8 +258,16 @@ const addOpportunity = async (req, res) => {
   const licenseFrom = license_from || null;
   const licenseTo = license_to || null;
 
-  // Decode the base64 PDF data
-  const pdfBuffer = Buffer.from(pdf.split(',')[1], 'base64');
+  // Handle the PDF data if it's provided
+  let pdfBuffer = null;
+  if (pdf) {
+    try {
+      pdfBuffer = Buffer.from(pdf.split(',')[1], 'base64');
+    } catch (error) {
+      console.error("Error decoding PDF data:", error);
+      return res.status(400).json({ error: "Invalid PDF data" });
+    }
+  }
 
   const values = [
     customer_entity,
@@ -274,7 +291,6 @@ const addOpportunity = async (req, res) => {
           console.error("Error executing query:", error);
           reject(error);
         } else {
-          //console.log("Opportunity added successfully:", results);
           resolve();
         }
       });
@@ -286,6 +302,7 @@ const addOpportunity = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 
 const editOpportunity = (req, res) => {
   const { customer_entity, name, description, type, License_type, value, closure_time, status, period, license_from, license_to } = req.body;
@@ -487,7 +504,7 @@ const checkOpportunities = () => {
 
             // Store alert details in the database
             storeAlertInDatabase(alertDetails);
-            sendEmailAlert(alertDetails);
+            //sendEmailAlert(alertDetails);
             console.log(`Alert stored for opportunity ID ${opportunity.id}:`, alertDetails);
           }
         }
@@ -539,7 +556,7 @@ const updateDaysLeftInAlerts = () => {
     });
   });
 };
-
+ 
 // Schedule the task to run daily at 1:10 PM IST
 cron.schedule('30 11 * * *', () => {
   console.log(`[${moment().tz('Asia/Kolkata').format()}] Scheduled task triggered`);
