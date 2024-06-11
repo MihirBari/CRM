@@ -3,12 +3,14 @@ import axios from "axios";
 import API_BASE_URL from "../../config";
 import FilterModal from "./FilterModal";
 import { CiFilter } from "react-icons/ci";
+import ExportTable from "./ExportTable";
 
 const Main = () => {
   const [filterModalIsOpen, setFilterModalIsOpen] = useState(false);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filteredUsers, setFilteredUsers] = useState([]);
+  const [exportModalIsOpen, setExportModalIsOpen] = useState(false);
   const [aggregates, setAggregates] = useState({});
   const [filters, setFilters] = useState({
     type: "",
@@ -75,6 +77,11 @@ const Main = () => {
     return new Intl.NumberFormat('en-IN').format(value);
   };
 
+  const handleExportClick = () => {
+    setExportModalIsOpen(true);
+  };
+
+
   return (
 <div className="h-screen flex-1 p-7">
   <div>
@@ -93,6 +100,17 @@ const Main = () => {
       filters={filters}
       resetFilters={() => setFilters(initialFilters)}
     />
+        {/* <button
+          className="bg-blue-500 text-white px-4 py-2 rounded"
+          onClick={handleExportClick}
+        >
+          Export
+        </button> */}
+        <ExportTable
+          data={filteredUsers}
+          isOpen={exportModalIsOpen}
+          onRequestClose={() => setExportModalIsOpen(false)}
+        />
   </div>
 
   <div>
