@@ -106,7 +106,6 @@ const EditOpportunity = () => {
       setInputs(initialInputs);
       navigate("/Opportunity");
       toast.success("Opportnity updated successfully");
-      Window.location.reload()
     } catch (err) {
       console.error(err);
       setError(err.response);

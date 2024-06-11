@@ -124,7 +124,6 @@ const EditOpportunityModal = ({ isOpen, onClose }) => {
 
       setInputs(initialInputs);
       toast.success("Opportunity updated successfully");
-
       onClose();
       window.location.reload();
     } catch (err) {

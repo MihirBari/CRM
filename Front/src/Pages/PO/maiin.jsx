@@ -17,12 +17,11 @@ const Main = () => {
   useEffect(() => {
     const fetchAlerts = async () => {
       try {
-        const response = await fetch(
-          `${API_BASE_URL}/api/Opportunity/sendPo`
-        );
-     
-        setAlerts(response.data.products);
-        setFilteredUsers(response.data.products);
+        const response = await fetch(`${API_BASE_URL}/api/Opportunity/sendPo`);
+        const data = await response.json();
+        setAlerts(data.products);
+        console.log(data.products);
+        setFilteredUsers(data.products);
       } catch (error) {
         console.error("Error fetching alerts:", error);
       }
@@ -34,9 +33,7 @@ const Main = () => {
   useEffect(() => {
     const checkForPopupAlerts = () => {
       const alertsToPopup = alerts.filter(
-        (alert) =>
-          alert.daysLeft === 1 &&
-          alert.acknowledge === "Yes" 
+        (alert) => alert.daysLeft === 1 && alert.acknowledge === "Yes"
       );
       setPopupAlerts(alertsToPopup);
     };
@@ -45,7 +42,9 @@ const Main = () => {
   }, [alerts]);
 
   const acknowledgePopupAlert = (id) => {
-    setPopupAlerts((prevPopupAlerts) => prevPopupAlerts.filter((alert) => alert.id !== id));
+    setPopupAlerts((prevPopupAlerts) =>
+      prevPopupAlerts.filter((alert) => alert.id !== id)
+    );
   };
 
   const onApplyFilters = (filteredData) => {
@@ -84,17 +83,16 @@ const Main = () => {
       ) : (
         <div className="alert-container">
           {Array.isArray(alerts) &&
-            filteredUsers.map((alert)  => (
-            <div key={alert.id} className="alert-box">
-              <h2>PO WON!!</h2>
-              <p>
-                PO of <b>{alert.alert_entity}</b> for{" "}
-                {alert.alert_description} in {alert.alert_type} was won
-              </p>
-              <div className="button-container">
+            filteredUsers.map((alert) => (
+              <div key={alert.id} className="alert-box">
+                <h2>PO WON!!</h2>
+                <p>
+                  PO of <b>{alert.alert_entity}</b> for{" "}
+                  {alert.alert_description} in {alert.alert_type} was won
+                </p>
+                <div className="button-container"></div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
       )}
       {popupAlerts.map((alert) => (
@@ -102,7 +100,8 @@ const Main = () => {
           <h2>PO WON</h2>
           <p>
             Opportunity for <b>{alert.alert_entity}</b> for{" "}
-            {alert.alert_description} in {alert.alert_type} has been won please make required changes
+            {alert.alert_description} in {alert.alert_type} has been won
+            please make required changes
           </p>
           <div className="button-container">
             <button

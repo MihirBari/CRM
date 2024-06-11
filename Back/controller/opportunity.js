@@ -571,10 +571,10 @@ const sendAlert = async (req, res) => {
   const { customerEntity, status } = req.query;
 
   let dealerQuery = `
-    SELECT id, alert_entity, alert_description, license_to, alert_type, daysLeft, License_type, acknowledge, po_lost 
+  SELECT id, alert_entity, alert_description, license_to, alert_type, daysLeft, License_type, acknowledge, po_lost,reminder 
     FROM alert 
     WHERE (acknowledge = "No" AND po_lost = "No" AND reminder = "No") 
-       OR (daysLeft = 30 AND acknowledge = "No" AND po_lost = "No")
+       OR (daysLeft = 30 AND acknowledge = "No" )
        OR (daysLeft <= 15 AND acknowledge = "No" AND po_lost = "No")
   `;
 
