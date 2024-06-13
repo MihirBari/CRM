@@ -8,6 +8,8 @@ const contactRoute = require("./routes/Contact");
 const userRoute = require("./routes/user");
 const leaveRoute = require("./routes/Leave");
 const opportunityRoute = require("./routes/opportunity");
+const calendarRoute = require("./routes/Calendar");
+const EmployesRoute = require("./routes/employes");
 const ErrorHandler = require("./middleware/error");
 
 const app = express();
@@ -47,6 +49,8 @@ app.use("/api/user", userRoute);
 app.use("/api/Contact", contactRoute);
 app.use("/api/Leave", leaveRoute);
 app.use("/api/Opportunity", opportunityRoute);
+app.use("/api/Holiday", calendarRoute);
+app.use("/api/Employes", EmployesRoute);
 
 // Error handling middleware
 app.use(ErrorHandler);

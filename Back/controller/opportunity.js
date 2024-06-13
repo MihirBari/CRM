@@ -65,7 +65,7 @@ const showOpportunity = (req, res) => {
       // }
 
       if (LicenseType && Array.isArray(LicenseType)) {
-        const LicenseTypeConditions = LicenseType.map(LicenseType => `License_type LIKE '%${LicenseType}%'`);
+        const LicenseTypeConditions = LicenseType.map(LicenseType => `License_type LIKE '${LicenseType}'`);
         if (LicenseTypeConditions.length > 0) {
           filterConditions.push(`(${LicenseTypeConditions.join(" OR ")})`);
         }
@@ -521,6 +521,7 @@ const updateDaysLeftInAlerts = () => {
   const selectQuery = `
     SELECT id, license_to
     FROM alert
+    where daysLeft != 0
   `;
 
   pool.query(selectQuery, (error, results) => {
@@ -556,16 +557,6 @@ const updateDaysLeftInAlerts = () => {
     });
   });
 };
- 
-// Schedule the task to run daily at 1:10 PM IST
-cron.schedule('30 11 * * *', () => {
-  console.log(`[${moment().tz('Asia/Kolkata').format()}] Scheduled task triggered`);
-  checkOpportunities();
-  updateDaysLeftInAlerts();
-}, {
-  scheduled: true,
-  timezone: "Asia/Kolkata"
-});
 
 const sendAlert = async (req, res) => {
   const { customerEntity, status } = req.query;
@@ -574,7 +565,7 @@ const sendAlert = async (req, res) => {
   SELECT id, alert_entity, alert_description, license_to, alert_type, daysLeft, License_type, acknowledge, po_lost,reminder 
     FROM alert 
     WHERE (acknowledge = "No" AND po_lost = "No" AND reminder = "No") 
-       OR (daysLeft = 30 AND acknowledge = "No" )
+       OR (daysLeft = 30 AND acknowledge = "No" AND po_lost = "No")
        OR (daysLeft <= 15 AND acknowledge = "No" AND po_lost = "No")
   `;
 
@@ -619,6 +610,15 @@ const sendAlert = async (req, res) => {
   });
 };
 
+// Schedule the task to run daily at 1:10 PM IST
+cron.schedule('02 12 * * *', () => {
+  console.log(`[${moment().tz('Asia/Kolkata').format()}] Scheduled task triggered`);
+  checkOpportunities();
+  updateDaysLeftInAlerts();
+}, {
+  scheduled: true,
+  timezone: "Asia/Kolkata"
+});
 
 const sendPo = async (req, res) => { 
   const { customerEntity, status } = req.query;

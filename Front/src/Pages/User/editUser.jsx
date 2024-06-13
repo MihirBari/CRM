@@ -72,9 +72,9 @@ const EditUser = () => {
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
-              <div>
+              {/* <div>
                 {renderInput("name", "Name", "Enter your Name")}
-              </div>
+              </div> */}
               <div>
                 {renderInput("email", "User Name", "Enter your E-mail")}
               </div>

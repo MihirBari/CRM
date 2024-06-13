@@ -7,14 +7,13 @@ const showApplicationLeave = (req, res) => {
         type,
         status,
         toDate,
-        assignedTo,
         dateFilterType
     } = req.query;
     const { id, role } = req.user;
 console.log(req.user)
     let query = `
-        SELECT la.id, la.name,la.status, la.fromDate, la.toDate,la.type, la.duration, 
-        la.days, la.description, la.history, la.assignedTo,
+        SELECT la.id, la.name,la.surname,la.status, la.fromDate, la.toDate,la.type, la.duration, 
+        la.days, la.description, la.history,
         la.created_at, la.update_at
         FROM leaveapplication la
         JOIN user u ON u.name = la.name
@@ -42,9 +41,7 @@ console.log(req.user)
         filterConditions.push(`type LIKE '%${type}%'`);
     }
 
-    if (assignedTo) {
-        filterConditions.push(`assignedTo LIKE '%${assignedTo}%'`);
-    }
+   
 
     if (dateFilterType && fromDate && toDate) {
         if (dateFilterType === "equal") {
@@ -98,7 +95,7 @@ console.log(req.user)
                     }
 
                     res.status(200).json({ dealers: results });
-                    console.log(results)
+                    //console.log(results)
                     // Release connection back to the pool
                     connection.release();
                 });
@@ -110,8 +107,8 @@ console.log(req.user)
 const showOneApplicationLeave = async (req, res) => {
   
   const dealerQuery = `
-  SELECT id, name, status, fromDate, toDate, type, duration, 
-  days, description, history, assignedTo, created_at
+  SELECT id, name,surname, status, fromDate, toDate, type, duration, 
+  days, description, history, created_at
   FROM leaveapplication
   WHERE id = ?
   `;
@@ -128,7 +125,6 @@ const showOneApplicationLeave = async (req, res) => {
 };
 
 const addApplicationLeave = (req, res) => {
-
   // Begin a SQL transaction
   pool.getConnection((err, connection) => {
     if (err) {
@@ -143,28 +139,26 @@ const addApplicationLeave = (req, res) => {
         return res.status(500).json({ error: "Internal Server Error" });
       }
 
-
       const addDealer = `
-    INSERT INTO leaveapplication
-    (name, status, fromDate, toDate, type, duration, days, description,
-    history, assignedTo, createdBy, created_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
-`;
+        INSERT INTO leaveapplication
+        (name, surname, status, fromDate, toDate, type, duration, days, description,
+        history, createdBy, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+      `;
 
-const value = [
-    req.body.name,
-    req.body.status,
-    req.body.fromDate,
-    req.body.toDate,
-    req.body.type,
-    req.body.duration,
-    req.body.days,
-    req.body.description,
-    req.body.history,
-    req.body.assignedTo,
-    req.body.name 
-];
-
+      const value = [
+        req.body.name,
+        req.body.surname,
+        req.body.status,
+        req.body.fromDate,
+        req.body.toDate,
+        req.body.type,
+        req.body.duration,
+        req.body.days,
+        req.body.description,
+        req.body.history,
+        req.body.name
+      ];
 
       // Execute the first query
       connection.query(addDealer, value, (error, results) => {
@@ -179,17 +173,14 @@ const value = [
         console.log("Leave application added successfully:");
 
         const addDealer2 = `
-        SELECT la.*, u.email , uu.email as sender
-        FROM leaveapplication la
-        JOIN user AS u ON u.name = la.assignedTo
-        JOIN user AS uu ON uu.name = la.name
-        WHERE la.id = ?
+          SELECT la.*, uu.email as sender
+          FROM leaveapplication la
+          JOIN user AS uu ON uu.name = la.name
+          WHERE la.id = ?
         `;
 
-       
         // Execute the second query
         connection.query(addDealer2, [results.insertId], (error, rows) => {
-          console.log(rows)
           if (error) {
             console.error("Error executing second query:", error);
             return connection.rollback(() => {
@@ -207,30 +198,31 @@ const value = [
             });
           }
 
-          console.log("Fetched user email:", rows[0].email);
+          console.log("Fetched user email:", rows[0].sender);
 
           // Nodemailer configuration
           const transporter = nodemailer.createTransport({
             host: process.env.SMPT_HOST,
             port: process.env.SMPT_PORT,
-            service: process.env.SMPT_SERVICE,
+            secure: true, // Use true for 465, false for other ports
             auth: {
               user: process.env.SMPT_MAIL,
               pass: process.env.SMPT_PASSWORD,
             },
           });
-
+ 
           const mailOptions = {
-            from: `${rows[0].sender}`,
-            to: rows[0].email,
-            subject:`Leave Application Confirmation`,
+            from: `"TechSa CRM" <${process.env.SMPT_MAIL}>`,
+            to: `${process.env.SMPT_MAIL}`,
+            cc: "mihir.b@techsa.net",
+            // replyTo: `${rows[0].sender}`, // Setting the actual sender's email in replyTo
+            subject: `Leave Application Confirmation`,
             text: `Hi Sir,
             
             I am writing this mail to ask for ${rows[0].type} from ${rows[0].fromDate} to ${rows[0].toDate}.
             
-            
             Regards,
-            ${rows[0].name}
+            ${rows[0].name} ${rows[0].surname}
             `,
           };
 
@@ -267,67 +259,44 @@ const value = [
 };
 
 const editApplicationAdmin = (req, res) => {
-  const updateDealer = `
-    UPDATE leaveapplication 
-    SET
-    name = ?,
-    status = ?,
-    fromDate = ?,
-    toDate = ?, 
-    type = ?,
-    duration = ?,
-    days = ?,
-    description= ?,
-    history =?,	
-    update_at = NOW()
-    
-    WHERE
-    id = ? ;
+  const checkStatusQuery = `
+    SELECT la.name, la.surname, u.email, la.status 
+    FROM leaveapplication la
+    JOIN user AS u ON u.name = la.name
+    WHERE la.id = ?;
   `;
 
-  const values = [
-    req.body.name,
-    req.body.status,
-    req.body.fromDate,
-    req.body.toDate,
-    req.body.type,
-    req.body.duration,
-    req.body.days,
-    req.body.description,
-    req.body.history,
-    req.params.id,
-  ];
-
-  pool.query(updateDealer, values, (error, results) => {
-    if (error) {
-      console.error("Error executing query:", error);
+  pool.getConnection((err, connection) => {
+    if (err) {
+      console.error("Error connecting to database:", err);
       return res.status(500).json({ error: "Internal Server Error" });
     }
 
-    console.log("Updated dealer:", results);
+    connection.query(checkStatusQuery, [req.params.id], (error, rows) => {
+      if (error) {
+        console.error("Error executing query:", error);
+        connection.release();
+        return res.status(500).json({ error: "Internal Server Error" });
+      }
 
-    // Check if status is 'approved'
-    if (req.body.la && (req.body.la.status === "approved" || req.body.la.status === "rejected")) {
-      const updateDealer2 = `
-        SELECT la.name, u.email 
-        FROM leaveapplication la
-        JOIN user AS u ON u.name = la.name
-        WHERE (la.status = 'approved' OR la.status = 'rejected') AND la.id = ?;
-      `;
+      if (!rows || rows.length === 0) {
+        console.error("No rows returned");
+        connection.release();
+        return res.status(404).json({ error: "Not Found" });
+      }
 
-      pool.query(updateDealer2, [req.params.id], (error, rows) => {
-        if (error) {
-          console.error("Error executing second query:", error);
-          return res.status(500).json({ error: "Internal Server Error" });
-        }
+      const currentStatus = rows[0].status;
+      const userEmail = rows[0].email;
+      const userName = rows[0].name;
+      const userSurname = rows[0].surname;
 
-        console.log("Fetched user email:", rows[0].email);
-
+      // Check if the new status is 'approved' or 'rejected'
+      if (req.body.status === "approved" || req.body.status === "rejected") {
         // Nodemailer configuration
         const transporter = nodemailer.createTransport({
-          host: process.env.SMPT_HOST, 
+          host: process.env.SMPT_HOST,
           port: process.env.SMPT_PORT,
-          service: process.env.SMPT_SERVICE,
+          secure: true, // Use true for 465, false for other ports
           auth: {
             user: process.env.SMPT_MAIL,
             pass: process.env.SMPT_PASSWORD,
@@ -335,28 +304,112 @@ const editApplicationAdmin = (req, res) => {
         });
 
         const mailOptions = {
-          from: "barimihir23@gmail.com",
-          to: rows[0].email,
-          subject: "Leave Application Approval",
-          text: "Your leave application has been approved.",
+          from: `<${process.env.SMPT_MAIL}>`,
+          to: userEmail,
+          subject: "Leave Application Status Update",
+          text: `Hi ${userName} ${userSurname},\n\nYour leave application has been ${req.body.status}.\n\nRegards,\nTechSa CRM`,
         };
 
-        // Sending email
+        // Send email
         transporter.sendMail(mailOptions, (error, info) => {
           if (error) {
             console.error("Error sending email:", error);
+            connection.release();
             return res.status(500).json({ error: "Internal Server Error" });
           }
+
           console.log("Email sent:", info.response);
 
-          // Send response
+          // Update the database after email is sent successfully
+          const updateDealer = `
+            UPDATE leaveapplication 
+            SET
+            name = ?,
+            surname = ?,
+            status = ?,
+            fromDate = ?,
+            toDate = ?, 
+            type = ?,
+            duration = ?,
+            days = ?,
+            description = ?,
+            history = ?,	
+            update_at = NOW()
+            WHERE id = ?;
+          `;
+
+          const values = [
+            req.body.name,
+            req.body.surname,
+            req.body.status,
+            req.body.fromDate,
+            req.body.toDate,
+            req.body.type,
+            req.body.duration,
+            req.body.days,
+            req.body.description,
+            req.body.history,
+            req.params.id,
+          ];
+
+          connection.query(updateDealer, values, (error, results) => {
+            if (error) {
+              console.error("Error executing update query:", error);
+              connection.release();
+              return res.status(500).json({ error: "Internal Server Error" });
+            }
+
+            console.log("Updated dealer:", results);
+            connection.release();
+            res.json(results);
+          });
+        });
+      } else {
+        // Update the database without sending email if status is not 'approved' or 'rejected'
+        const updateDealer = `
+          UPDATE leaveapplication 
+          SET
+          name = ?,
+          surname = ?,
+          status = ?,
+          fromDate = ?,
+          toDate = ?, 
+          type = ?,
+          duration = ?,
+          days = ?,
+          description = ?,
+          history = ?,	
+          update_at = NOW()
+          WHERE id = ?;
+        `;
+
+        const values = [
+          req.body.name,
+          req.body.surname,
+          req.body.status,
+          req.body.fromDate,
+          req.body.toDate,
+          req.body.type,
+          req.body.duration,
+          req.body.days,
+          req.body.description,
+          req.body.history,
+          req.params.id,
+        ];
+
+        connection.query(updateDealer, values, (error, results) => {
+          if (error) {
+            console.error("Error executing update query:", error);
+            connection.release();
+            return res.status(500).json({ error: "Internal Server Error" });
+          }
+
+          console.log("Updated dealer:", results);
+          connection.release();
           res.json(results);
         });
-      });
-    } else {
-      // Send response if status is not 'approved'
-      res.json(results);
-    }
+      }
+    });
   });
 };
 

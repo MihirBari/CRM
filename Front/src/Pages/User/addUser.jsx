@@ -9,6 +9,7 @@ const AddUser = () => {
   const navigate = useNavigate();
   const initialInputs = {
     name: "",
+    surname: "",
     email: "",
     password: "",
     role: "user"
@@ -27,6 +28,13 @@ const AddUser = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Check if password field is empty
+    if (!inputs.password) {
+      toast.error("Password is required");
+      return;
+    }
+  
     try {
       // Send data to backend
       await axios.post(`${API_BASE_URL}/api/user/addUser`, inputs);
@@ -39,6 +47,7 @@ const AddUser = () => {
       toast.error("Failed to create user");
     }
   }
+  
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -57,13 +66,30 @@ const AddUser = () => {
                 htmlFor="name"
                 className="block text-sm font-medium text-gray-700"
               >
-                Name
+               First Name
               </label>
               <div className="mt-1">
                 <input
-                  type="name"
+                  type="text"
                   name="name"
-                  autoComplete="name"
+                  required
+                  onChange={handleChange}
+                  placeholder="Enter your Name"
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                />
+              </div>
+            </div>
+            <div>
+              <label
+                htmlFor="surname"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Surname
+              </label>
+              <div className="mt-1">
+                <input
+                  type="text"
+                  name="surname"
                   required
                   onChange={handleChange}
                   placeholder="Enter your Name"
@@ -76,7 +102,7 @@ const AddUser = () => {
                 htmlFor="email"
                 className="block text-sm font-medium text-gray-700"
               >
-                User Name
+                E-Mail
               </label>
               <div className="mt-1">
                 <input

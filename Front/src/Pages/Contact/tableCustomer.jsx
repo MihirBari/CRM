@@ -87,10 +87,13 @@ const TableCustomer = () => {
   };
 
   const handleViewClick = (customer_entity) => {
+    console.log("customer_entity",customer_entity)
     navigate(`${customer_entity}`);
   };
 
- 
+  const handleViewClicked = (row) => {
+    navigate(`view/${row.id}`);
+  };
 
   const columns = [
     {
@@ -157,7 +160,7 @@ const TableCustomer = () => {
     },
     {
       name: "View",
-      cell: (row) => <FaEye onClick={() => handleViewClick(row)} />,
+      cell: (row) => <FaEye onClick={() => handleViewClicked(row)} />,
       button: true,
     },
   ];

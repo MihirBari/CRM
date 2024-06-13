@@ -8,6 +8,7 @@ import { AuthContext } from "../../context/AuthContext";
 const EditSeller = () => {
   const initialInputs = {
     name: "",
+    surname: "",
     status: "",
     fromDate: "",
     toDate: "",
@@ -41,16 +42,15 @@ const EditSeller = () => {
         const sellerData = response.data[0];
         console.log("Seller Data:", sellerData);
 
-        const formattedDate = new Date(sellerData.fromDate).toLocaleDateString(
-          "en-CA",
-          {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-          }
-        );
+        const formattedFromDate = new Date(
+          sellerData.fromDate
+        ).toLocaleDateString("en-CA", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        });
 
-        const formattedDate1 = new Date(sellerData.toDate).toLocaleDateString(
+        const formattedToDate = new Date(sellerData.toDate).toLocaleDateString(
           "en-CA",
           {
             year: "numeric",
@@ -61,9 +61,10 @@ const EditSeller = () => {
 
         setInputs({
           name: sellerData.name,
+          surname: sellerData.surname,
           status: sellerData.status,
-          fromDate: formattedDate,
-          toDate: formattedDate1,
+          fromDate: formattedFromDate,
+          toDate: formattedToDate,
           type: sellerData.type,
           duration: sellerData.duration,
           days: sellerData.days,
@@ -107,61 +108,78 @@ const EditSeller = () => {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           {inputs && Object.keys(inputs).length !== 0 ? (
-            <form className="space-y-6">
+            <form className="space-y-6" onSubmit={handleSubmit}>
               <div className="grid grid-cols-2 gap-4">
                 {renderInput(
                   "name",
                   "Name",
                   "Enter Name",
                   "text",
-                  currentUser.role === "user"
+                  true,
+                  currentUser.role === "user" ||
+                    (currentUser.role === "admin" &&
+                      inputs.name !== currentUser.name)
+                )}
+                {renderInput(
+                  "surname",
+                  "Surname",
+                  "Enter Surname",
+                  "text",
+                  true,
+                  currentUser.role === "user" ||
+                    (currentUser.role === "admin" &&
+                      inputs.surname !== currentUser.surname)
                 )}
                 {renderInput(
                   "fromDate",
                   "From",
                   "Enter Date",
-                  "text",
+                  "date",
                   false,
-                  currentUser.role === "user"
+                  currentUser.role === "user" ||
+                    (currentUser.role === "admin" &&
+                      inputs.name !== currentUser.name)
                 )}
                 {renderInput(
                   "toDate",
                   "To",
                   "Enter Date",
-                  "text",
+                  "date",
                   false,
-                  currentUser.role === "user"
+                  currentUser.role === "user" ||
+                    (currentUser.role === "admin" &&
+                      inputs.name !== currentUser.name)
                 )}
                 <div>
-                {renderSelect(
-                  "type",
-                  "Type",
-                  [
-                    { value: "", label: "Select an option" },
-                    { value: "paid leave", label: "paid leave" },
-                    { value: "sick leave", label: "sick leave" },
-                    { value: "casual leave", label: "casual leave" },
-                    { value: "other leave", label: "other leave" },
-                  ],
-                  "text",
-                  false,
-                  currentUser.role === "user"
-                )}
+                  {renderSelect(
+                    "type",
+                    "Type",
+                    [
+                      { value: "", label: "Select an option" },
+                      { value: "paid leave", label: "paid leave" },
+                      { value: "sick leave", label: "sick leave" },
+                      { value: "casual leave", label: "casual leave" },
+                      { value: "other leave", label: "other leave" },
+                    ],
+                    currentUser.role === "user" ||
+                      (currentUser.role === "admin" &&
+                        inputs.name !== currentUser.name)
+                  )}
                 </div>
                 <div>
-                {renderSelect(
-                  "duration",
-                  "Duration Of leave",
-                  [
-                    { value: "", label: "Select an option" },
-                    { value: "Full Day", label: "Full Day" },
-                    { value: "Half Day", label: "Half Day" },
-                    { value: "Early leave", label: "Early leave" },
-                  ],
-                  false,
-                  "text",
-                  currentUser.role === "user"
-                )}
+                  {renderSelect(
+                    "duration",
+                    "Duration Of leave",
+                    [
+                      { value: "", label: "Select an option" },
+                      { value: "Full Day", label: "Full Day" },
+                      { value: "Half Day", label: "Half Day" },
+                      { value: "Early leave", label: "Early leave" },
+                    ],
+                    currentUser.role === "user" ||
+                      (currentUser.role === "admin" &&
+                        inputs.name !== currentUser.name)
+                  )}
                 </div>
                 {renderInput(
                   "days",
@@ -169,7 +187,9 @@ const EditSeller = () => {
                   "Enter No Of Days",
                   "text",
                   false,
-                  currentUser.role === "user"
+                  currentUser.role === "user" ||
+                    (currentUser.role === "admin" &&
+                      inputs.name !== currentUser.name)
                 )}
                 {renderTextArea(
                   "description",
@@ -177,29 +197,42 @@ const EditSeller = () => {
                   "Enter Summary",
                   "text",
                   false,
-                  currentUser.role === "user"
+                  currentUser.role === "user" ||
+                    (currentUser.role === "admin" &&
+                      inputs.name !== currentUser.name)
                 )}
                 <div>
                   {currentUser.role === "admin" &&
-                    renderSelect("status", "Status", [
-                      { value: "", label: "Select an option" },
-                      { value: "request", label: "request" },
-                      { value: "approved", label: "approved" },
-                      { value: "rejected", label: "rejected" },
-                    ])}
+                    inputs.name !== currentUser.name &&
+                    renderSelect(
+                      "status",
+                      "Status",
+                      [
+                        { value: "", label: "Select an option" },
+                        { value: "request", label: "request" },
+                        { value: "approved", label: "approved" },
+                        { value: "rejected", label: "rejected" },
+                      ],
+                      false,
+                      currentUser.role === "user" ||
+                        (currentUser.role === "admin" &&
+                          inputs.name !== currentUser.name)
+                    )}
                 </div>
-                {renderTextArea(
-                  "history",
-                  "Comments / History",
-                  "Enter Comment",
-                  "text",
-                  true
-                )}
+                {currentUser.role === "admin" &&
+                  inputs.name !== currentUser.name &&
+                  renderTextArea(
+                    "history",
+                    "Comments / History",
+                    "Enter Comment",
+                    "text",
+                    false
+                  )}
               </div>
 
               <div className="flex justify-between items-center mt-4">
                 <button
-                  onClick={handleSubmit}
+                  type="submit"
                   className="group relative w-[100px] h-[40px] flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
                 >
                   Update
@@ -224,7 +257,8 @@ const EditSeller = () => {
     label,
     placeholder,
     type = "text",
-    readOnly = false
+    readOnly = false,
+    isDisabled = false
   ) {
     return (
       <div key={name}>
@@ -242,7 +276,8 @@ const EditSeller = () => {
             onChange={handleChange}
             placeholder={placeholder}
             value={inputs[name]}
-            readOnly={readOnly} // Add readOnly attribute
+            readOnly={readOnly}
+            disabled={isDisabled}
             className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
           />
         </div>
@@ -255,7 +290,7 @@ const EditSeller = () => {
     label,
     placeholder,
     type = "text",
-    readOnly = false
+    isDisabled = false
   ) {
     return (
       <div key={name}>
@@ -273,7 +308,7 @@ const EditSeller = () => {
             onChange={handleChange}
             placeholder={placeholder}
             value={inputs[name]}
-            readOnly={readOnly} // Add readOnly attribute
+            readOnly={isDisabled}
             className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
           />
         </div>
@@ -281,7 +316,7 @@ const EditSeller = () => {
     );
   }
 
-  function renderSelect(name, label, options) {
+  function renderSelect(name, label, options, isDisabled = false) {
     return (
       <>
         <label
@@ -296,6 +331,7 @@ const EditSeller = () => {
             required
             onChange={handleChange}
             value={inputs[name]}
+            disabled={isDisabled}
             className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
           >
             {options.map((option) => (

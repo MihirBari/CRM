@@ -61,12 +61,17 @@ const Users = () => {
             width: '80px',
         },
         {
-            name: 'name',
+            name: 'Name',
             selector: (row) => row.name,
             sortable: true,
         },
         {
-            name: 'User Name',
+            name: 'Surname',
+            selector: (row) => row.surname,
+            sortable: true,
+        },
+        {
+            name: 'Email',
             selector: (row) => row.email,
             sortable: true,
         },

@@ -23,6 +23,7 @@ const Users = () => {
   const [deleteItemId, setDeleteItemId] = useState(null);
   const [filters, setFilters] = useState({
     name: "",
+    surname:"",
     status: "",
     fromDate: "",
     toDate:"",
@@ -83,7 +84,12 @@ const Users = () => {
   };
 
   const handleViewClick = (row) => {
-    navigate(`${row.id}`);
+    navigate(`view/${row.id}`);
+  };
+
+  const handleViewClicked = (id) => {
+    //console.log("Viewing order with ID:", id);
+    navigate(`view/${id}`);
   };
 
   const handleExportClick = () => {
@@ -91,22 +97,38 @@ const Users = () => {
   };
 
   const columns = [
-    {
-      name: "Sr. No",
-      selector: (_, index) => index + 1,
-      sortable: false,
-      width: "80px",
-    },
+    // {
+    //   name: "Sr. No",
+    //   selector: (_, index) => index + 1,
+    //   sortable: false,
+    //   width: "80px",
+    // },
     {
       name: "ID",
       selector: (row) => row.id,
       sortable: true,
+      cell: (row) => (
+        <span
+          className="view-link"
+          onClick={() => handleViewClicked(row.id)}
+          style={{ cursor: "pointer", width: "100%", height: "100%" }}
+        >
+          {row.id}
+        </span>
+      ),
+    
     },
     {
       name: "Name",
       selector: (row) => row.name,
       sortable: true,
     },
+    {
+      name: "Surname",
+      selector: (row) => row.surname,
+      sortable: true,
+    },
+    
     {
       name: "Status",
       selector: (row) => row.status,
@@ -158,52 +180,46 @@ const Users = () => {
       sortable: true,
       width: "140px",
     },
-    {
-      name: "Description",
-      selector: (row) => row.description,
-      sortable: true,
-      width: "140px",
-    },
-    {
-      name: "Comment",
-      selector: (row) => row.history,
-      sortable: true,
-      width: "140px",
-    },
-    {
-      name: "Assigned To",
-      selector: (row) => row.assignedTo,
-      sortable: true,
-      width: "140px",
-    },
-    {
-      name: "Created at",
-      selector: (row) => {
-        const date = new Date(row.created_at);
-        return date.toLocaleString("en-Uk", {
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-          timeZone: "IST",
-        });
-      },
-      sortable: true,
-      width: "150px",
-    },
-    {
-      name: "Updated at",
-      selector: (row) => {
-        const date = new Date(row.update_at);
-        return date.toLocaleString("en-Uk", {
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-          timeZone: "IST",
-        });
-      },
-      sortable: true,
-      width: "150px",
-    },
+    // {
+    //   name: "Description",
+    //   selector: (row) => row.description,
+    //   sortable: true,
+    //   width: "140px",
+    // },
+    // {
+    //   name: "Comment",
+    //   selector: (row) => row.history,
+    //   sortable: true,
+    //   width: "140px",
+    // },
+    // {
+    //   name: "Created at",
+    //   selector: (row) => {
+    //     const date = new Date(row.created_at);
+    //     return date.toLocaleString("en-Uk", {
+    //       year: "numeric",
+    //       month: "2-digit",
+    //       day: "2-digit",
+    //       timeZone: "IST",
+    //     });
+    //   },
+    //   sortable: true,
+    //   width: "150px",
+    // },
+    // {
+    //   name: "Updated at",
+    //   selector: (row) => {
+    //     const date = new Date(row.update_at);
+    //     return date.toLocaleString("en-Uk", {
+    //       year: "numeric",
+    //       month: "2-digit",
+    //       day: "2-digit",
+    //       timeZone: "IST",
+    //     });
+    //   },
+    //   sortable: true,
+    //   width: "150px",
+    // },
     {
       name: "Edit",
       cell: (row) => <MdEdit onClick={() => handleEditClick(row)}>Edit</MdEdit>,

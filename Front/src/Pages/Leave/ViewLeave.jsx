@@ -1,20 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import SideNavBar from '../Sidebar/Navbar';
-import SellerDetails from './SellerDetails';
+import SellerDetails from './LeaveDetail';
 import axios from 'axios';
 import API_BASE_URL from "../../config";
 
-const ViewSeller = () => {
+const ViewLeave = () => {
   const { id } = useParams(); 
   const [product, setProduct] = useState(null);
 
   useEffect(() => {
     const fetchData = () => {
-      axios.get(`${API_BASE_URL}/api/dealer/showOneDealer/${id}`)
+      axios.get(`${API_BASE_URL}/api/Leave/showOneApplicationLeave/${id}`)
         .then(response => {
           console.log('API Response:', response);
-          setProduct(response.data);
+          setProduct(response.data[0]);
         })
         .catch(error => {
           console.error('Error fetching product data:', error);
@@ -40,4 +40,4 @@ const ViewSeller = () => {
   );
 };
 
-export default ViewSeller;
+export default ViewLeave;

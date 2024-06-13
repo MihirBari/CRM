@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Route, Routes, Navigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -7,7 +7,6 @@ import Login from './Pages/Login';
 import User from './Pages/User/User.jsx';
 import AddUser from './Pages/User/addUser.jsx';
 import EditUser from './Pages/User/editUser.jsx';
-import { useContext } from 'react';
 import { AuthContext } from './context/AuthContext.jsx';
 import Expense from './Pages/Contact/Expense.jsx';
 import AddContact from './Pages/Contact/AddContact.jsx';
@@ -26,7 +25,14 @@ import PO from './Pages/PO/PO.jsx';
 import ViewOpportunity from './Pages/Opportunity/viewOpportunity.jsx';
 import Summary from './Pages/Summary/Summary.jsx';
 import CustomerDetailVeiw from './Pages/Opportunity/CustomerDetailVeiw.jsx';
-
+import ProtectedRoute from './Pages/ProtectedRoute.jsx';
+import Unauthorized from './Pages/Unauthorized.jsx';
+import Calender from './Pages/Calender/Calender.jsx';
+import ViewLeave from './Pages/Leave/ViewLeave.jsx';
+import AddEmployes from './Pages/Employes/addEmployes.jsx';
+import Employes from './Pages/Employes/Employes.jsx';
+import EditEmployes from './Pages/Employes/edit.jsx';
+import Register from './Pages/Register.jsx';
 
 function App() {
   const { currentUser } = useContext(AuthContext);
@@ -34,29 +40,49 @@ function App() {
   return (
     <>
       <Routes>
-        <Route path='/' element={currentUser ? <Navigate to='/Customer' /> : <Login />} />
-        <Route path='/user' element={currentUser ? <User /> : <Navigate to='/' />} />
-        <Route path='/user/edit/:id' element={currentUser ? <EditUser /> : <Navigate to='/' />} />
-        <Route path='/adduser' element={ <AddUser /> } />
-        <Route path='/Customer' element={currentUser ? <Expense /> : <Navigate to='/' />} />
-        <Route path='/Summary' element={currentUser ? <Summary /> : <Navigate to='/' />} />
-        <Route path='/Leave' element={currentUser ? <Seller /> : <Navigate to='/' />} />
-        <Route path='/Alert' element={currentUser ? <Alert /> : <Navigate to='/' />} />
-        <Route path='/Opportunity' element={currentUser ? <Opportunity /> : <Navigate to='/' />} />
-        <Route path='/PO' element={currentUser ? <PO /> : <Navigate to='/' />} />
-        <Route path='/addExpense' element={currentUser ? <AddContact /> : <Navigate to='/' />} />
-        <Route path='/addCustomer' element={currentUser ? <AddCustomer /> : <Navigate to='/' />} />
-        <Route path='/addLeave' element={currentUser ? <AddSeller /> : <Navigate to='/' />} />
-        <Route path='/addOpportunity' element={currentUser ? <AddOpportunity /> : <Navigate to='/' />} />
-        <Route path='/Expense/edit/:id' element={currentUser ? <EditContact /> : <Navigate to='/' />} />
-        <Route path='/Opportunity/view/:id' element={currentUser ? <ViewOpportunity /> : <Navigate to='/' />} />
-        <Route path='/Customer/edit/:id' element={currentUser ? <EditCustomer /> : <Navigate to='/' />} />
-        <Route path='/Leave/edit/:id' element={currentUser ? <EditSeller /> : <Navigate to='/' />} />
-        <Route path='/Opportunity/edit/:id' element={currentUser ? <EditOpportunity /> : <Navigate to='/' />} />
-        <Route path='/Customer/view/:customer_entity/:id' element={currentUser ? <CustomerDetailVeiw /> : <Navigate to='/' />} />
-        <Route path='/Customer/:customer_entity' element={currentUser ? <CustomerDetail /> : <Navigate to='/' />} />
+        <Route
+          path='/'
+          element={
+            currentUser ? (
+              currentUser.role === 'admin' || currentUser.role === 'moderator' ? (
+                <Navigate to='/Customer' />
+              ) : (
+                <Navigate to='/Leave' />
+              )
+            ) : (
+              <Login />
+            )
+          }
+        />
+        <Route path='/user' element={<ProtectedRoute adminOnly><User /></ProtectedRoute>} />
+        <Route path='/user/edit/:id' element={<ProtectedRoute adminOnly><EditUser /></ProtectedRoute>} />
+        <Route path='/adduser' element={<ProtectedRoute adminOnly><AddUser /></ProtectedRoute>} />
+        <Route path='/Customer' element={<ProtectedRoute adminOnly><Expense /></ProtectedRoute>} />
+        <Route path='/Summary' element={<ProtectedRoute adminOnly ><Summary /></ProtectedRoute>} />
+        <Route path='/Leave' element={<ProtectedRoute><Seller /></ProtectedRoute>} />
+        <Route path='/Alert' element={<ProtectedRoute adminOnly ><Alert /></ProtectedRoute>} />
+        <Route path='/Opportunity' element={<ProtectedRoute adminOnly><Opportunity /></ProtectedRoute>} />
+        <Route path='/PO' element={<ProtectedRoute adminOnly><PO /></ProtectedRoute>} />
+        <Route path='/addExpense' element={<ProtectedRoute adminOnly><AddContact /></ProtectedRoute>} />
+        <Route path='/addCustomer' element={<ProtectedRoute adminOnly><AddCustomer /></ProtectedRoute>} />
+        <Route path='/addLeave' element={<ProtectedRoute><AddSeller /></ProtectedRoute>} />
+        <Route path='/addOpportunity' element={<ProtectedRoute adminOnly ><AddOpportunity /></ProtectedRoute>} />
+        <Route path='/Expense/edit/:id' element={<ProtectedRoute adminOnly><EditContact /></ProtectedRoute>} />
+        <Route path='/Opportunity/view/:id' element={<ProtectedRoute adminOnly><ViewOpportunity /></ProtectedRoute>} />
+        <Route path='/Customer/edit/:id' element={<ProtectedRoute adminOnly><EditCustomer /></ProtectedRoute>} />
+        <Route path='/Leave/edit/:id' element={<ProtectedRoute><EditSeller /></ProtectedRoute>} />
+        <Route path='/Leave/view/:id' element={<ProtectedRoute><ViewLeave /></ProtectedRoute>} />
+        <Route path='/Opportunity/edit/:id' element={<ProtectedRoute adminOnly ><EditOpportunity /></ProtectedRoute>} />
+        <Route path='/Customer/view/:customer_entity/:id' element={<ProtectedRoute adminOnly><CustomerDetailVeiw /></ProtectedRoute>} />
+        <Route path='/Customer/:customer_entity' element={<ProtectedRoute adminOnly><CustomerDetail /></ProtectedRoute>} />
+        <Route path='/Calender' element={<ProtectedRoute ><Calender /></ProtectedRoute>} />
+        <Route path='/Employes' element={<ProtectedRoute ><Employes /></ProtectedRoute>} />
+        <Route path='/Employes/edit/:id' element={<ProtectedRoute ><EditEmployes /></ProtectedRoute>} />
+        <Route path='/addEmployes' element={<ProtectedRoute ><AddEmployes /></ProtectedRoute>} />
+        <Route path='/unauthorized' element={<Unauthorized />} />
+        <Route path='/register' element={<Register />} />
       </Routes>
-      
+
       <ToastContainer
         position='top-center'
         autoClose={2000}
@@ -74,4 +100,3 @@ function App() {
 }
 
 export default App;
-

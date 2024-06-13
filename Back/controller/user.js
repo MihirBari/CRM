@@ -6,7 +6,7 @@ const saltRounds = 10;
 
 const login = (req, res) => {
   // Create the SQL query
-  const sql = 'SELECT id, name, email, password, role FROM user WHERE email = ?';
+  const sql = 'SELECT id, name,surname, email, password, role FROM user WHERE email = ?';
   
   pool.query(sql, [req.body.email], (err, data) => {
     if (err) {
@@ -25,8 +25,8 @@ const login = (req, res) => {
           const user = {
             id: data[0].id,
             name: data[0].name,
+            surname: data[0].surname,
             email: data[0].email,
-           
             role: data[0].role
           };
           
@@ -46,9 +46,8 @@ const login = (req, res) => {
   });
 };
 
-
 const getUserData = (req,res) => {
-    const getAllUsersQuery = 'SELECT id,name, email, role, created_at FROM user';
+    const getAllUsersQuery = 'SELECT id,name,surname, email, role, created_at FROM user';
 
     pool.query(getAllUsersQuery, (error, results) => {
       if (error) {
@@ -56,13 +55,13 @@ const getUserData = (req,res) => {
         return;
       }
       
-      console.log('All users:', results);
+      //console.log('All users:', results);
       res.status(200).json(results)
     });
 }
 
 const getOneUserData = (req, res) => {
-  const getOneUserQuery = 'SELECT id, name, email, password, role FROM user WHERE id = ?';
+  const getOneUserQuery = 'SELECT id, name,surname, email, password, role FROM user WHERE id = ?';
 
   pool.query(getOneUserQuery, [req.params.id], (error, results) => {
     if (error) {
@@ -81,37 +80,84 @@ const getOneUserData = (req, res) => {
 
 
 const addUser = async (req, res) => {
-  const { name, email, password,role } = req.body;
+  const { name, surname, email, password, role } = req.body;
+
+  // Check if the email domain is "@techsa.net"
+  if (!email.endsWith('@techsa.net')) {
+    return res.status(400).json({ error: 'Email domain must be "@techsa.net".' });
+  }
 
   try {
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const userQuery = `
-      INSERT INTO user
-      (name, email, password,role, created_at)
-      VALUES (?, ?,?, ?, NOW()) 
+    // Check if the email already exists in the user table
+    const emailExistsQuery = `
+      SELECT * FROM user
+      WHERE email = ?
     `;
+    const emailExistsValues = [email];
 
-    const values = [name, email, hashedPassword, role];
-
-    pool.query(userQuery, values, (error, results) => {
+    pool.query(emailExistsQuery, emailExistsValues, async (error, emailResults) => {
       if (error) {
-        console.error('Error executing query:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
-        return;
+        console.error('Error executing email query:', error);
+        return res.status(500).json({ error: 'Internal Server Error' });
       }
 
-      console.log('Added User:', results);
-      res.status(201).json({ message: 'User added successfully!' });
+      if (emailResults.length > 0) {
+        return res.status(400).json({ error: 'Email already exists.' });
+      }
+
+      // If email is unique, proceed to insert the user
+
+      // Check if the name and surname combination exists in the employees table
+      const userExistsQuery = `
+        SELECT * FROM employes
+        WHERE name = ? AND surname = ?
+      `;
+      const userExistsValues = [name, surname];
+
+      pool.query(userExistsQuery, userExistsValues, async (error, results) => {
+        if (error) {
+          console.error('Error executing name-surname query:', error);
+          return res.status(500).json({ error: 'Internal Server Error' });
+        }
+
+        if (results.length === 0) {
+          return res.status(400).json({ error: 'Name and surname combination does not exist.' });
+        }
+
+        try {
+          const hashedPassword = await bcrypt.hash(password, 10);
+
+          const userQuery = `
+            INSERT INTO user
+            (name, surname, email, password, role, created_at)
+            VALUES (?, ?, ?, ?, ?, NOW()) 
+          `;
+          const values = [name, surname, email, hashedPassword, role];
+
+          pool.query(userQuery, values, (error, results) => {
+            if (error) {
+              console.error('Error executing insert query:', error);
+              return res.status(500).json({ error: 'Internal Server Error' });
+            }
+
+            console.log('Added User:', results);
+            return res.status(201).json({ message: 'User added successfully!' });
+          });
+        } catch (hashError) {
+          console.error('Error hashing password:', hashError);
+          return res.status(500).json({ error: 'Internal Server Error' });
+        }
+      });
     });
-  } catch (hashError) {
-    console.error('Error hashing password:', hashError);
-    res.status(500).json({ error: 'Internal Server Error' });
+  } catch (error) {
+    console.error('Error in addUser function:', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 
+
 const editUser = async (req, res) => {
-  const { name, email, password, role } = req.body;
+  const { name,surname, email, password, role } = req.body;
 
   try {
     let hashedPassword = null;
@@ -124,14 +170,14 @@ const editUser = async (req, res) => {
     // Construct query and values array dynamically
     let userQuery = `
       UPDATE user
-      SET name = ?, email = ?, role = ?
+      SET name = ?,surname=?, email = ?, role = ?
     `;
-    const values = [name, email, role];
+    const values = [name,surname, email, role];
 
     if (hashedPassword) {
       userQuery = `
         UPDATE user
-        SET name = ?, email = ?, password = ?, role = ?
+        SET name = ?,surname=?, email = ?, password = ?, role = ?
       `;
       values.splice(2, 0, hashedPassword); // Insert hashedPassword at the right position
     }

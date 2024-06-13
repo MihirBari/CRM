@@ -16,7 +16,9 @@ const upload = multer({
     limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB limit
   });
 
-router.get("/showOpportunity",showOpportunity);
+  const { authenticateToken } = require('../utils/authenticateToken ');
+
+router.get("/showOpportunity",authenticateToken,showOpportunity);
 router.get("/showOneOpportunity/:id", showOneOpportunity);
 router.post("/addOpportunity",upload.single('file'), addOpportunity);
 router.put("/editOpportunity/:id", upload.single('file'),  editOpportunity);

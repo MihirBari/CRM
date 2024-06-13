@@ -1,25 +1,42 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { Link } from "react-router-dom";
 import Logout from "../Logout";
+import { AuthContext } from "../../context/AuthContext";
 
 const SideNavBar = () => {
+  const { currentUser } = useContext(AuthContext);
   const [open, setOpen] = useState(true);
   const [activeTab, setActiveTab] = useState(0);
-  const Menus = [
 
+  const Menus = [
     { title: "User", src: "User", link: "/user" },
     { title: "Summary", src: "Setting", link: "/Summary" },
     { title: "Customer", src: "Setting", link: "/Customer" },
     { title: "Opportunity", src: "Setting", link: "/Opportunity" },
     { title: "Alert", src: "Setting", link: "/Alert" },
     { title: "PO", src: "Setting", link: "/PO" },
-  //{ title: "Leave", src: "Setting", link: "/Leave" },
-
+    { title: "Leave", src: "Setting", link: "/Leave" },
+    { title: "Calender", src: "Setting", link: "/Calender" },
+    { title: "Employes", src: "Setting", link: "/Employes" },
   ];
-  
+
   const handleTabClick = (index) => {
     setActiveTab(index);
   };
+
+  let filteredMenus = [];
+
+  if (currentUser?.role === "admin") {
+    filteredMenus = Menus;
+  } else if (currentUser?.role === "moderator") {
+    filteredMenus = Menus.filter(
+      (menu) => menu.title !== "Employes" && menu.title !== "User"
+    );
+  } else {
+    filteredMenus = Menus.filter(
+      (menu) => menu.title === "Leave" || menu.title === "Calender"
+    );
+  }
 
   return (
     <div className="flex">
@@ -31,7 +48,7 @@ const SideNavBar = () => {
         <img
           src={require("../../assets/control.png")}
           className={`absolute cursor-pointer -right-3 top-9 w-7 border-dark-purple
-			 border-2 rounded-full  ${!open && "rotate-180"}`}
+            border-2 rounded-full  ${!open && "rotate-180"}`}
           onClick={() => setOpen(!open)}
           alt=""
         />
@@ -52,7 +69,7 @@ const SideNavBar = () => {
           </h1>
         </div>
         <ul className="pt-6">
-          {Menus.map((Menu, index) => (
+          {filteredMenus.map((Menu, index) => (
             <Link to={Menu.link} key={index}>
               <li
                 className={`flex rounded-md p-2 cursor-pointer hover:bg-light-white text-white text-l items-center gap-x-6 

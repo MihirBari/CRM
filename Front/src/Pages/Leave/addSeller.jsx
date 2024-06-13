@@ -1,13 +1,17 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { toast } from "react-toastify";
 import API_BASE_URL from "../../config";
 import axios from "axios";
+import { AuthContext } from "../../context/AuthContext";
 
 const AddSeller = () => {
+
+  const { currentUser } = useContext(AuthContext);
   const initialInputs = {
-    name: "",
+    name:  `${currentUser.name}` ,
+    surname: `${currentUser.surname}`,
     status: "request",
     fromDate: "",
     toDate: "",
@@ -15,10 +19,9 @@ const AddSeller = () => {
     duration: "",
     days: "",
     description: "",
-    history: "",
-    assignedTo: "Mihir",
+  
   };
-
+console.log(currentUser.name + currentUser.surname)
   const [inputs, setInputs] = useState(initialInputs);
   const [err, setError] = useState(null);
   const navigate = useNavigate();
@@ -87,7 +90,9 @@ const AddSeller = () => {
                 <input
                   type="name"
                   name="name"
+                  value={inputs.name}
                   required
+                  readOnly
                   onChange={handleChange}
                   placeholder="Enter Your Name"
                   className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
@@ -95,7 +100,26 @@ const AddSeller = () => {
               </div>
             </div>
 
-          
+            <div>
+              <label
+                htmlFor="surname"
+                className="block text-sm font-medium text-gray-700"
+              >
+              Surname Name
+              </label>
+              <div className="mt-1">
+                <input
+                  type="text"
+                  name="surname"
+                  value={inputs.surname}
+                  required
+                  readOnly
+                  onChange={handleChange}
+                  placeholder="Enter Your Name"
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                />
+              </div>
+            </div>
 
             <div>
               <label
@@ -230,7 +254,7 @@ const AddSeller = () => {
               </div>        
             </div>
             
-              <div>
+              {/* <div>
               <label
                 htmlFor="history"
                 className="block text-sm font-medium text-gray-700"
@@ -247,7 +271,7 @@ const AddSeller = () => {
                   className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                 />
               </div>
-              </div>
+              </div> */}
 
             
              
