@@ -29,7 +29,19 @@ const AddEmployes = () => {
   const addContact = () => {
     setInputs((prev) => ({
       ...prev,
-      contacts: [...prev.contacts, { name: "", surname: "" }], // Add default values for a new contact
+      contacts: [
+        ...prev.contacts,
+        {
+          name: "",
+          surname: "",
+          designation: "",
+          joining_date: "",
+          last_date: "",
+          status: "",
+          DOB: "",
+          personal_email: "",
+        },
+      ],
     }));
   };
 
@@ -109,6 +121,118 @@ const AddEmployes = () => {
                         value={contact.surname}
                         className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm h-[40px]"
                       />
+                    </div>
+
+                    <div>
+                      <input
+                        type="text"
+                        name="designation"
+                        onChange={(e) => handleChange(e, index)}
+                        placeholder="Enter Designation Of Employee"
+                        value={contact.designation}
+                        className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm h-[40px]"
+                      />
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="joining_date"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Joining Date
+                      </label>
+                      <div>
+                        <input
+                          type="Date"
+                          name="joining_date"
+                          required
+                          onChange={(e) => handleChange(e, index)}
+                          placeholder="Enter Joining Date Of Employee"
+                          value={contact.joining_date}
+                          className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm h-[40px]"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="last_date"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Last Date
+                      </label>
+                    <div>
+                      <input
+                        type="Date"
+                        name="last_date"
+                        onChange={(e) => handleChange(e, index)}
+                        placeholder="Enter Last Date Of Employee"
+                        value={contact.last_date}
+                        className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm h-[40px]"
+                      />
+                    </div>
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="status"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Employee Status
+                      </label>
+                    <div>
+                      <select
+                        name="status"
+                        required
+                        onChange={(e) => handleChange(e, index)}
+                        value={contact.status} // Set value attribute to contact.designation
+                        className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm h-[40px]" // Increase height here
+                      >
+                        <option value="" disabled selected>
+                          Select Option
+                        </option>
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                      </select>
+                    </div>
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="DOB"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Employee Date of Birth
+                      </label>
+                    <div>
+                      <input
+                        type="Date"
+                        name="DOB"
+                        onChange={(e) => handleChange(e, index)}
+                        placeholder="Enter Date Of birth Of Employee"
+                        value={contact.DOB}
+                        className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm h-[40px]"
+                      />
+                    </div>
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="personal_email"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Employee Personal Email
+                      </label>
+                    <div>
+                      <input
+                        type="email"
+                        name="personal_email"
+                        onChange={(e) => handleChange(e, index)}
+                        placeholder="Enter Personal Email Of Employee"
+                        value={contact.personal_email}
+                        className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm h-[40px]"
+                      />
+                    </div>
                     </div>
                   </div>
                 </div>

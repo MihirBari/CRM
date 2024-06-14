@@ -1,7 +1,9 @@
 const { pool } = require("../database");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-
+const { promisify } = require('util');
+const nodemailer = require('nodemailer');
+const excelToJson = require("convert-excel-to-json");
 const saltRounds = 10; 
 
 const login = (req, res) => {
@@ -110,7 +112,7 @@ const addUser = async (req, res) => {
       // Check if the name and surname combination exists in the employees table
       const userExistsQuery = `
         SELECT * FROM employes
-        WHERE name = ? AND surname = ?
+        WHERE name = ? AND surname = ? And status = "Active"
       `;
       const userExistsValues = [name, surname];
 
@@ -154,7 +156,6 @@ const addUser = async (req, res) => {
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 };
-
 
 const editUser = async (req, res) => {
   const { name,surname, email, password, role } = req.body;
@@ -201,7 +202,6 @@ const editUser = async (req, res) => {
   }
 };
 
-
 const deleteUser = (req,res) => {
   const query = `DELETE from  user where id =?`
    
@@ -230,4 +230,79 @@ const logout = (req, res) => {
   });
 };
 
-module.exports = { login,getUserData,getOneUserData,addUser,deleteUser,logout,editUser };
+const SECRET_KEY = process.env.SECRET_KEY;
+const RESET_TOKEN_EXPIRATION = '1h'; 
+
+const verifyResetToken = async (token) => {
+  try {
+    const decoded = await promisify(jwt.verify)(token, SECRET_KEY);
+    return decoded.email;
+  } catch (error) {
+    throw new Error('Invalid or expired token');
+  }
+};
+
+const generateResetToken = (email) => {
+  return jwt.sign({ email }, SECRET_KEY, { expiresIn: RESET_TOKEN_EXPIRATION });
+};
+
+const requestResetPassword = async(req,res) => {
+  const { email } = req.body;
+console.log(email)
+  try {
+    const token = generateResetToken(email);
+    const resetLink = `${process.env.Frontend_url}/resetPassword/${token}`;
+
+    // Send the email
+
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMPT_HOST,
+      port: process.env.SMPT_PORT,
+      secure: true, // Use true for 465, false for other ports
+      auth: {
+        user: process.env.SMPT_MAIL,
+        pass: process.env.SMPT_PASSWORD,
+      },
+    });
+
+    await transporter.sendMail({
+      from: process.env.SMPT_MAIL,
+      to: email,
+      subject: 'Password Reset',
+      html: `<p>Click <a href="${resetLink}">here</a> to reset your password</p>`,
+    });
+
+    res.status(200).json({ message: 'Password reset link sent to your email' });
+  } catch (error) {
+    console.error('Error sending email:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+}
+
+const ResetPassword = async(req,res) => {
+  const { token } = req.params;
+  const { password } = req.body;
+
+  try {
+    const email = await verifyResetToken(token);
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const userQuery = 'UPDATE user SET password = ? WHERE email = ?';
+    const values = [hashedPassword, email];
+
+    pool.query(userQuery, values, (error, results) => {
+      if (error) {
+        console.error('Error executing query:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+        return;
+      }
+
+      res.status(200).json({ message: 'Password reset successfully!' });
+    });
+  } catch (error) {
+    console.error('Error resetting password:', error);
+    res.status(400).json({ error: 'Invalid or expired token' });
+  }
+}
+
+module.exports = { login,getUserData,getOneUserData,addUser,deleteUser,logout,editUser,ResetPassword,requestResetPassword };

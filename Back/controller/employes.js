@@ -4,11 +4,23 @@ const addEmployes = async (req, res) => {
   const { contacts } = req.body; // Assuming the structure matches what React sends
 
   const insertQuery = `
-      INSERT INTO employes (name, surname)
+      INSERT INTO employes (name, surname, designation, joining_date, last_date, status, DOB, personal_email)
       VALUES ?
     `;
 
-  const values = contacts.map((contact) => [contact.name, contact.surname]);
+  const values = contacts.map((contact) => {
+    // Check and replace empty dates with null
+    return [
+      contact.name,
+      contact.surname,
+      contact.designation,
+      contact.joining_date || null,
+      contact.last_date || null,
+      contact.status,
+      contact.DOB || null,
+      contact.personal_email,
+    ];
+  });
 
   try {
     await new Promise((resolve, reject) => {
@@ -113,10 +125,26 @@ const editEmployes = async (req, res) => {
     SET
     name = ?,
     surname = ?,
+    designation = ?,
+    joining_date = ?,
+    last_date = ?,
+    status = ?,
+    DOB = ?,
+    personal_email = ?
     WHERE
       id = ?;`;
 
-  const values = [req.body.name, req.body.surname, req.params.id];
+  const values = [
+    req.body.name,
+    req.body.surname,
+    req.body.designation,
+    req.body.joining_date === "" ? null : req.body.joining_date,
+    req.body.last_date === "" ? null : req.body.last_date,
+    req.body.status,
+    req.body.DOB === "" ? null : req.body.DOB,
+    req.body.personal_email,
+    req.params.id,
+  ];
 
   pool.query(updateDealer, values, (error, results) => {
     if (error) {
@@ -125,14 +153,13 @@ const editEmployes = async (req, res) => {
       return;
     }
 
-    //console.log("Updated dealer:", results);
     res.json(results);
   });
 };
 
 const viewEmployes = async (req, res) => {
   const dealerQuery = `
-    SELECT  name, surname
+    SELECT  *
     FROM employes
     WHERE id = ?
   `;
@@ -203,6 +230,29 @@ const deleteEmployes = (req, res) => {
   });
 };
 
+const importExcel = async(req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+
+    // Convert Excel data to JSON format
+    const excelData = excelToJson({
+      source: req.file.buffer, // Uploaded file buffer
+      header: { rows: 1 }, // First row contains headers
+      columnToKey: { A: "name", B: "surname", C: "designation", D: "joining_date", E: "last_date", F: "status", G: "DOB", H: "personal_email" }
+    });
+
+    // Process excelData as per your application's logic
+    // Example: Save to database, update existing records, etc.
+
+    res.json({ message: "File uploaded successfully", data: excelData });
+  } catch (error) {
+    console.error("Error uploading Excel file:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
 module.exports = {
   addEmployes,
   allEmployes,
@@ -211,4 +261,5 @@ module.exports = {
   name,
   surname,
   deleteEmployes,
+  importExcel
 };

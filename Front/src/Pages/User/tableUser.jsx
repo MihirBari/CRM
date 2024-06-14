@@ -71,6 +71,11 @@ const Users = () => {
             sortable: true,
         },
         {
+            name: 'Role',
+            selector: (row) => row.role,
+            sortable: true,
+        },
+        {
             name: 'Email',
             selector: (row) => row.email,
             sortable: true,

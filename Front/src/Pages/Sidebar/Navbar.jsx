@@ -16,8 +16,8 @@ const SideNavBar = () => {
     { title: "Alert", src: "Setting", link: "/Alert" },
     { title: "PO", src: "Setting", link: "/PO" },
     { title: "Leave", src: "Setting", link: "/Leave" },
-    { title: "Calender", src: "Setting", link: "/Calender" },
-    { title: "Employes", src: "Setting", link: "/Employes" },
+    { title: "Calendar", src: "Setting", link: "/Calender" },
+    { title: "Employees", src: "Setting", link: "/Employes" },
   ];
 
   const handleTabClick = (index) => {

@@ -9,6 +9,7 @@ const EditUser = () => {
   const { id } = useParams();
   const initialInputs = {
     name: "",
+    surname:"",
     email: "",
     password: "",
     role:" "
@@ -26,6 +27,7 @@ const EditUser = () => {
   
         setInputs({
           name: userData.name,
+          surname: userData.surname,
           email: userData.email,
           role: userData.role,
         });
@@ -72,9 +74,12 @@ const EditUser = () => {
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
-              {/* <div>
-                {renderInput("name", "Name", "Enter your Name")}
-              </div> */}
+              <div>
+                {renderInput("name", "Name", "Enter your Name",true)}
+              </div>
+              <div>
+                {renderInput("surname", "Surname", "surname",true)}
+              </div>
               <div>
                 {renderInput("email", "User Name", "Enter your E-mail")}
               </div>
@@ -82,7 +87,11 @@ const EditUser = () => {
                 {renderInput("password", "Password", "Enter your Password")}
               </div>
               <div>
-                {renderInput("role", "Role", "")}
+                {renderSelect("role", "Role", [
+                    { value: "admin", name: "Admin" },
+                    { value: "moderator", name: "Moderator" },
+                    { value: "user", name: "user" },
+                  ])}
               </div>
             </div>
             <div className="flex justify-between items-center mt-4">
@@ -97,7 +106,7 @@ const EditUser = () => {
     </div>
   );
 
-  function renderInput(name, label, placeholder) {
+  function renderInput(name, label, placeholder,readOnly=false) {
     return (
       <>
         <label htmlFor={name} className="block text-sm font-medium text-gray-700">
@@ -108,12 +117,41 @@ const EditUser = () => {
             type={name === 'password' ? 'password' : 'text'} // Set type to 'password' for the password field
             name={name}
             autoComplete={name}
+            readOnly={readOnly}
             required
             onChange={handleChange}
             placeholder={placeholder}
             value={inputs[name]}
             className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
           />
+        </div>
+      </>
+    );
+  }
+
+  function renderSelect(name, label, options) {
+    return (
+      <>
+        <label
+          htmlFor={name}
+          className="block text-sm font-medium text-gray-700"
+        >
+          {label}
+        </label>
+        <div className="mt-1 relative">
+          <select
+            name={name}
+            onChange={handleChange}
+            value={inputs[name]}
+            className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+          >
+            <option value="" label="Select an option" disabled />
+            {options.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.name}
+              </option>
+            ))}
+          </select>
         </div>
       </>
     );

@@ -303,7 +303,6 @@ const addOpportunity = async (req, res) => {
   }
 };
 
-
 const editOpportunity = (req, res) => {
   const { customer_entity, name, description, type, License_type, value, closure_time, status, period, license_from, license_to } = req.body;
   const pdf = req.files && req.files.length > 0 ? req.files[0].buffer : null; 
@@ -611,7 +610,7 @@ const sendAlert = async (req, res) => {
 };
 
 // Schedule the task to run daily at 1:10 PM IST
-cron.schedule('02 12 * * *', () => {
+cron.schedule('30 11 * * *', () => {
   console.log(`[${moment().tz('Asia/Kolkata').format()}] Scheduled task triggered`);
   checkOpportunities();
   updateDaysLeftInAlerts();

@@ -59,6 +59,8 @@ console.log(req.user)
         query += ` AND ${filterConditions.join(" AND ")}`;
     }
 
+    query += ` ORDER BY id DESC`;
+
     // Start a transaction
     pool.getConnection((err, connection) => {
         if (err) {
@@ -215,7 +217,7 @@ const addApplicationLeave = (req, res) => {
             from: `"TechSa CRM" <${process.env.SMPT_MAIL}>`,
             to: `${process.env.SMPT_MAIL}`,
             cc: "mihir.b@techsa.net",
-            // replyTo: `${rows[0].sender}`, // Setting the actual sender's email in replyTo
+            //replyTo: `${rows[0].sender}`, // Setting the actual sender's email in replyTo
             subject: `Leave Application Confirmation`,
             text: `Hi Sir,
             

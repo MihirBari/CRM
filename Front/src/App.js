@@ -33,6 +33,8 @@ import AddEmployes from './Pages/Employes/addEmployes.jsx';
 import Employes from './Pages/Employes/Employes.jsx';
 import EditEmployes from './Pages/Employes/edit.jsx';
 import Register from './Pages/Register.jsx';
+import ForgetPassword from './Pages/ForgetPassword.jsx';
+import ResetPassword from './Pages/ResetPassword.jsx';
 
 function App() {
   const { currentUser } = useContext(AuthContext);
@@ -81,6 +83,8 @@ function App() {
         <Route path='/addEmployes' element={<ProtectedRoute ><AddEmployes /></ProtectedRoute>} />
         <Route path='/unauthorized' element={<Unauthorized />} />
         <Route path='/register' element={<Register />} />
+        <Route path='/forgetPassword' element={<ForgetPassword />} />
+        <Route path='/resetPassword/:token' element={<ResetPassword />} />
       </Routes>
 
       <ToastContainer

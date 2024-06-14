@@ -17,6 +17,7 @@ const TableEmploye = () => {
   const [exportModalIsOpen, setExportModalIsOpen] = useState(false);
   const [filterModalIsOpen, setFilterModalIsOpen] = useState(false);
   const [filteredUsers, setFilteredUsers] = useState([]);
+  const [selectedFile, setSelectedFile] = useState(null);
 
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [deleteItemId, setDeleteItemId] = useState(null);
@@ -91,11 +92,22 @@ const TableEmploye = () => {
     navigate(`edit/${id}`);
   };
 
- 
+  const formatDate = (date) => {
+    const formattedDate = new Date(date);
+    if (formattedDate.getTime() === new Date("1970-01-01T00:00:00Z").getTime()) {
+      return "";
+    }
+    return formattedDate.toLocaleString("en-Uk", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      timeZone: "IST",
+    });
+  };
 
   const columns = [
     {
-      name: "ID",
+      name: "Employee ID",
       selector: (row) => row.id,
       sortable: true,
       width: "100px",
@@ -109,6 +121,42 @@ const TableEmploye = () => {
     {
       name: "Surname",
       selector: (row) => row.surname,
+      sortable: true,
+      width: "150px",
+    },
+    {
+      name: "designation",
+      selector: (row) => row.designation,
+      sortable: true,
+      width: "150px",
+    },
+    {
+      name: "Joining Date",
+      selector: (row) => formatDate(row.joining_date),
+      sortable: true,
+      width: "150px",
+    },
+    {
+      name: "Last Date",
+      selector: (row) => formatDate(row.last_date),
+      sortable: true,
+      width: "150px",
+    },
+    {
+      name: "Status",
+      selector: (row) => row.status,
+      sortable: true,
+      width: "150px",
+    },
+    {
+      name: "DOB",
+      selector: (row) => formatDate(row.DOB),
+      sortable: true,
+      width: "150px",
+    },
+    {
+      name: "Personal Email",
+      selector: (row) => row.personal_email,
       sortable: true,
       width: "150px",
     },
@@ -147,6 +195,31 @@ const TableEmploye = () => {
     });
   };
 
+  const handleFileChange = (e) => {
+    setSelectedFile(e.target.files[0]);
+  };
+
+  const handleFileUpload = () => {
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+
+    axios
+      .post(`${API_BASE_URL}/api/Employes/uploadExcel`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      })
+      .then((response) => {
+        console.log("File uploaded successfully:", response.data);
+        toast.success("File uploaded successfully");
+        // Optionally, update state or fetch data after successful upload
+      })
+      .catch((error) => {
+        console.error("Error uploading file:", error);
+        toast.error("Error uploading file");
+      });
+  };
+
   return (
     <>
       <div className="filter-container">
@@ -159,6 +232,18 @@ const TableEmploye = () => {
         >
           Export
         </button> */}
+         <input
+          type="file"
+          onChange={handleFileChange}
+          accept=".xls,.xlsx"
+          className="ml-2 m-2"
+        />
+        <button
+          onClick={handleFileUpload}
+          className="bg-blue-500 text-white px-4 py-2 rounded ml-2 m-2"
+        >
+          Upload Excel
+        </button>
       </div>
       <DataTable columns={columns} data={users} />
       <FilterModal
