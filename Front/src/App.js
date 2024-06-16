@@ -77,7 +77,7 @@ function App() {
         <Route path='/Opportunity/edit/:id' element={<ProtectedRoute adminOnly ><EditOpportunity /></ProtectedRoute>} />
         <Route path='/Customer/view/:customer_entity/:id' element={<ProtectedRoute adminOnly><CustomerDetailVeiw /></ProtectedRoute>} />
         <Route path='/Customer/:customer_entity' element={<ProtectedRoute adminOnly><CustomerDetail /></ProtectedRoute>} />
-        <Route path='/Calender' element={<ProtectedRoute ><Calender /></ProtectedRoute>} />
+        <Route path='/Calendar' element={<ProtectedRoute ><Calender /></ProtectedRoute>} />
         <Route path='/Employes' element={<ProtectedRoute ><Employes /></ProtectedRoute>} />
         <Route path='/Employes/edit/:id' element={<ProtectedRoute ><EditEmployes /></ProtectedRoute>} />
         <Route path='/addEmployes' element={<ProtectedRoute ><AddEmployes /></ProtectedRoute>} />

@@ -158,7 +158,7 @@ const TableEmploye = () => {
       name: "Personal Email",
       selector: (row) => row.personal_email,
       sortable: true,
-      width: "150px",
+      width: "250px",
     },
     {
       name: "Edit",
@@ -220,6 +220,77 @@ const TableEmploye = () => {
       });
   };
 
+  createTheme(
+    "solarized",
+    {
+      text: {
+        primary: "#FFFFFF",
+        secondary: "#FFFFFF",
+      },
+      background: {
+        default: "rgba(59,139,246,1)",
+      },
+      context: {
+        background: "#cb4b16",
+        text: "#FFFFFF",
+      },
+      divider: {
+        default: "#073642",
+      },
+      action: {
+        button: "rgba(0,0,0,.54)",
+        hover: "rgba(59,139,246,1)",
+        disabled: "rgba(0,0,0,.12)",
+      },
+    },
+    "light"
+  );
+
+  const customStyles = {
+    headCells: {
+      style: {
+        color: "rgb(255 255 255)",
+        zIndex: "auto",
+        "&:not(:last-of-type)": {
+          borderRightStyle: "solid",
+          borderRightWidth: "1px",
+        },
+      },
+    },
+    header: {
+      style: {
+        minHeight: "56px",
+        fontSize: "25px",
+      },
+    },
+    headRow: {
+      style: {
+        borderTopStyle: "solid",
+        borderTopWidth: "1px",
+      },
+    },
+    cells: {
+      style: {
+        "&:not(:last-of-type)": {
+          borderRightStyle: "solid",
+          borderRightWidth: "1px",
+        },
+        fontSize: "16px",
+      },
+    },
+  };
+
+  const CustomHeader = ({ column }) => (
+    <div title={column.name} style={{ whiteSpace: "normal" }}>
+      {column.name}
+    </div>
+  );
+
+  const modifiedColumns = columns.map((col) => ({
+    ...col,
+    header: <CustomHeader column={col} />,
+  }));
+
   return (
     <>
       <div className="filter-container">
@@ -245,7 +316,25 @@ const TableEmploye = () => {
           Upload Excel
         </button>
       </div>
-      <DataTable columns={columns} data={users} />
+      <DataTable 
+       className="dataTable"
+       columns={modifiedColumns}
+       data={filteredUsers}
+       customStyles={customStyles} // Pass the updated customStyles object here
+       fixedHeaderScrollHeight="800px"
+       striped
+       theme="solarized"
+       pagination
+       highlightOnHover
+       paginationPerPage={20}
+       paginationRowsPerPageOptions={[20, 40, 60]}
+       paginationComponentOptions={{
+         rowsPerPageText: "Rows per page:",
+         rangeSeparatorText: "of",
+         noRowsPerPage: false,
+         selectAllRowsItem: false,
+       }}
+      />
       <FilterModal
         isOpen={filterModalIsOpen}
         onClose={() => setFilterModalIsOpen(false)}

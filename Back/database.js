@@ -29,5 +29,5 @@ pool.getConnection((err, connection) => {
 });
 
 const sessionStore = new MySQLStore({}, pool);
-
+ 
 module.exports = { pool, sessionStore };

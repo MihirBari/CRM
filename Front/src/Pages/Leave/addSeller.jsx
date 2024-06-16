@@ -273,9 +273,6 @@ console.log(currentUser.name + currentUser.surname)
               </div>
               </div> */}
 
-            
-             
-           
             </div>
             <div className="flex justify-between items-center mt-4">
               <button

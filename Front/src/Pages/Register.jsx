@@ -162,14 +162,14 @@ const Register = () => {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="group relative w-full h-[40px] flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                                className="group relative w-full h-[40px] flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600"
                             >
                                 {loading ? 'Registering...' : 'Register'}
                             </button>
                         </div>
                         <div className="text-center text-sm text-gray-600">
                             Already have an account?{' '}
-                            <Link to="/" className="font-medium text-blue-600 hover:text-blue-500">
+                            <Link to="/" className="font-medium text-blue-600 ">
                                 Login
                             </Link>
                         </div>

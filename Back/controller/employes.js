@@ -230,7 +230,7 @@ const deleteEmployes = (req, res) => {
   });
 };
 
-const importExcel = async(req, res) => {
+const importExcel = async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: "No file uploaded" });
@@ -238,20 +238,50 @@ const importExcel = async(req, res) => {
 
     // Convert Excel data to JSON format
     const excelData = excelToJson({
-      source: req.file.buffer, // Uploaded file buffer
-      header: { rows: 1 }, // First row contains headers
-      columnToKey: { A: "name", B: "surname", C: "designation", D: "joining_date", E: "last_date", F: "status", G: "DOB", H: "personal_email" }
+      source: req.file.buffer,
+      header: { rows: 1 },
+      columnToKey: {
+        A: "name",
+        B: "surname",
+        C: "designation",
+        D: "joining_date",
+        E: "last_date",
+        F: "status",
+        G: "DOB",
+        H: "personal_email"
+      }
     });
 
-    // Process excelData as per your application's logic
-    // Example: Save to database, update existing records, etc.
+    // Convert to the format needed for insertion into the database
+    const dataToInsert = excelData.Sheet1.map(row => [
+      row.name,
+      row.surname,
+      row.designation,
+      row.joining_date,
+      row.last_date,
+      row.status,
+      row.DOB,
+      row.personal_email
+    ]);
 
-    res.json({ message: "File uploaded successfully", data: excelData });
+    // Insert data into the database
+    const connection = await pool.getConnection();
+    try {
+      const query = `
+        INSERT INTO employes 
+        (name, surname, designation, joining_date, last_date, status, DOB, personal_email) 
+        VALUES ?
+      `;
+      await connection.query(query, [dataToInsert]);
+      res.json({ message: "File uploaded and data inserted successfully" });
+    } finally {
+      connection.release();
+    }
   } catch (error) {
     console.error("Error uploading Excel file:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
-}
+};
 
 module.exports = {
   addEmployes,

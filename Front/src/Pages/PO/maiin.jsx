@@ -63,7 +63,7 @@ const Main = () => {
 
   return (
     <div className="h-screen flex-1 p-7">
-      <h1 className="text-2xl font-semibold text-center">Alerts</h1>
+      <h1 className="text-2xl font-semibold text-center">PO</h1>
       <div>
         <CiFilter
           size={40}

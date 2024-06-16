@@ -1,23 +1,26 @@
 import React, { useContext, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import Logout from "../Logout";
 import { AuthContext } from "../../context/AuthContext";
+import { FaBars } from "react-icons/fa";
+import './SideNavBar.css'; // Ensure this file exists with appropriate styling
 
 const SideNavBar = () => {
   const { currentUser } = useContext(AuthContext);
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
+  const location = useLocation(); // To get the current path
 
   const Menus = [
     { title: "User", src: "User", link: "/user" },
-    { title: "Summary", src: "Setting", link: "/Summary" },
-    { title: "Customer", src: "Setting", link: "/Customer" },
+    { title: "Summary", src: "Chart_fill", link: "/Summary" },
+    { title: "Customer", src: "Chat", link: "/Customer" },
     { title: "Opportunity", src: "Setting", link: "/Opportunity" },
     { title: "Alert", src: "Setting", link: "/Alert" },
     { title: "PO", src: "Setting", link: "/PO" },
     { title: "Leave", src: "Setting", link: "/Leave" },
-    { title: "Calendar", src: "Setting", link: "/Calender" },
-    { title: "Employees", src: "Setting", link: "/Employes" },
+    { title: "Calendar", src: "Calendar", link: "/Calendar" },
+    { title: "Employees", src: "User", link: "/Employes" },
   ];
 
   const handleTabClick = (index) => {
@@ -34,52 +37,44 @@ const SideNavBar = () => {
     );
   } else {
     filteredMenus = Menus.filter(
-      (menu) => menu.title === "Leave" || menu.title === "Calender"
+      (menu) => menu.title === "Leave" || menu.title === "Calendar"
     );
   }
 
   return (
-    <div className="flex">
-      <div
-        className={`${
-          open ? "w-72" : "w-20 "
-        } bg-blue-500 h-screen p-5 pt-8 relative duration-300`}
-      >
+    <div className="sidenav-container">
+      <div className="hamburger" onClick={() => setOpen(!open)}>
+        <FaBars color="black" />
+      </div>
+      <div className={`sidenav ${open ? "open" : ""}`}>
         <img
           src={require("../../assets/control.png")}
           className={`absolute cursor-pointer -right-3 top-9 w-7 border-dark-purple
-            border-2 rounded-full  ${!open && "rotate-180"}`}
+            border-2 rounded-full ${!open && "rotate-180"}`}
           onClick={() => setOpen(!open)}
           alt=""
         />
         <div className="flex gap-x-4 items-center">
           <img
             src={require("../../assets/logo.png")}
-            className={`cursor-pointer duration-500 ${
-              open && "rotate-[360deg]"
-            }`}
+            className={`cursor-pointer duration-500 ${open && "rotate-[360deg]"}`}
             alt=""
           />
           <h1
-            className={`text-white origin-left font-medium text-xl duration-200 ${
-              !open && "scale-0"
-            }`}
+            className={`text-white origin-left font-medium text-xl duration-200 ${!open && "scale-0"}`}
           >
             Dashboards
           </h1>
         </div>
         <ul className="pt-6">
           {filteredMenus.map((Menu, index) => (
-            <Link to={Menu.link} key={index}>
+            <Link to={Menu.link} key={index} onClick={() => handleTabClick(index)}>
               <li
                 className={`flex rounded-md p-2 cursor-pointer hover:bg-light-white text-white text-l items-center gap-x-6 
-                ${index === activeTab ? "bg-light-white" : ""}`}
-                onClick={() => handleTabClick(index)}
+                ${location.pathname === Menu.link ? "bg-light-white" : ""}`}
               >
                 <img src={require(`../../assets/${Menu.src}.png`)} alt="" />
-                <span
-                  className={`${!open && "hidden"} origin-left duration-200`}
-                >
+                <span className={`${!open && "hidden"} origin-left duration-200`}>
                   {Menu.title}
                 </span>
               </li>
@@ -87,11 +82,7 @@ const SideNavBar = () => {
           ))}
         </ul>
         <div className="flex rounded-md p-2 cursor-pointer hover:bg-light-white text-white text-l items-center gap-x-6">
-          <span
-            className={`${
-              !open && "hidden"
-            } origin-left duration-200 flex items-center`}
-          >
+          <span className={`${!open && "hidden"} origin-left duration-200 flex items-center`}>
             <Logout />
             <span className="ml-6">Logout</span>
           </span>
