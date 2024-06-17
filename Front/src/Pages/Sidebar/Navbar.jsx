@@ -56,7 +56,7 @@ const SideNavBar = () => {
         />
         <div className="flex gap-x-4 items-center">
           <img
-            src={require("../../assets/logo.png")}
+            src={require("../../assets/techsa.png")}
             className={`cursor-pointer duration-500 ${open && "rotate-[360deg]"}`}
             alt=""
           />

@@ -333,12 +333,26 @@ const Users = () => {
     setFilterModalIsOpen(true);
   };
 
+  const handleSearch = (e) => {
+    const searchTerm = e.target.value.toLowerCase();
+    const filteredData = users.filter(user => 
+        user.name.toLowerCase().includes(searchTerm) || user.surname.toLowerCase().includes(searchTerm)
+    );
+    setFilteredUsers(filteredData);
+};
+
   return (
     <div className="order">
       <div className="flex items-center">
         <div
           style={{ display: "flex", alignItems: "center", marginLeft: "10px" }}
         >
+                <input
+                type="text"
+                placeholder="Search"
+                onChange={handleSearch}
+                className="p-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500"
+            />
           {/* <button
             className="bg-blue-500 text-white px-4 py-2 rounded"
             onClick={handleExportClick}
