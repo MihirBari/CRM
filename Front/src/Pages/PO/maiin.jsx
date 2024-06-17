@@ -19,9 +19,9 @@ const Main = () => {
       try {
         const response = await fetch(`${API_BASE_URL}/api/Opportunity/sendPo`);
         const data = await response.json();
-        setAlerts(data.products);
+        setAlerts(data.products || []);
         console.log(data.products);
-        setFilteredUsers(data.products);
+        setFilteredUsers(data.products || []);
       } catch (error) {
         console.error("Error fetching alerts:", error);
       }
@@ -82,7 +82,7 @@ const Main = () => {
         <p className="text-xl p-7 text-center">No alerts present</p>
       ) : (
         <div className="alert-container">
-          {Array.isArray(alerts) &&
+          {Array.isArray(filteredUsers) && filteredUsers.length > 0 ? (
             filteredUsers.map((alert) => (
               <div key={alert.id} className="alert-box">
                 <h2>PO WON!!</h2>
@@ -92,7 +92,10 @@ const Main = () => {
                 </p>
                 <div className="button-container"></div>
               </div>
-            ))}
+            ))
+          ) : (
+            <p className="text-xl p-7 text-center">No filtered alerts present</p>
+          )}
         </div>
       )}
       {popupAlerts.map((alert) => (

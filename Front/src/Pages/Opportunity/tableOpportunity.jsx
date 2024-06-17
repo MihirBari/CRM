@@ -139,7 +139,7 @@ const TableOpportunity = () => {
           {row.id}
         </span>
       ),
-      width: "60px",
+      width: "100px",
     },
     {
       name: "Customer Entity",

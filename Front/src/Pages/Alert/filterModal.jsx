@@ -3,12 +3,11 @@ import Modal from "react-modal";
 import axios from "axios";
 import API_BASE_URL from "../../config";
 import Select from "react-select";
-
+Modal.setAppElement("#root");
 const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
   const [customerEntity, setCustomerEntity] = useState([]);
   const [customerEntitys, setCustomerEntitys] = useState([]);
-  const [LicenseType, setLicenseType] = useState([]);
-  const [status, setStatus] = useState([]);
+  const [licenseType, setLicenseType] = useState([]);
   const [type, setType] = useState([]);
 
   const [shouldApplyFilters, setShouldApplyFilters] = useState(false);
@@ -36,7 +35,8 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
         {
           params: {
             customerEntity: customerEntity.map((entity) => entity.value),
-            status,
+            type: type.map((t) => t.value),
+            licenseType: licenseType.map((l) => l.value),  // Changed from LicenseType to licenseType
           },
         }
       );
@@ -48,7 +48,8 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
         "expenseFilters",
         JSON.stringify({
           customerEntity,
-          status,
+          type,
+          licenseType,  // Changed from LicenseType to licenseType
         })
       );
     } catch (error) {
@@ -60,12 +61,16 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
     // Retrieve filter values from localStorage
     const storedFilters = localStorage.getItem("expenseFilters");
     if (storedFilters) {
-      const { customerEntity: storedCustomerEntity, status: storedStatus } =
-        JSON.parse(storedFilters);
+      const {
+        customerEntity: storedCustomerEntity,
+        type: storedType,
+        licenseType: storedLicenseType,  // Changed from LicenseType to licenseType
+      } = JSON.parse(storedFilters);
 
       // Set filter values to state
       setCustomerEntity(storedCustomerEntity);
-      setStatus(storedStatus);
+      setType(storedType);
+      setLicenseType(storedLicenseType);
       setShouldApplyFilters(true);
     }
   };
@@ -86,7 +91,8 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
 
   const handleResetFilters = () => {
     setCustomerEntity([]);
-    setStatus([]);
+    setType([]);
+    setLicenseType([]);
     resetFilters();
   };
 
@@ -103,7 +109,7 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
     { value: "Armis", label: "Armis" },
   ];
 
-  const LicenseTypeOptions = [
+  const licenseTypeOptions = [
     { value: "New", label: "New" },
     { value: "Renewal", label: "Renewal" },
   ];
@@ -126,13 +132,9 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
         <div className="flex flex-wrap">
           <Select
             isMulti
-            options={LicenseTypeOptions}
-            value={LicenseType}
-            onChange={(selectedOptions) =>
-              setLicenseType(
-                selectedOptions ? selectedOptions.map((option) => option.value) : []
-              )
-            }
+            options={licenseTypeOptions}
+            value={licenseType}
+            onChange={(selectedOptions) => setLicenseType(selectedOptions || [])}
             placeholder="Select License Type"
             className="p-2 w-full md:w-1/4 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2 m-2"
           />
@@ -141,11 +143,7 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
             isMulti
             options={opportunityTypeOptions}
             value={type}
-            onChange={(selectedOptions) =>
-              setType(
-                selectedOptions ? selectedOptions.map((option) => option.value) : []
-              )
-            }
+            onChange={(selectedOptions) => setType(selectedOptions || [])}
             placeholder="Select Opportunity Type"
             className="p-2 w-full md:w-1/4 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2 m-2"
           />
@@ -154,7 +152,7 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
             isMulti
             options={customerEntityOptions}
             value={customerEntity}
-            onChange={setCustomerEntity}
+            onChange={(selectedOptions) => setCustomerEntity(selectedOptions || [])}
             placeholder="Select Customer Entity"
             className="p-2 w-full md:w-1/4 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2 m-2"
           />

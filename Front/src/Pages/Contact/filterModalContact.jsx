@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Modal from "react-modal";
 import axios from "axios";
 import API_BASE_URL from "../../config";
-
+Modal.setAppElement("#root");
 const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters,customer_entity }) => {
   
   const [designation, setDesignation] = useState("");
@@ -104,7 +104,7 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters,customer_en
           zIndex: 9999,
         },
         content: {
-          height: "50%", // Set the height here, e.g., 50%
+          height: "20%", // Set the height here, e.g., 50%
           margin: "auto", // Center the modal horizontally
         },
       }}

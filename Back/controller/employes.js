@@ -1,4 +1,9 @@
 const { pool } = require("../database");
+const XLSX = require("xlsx");
+
+const multer = require("multer");
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
 const addEmployes = async (req, res) => {
   const { contacts } = req.body; // Assuming the structure matches what React sends
@@ -232,51 +237,77 @@ const deleteEmployes = (req, res) => {
 
 const importExcel = async (req, res) => {
   try {
+    // Check if file was uploaded
     if (!req.file) {
       return res.status(400).json({ error: "No file uploaded" });
     }
 
-    // Convert Excel data to JSON format
-    const excelData = excelToJson({
-      source: req.file.buffer,
-      header: { rows: 1 },
-      columnToKey: {
-        A: "name",
-        B: "surname",
-        C: "designation",
-        D: "joining_date",
-        E: "last_date",
-        F: "status",
-        G: "DOB",
-        H: "personal_email"
-      }
-    });
+    // Parse Excel file
+    const workbook = XLSX.read(req.file.buffer);
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
 
-    // Convert to the format needed for insertion into the database
-    const dataToInsert = excelData.Sheet1.map(row => [
+    // Convert Excel data to JSON format
+    const excelData = XLSX.utils.sheet_to_json(sheet);
+
+    // Map and convert dates from dd-mm-yyyy to yyyy-mm-dd format
+    const dataToInsert = excelData.map((row) => [
+      row.id,
       row.name,
       row.surname,
       row.designation,
-      row.joining_date,
-      row.last_date,
+      formatDate(row.joining_date), // Convert date fields
+      formatDate(row.last_date),
       row.status,
-      row.DOB,
-      row.personal_email
+      formatDate(row.DOB),
+      row.personal_email,
     ]);
 
-    // Insert data into the database
-    const connection = await pool.getConnection();
-    try {
-      const query = `
-        INSERT INTO employes 
-        (name, surname, designation, joining_date, last_date, status, DOB, personal_email) 
-        VALUES ?
-      `;
-      await connection.query(query, [dataToInsert]);
-      res.json({ message: "File uploaded and data inserted successfully" });
-    } finally {
-      connection.release();
+    // Function to format date from dd-mm-yyyy to yyyy-mm-dd
+    function formatDate(dateString) {
+      // Handle undefined or null gracefully
+      if (!dateString) return null;
+    
+      // Check if dateString is a number (Excel date serial number)
+      if (typeof dateString === 'number' && !isNaN(dateString)) {
+        const date = new Date(Math.round((dateString - 25569)*86400*1000));
+        // Convert to yyyy-mm-dd format
+        return date.toISOString().slice(0,10);
+      }
+    
+      // If dateString is already in expected format (dd-mm-yyyy), convert it
+      if (typeof dateString === 'string') {
+        const parts = dateString.split('-');
+        if (parts.length === 3) {
+          return `${parts[2]}-${parts[1]}-${parts[0]}`;
+        }
+      }
+    
+      return null; // Handle other unexpected formats
     }
+
+    // Insert data into the database using a connection from the pool
+    pool.getConnection((err, connection) => {
+      if (err) {
+        console.error("Error getting MySQL connection:", err);
+        return res.status(500).json({ error: "Database connection error" });
+      }
+
+      connection.query(
+        "INSERT INTO employes (id,name, surname, designation, joining_date, last_date, status, DOB, personal_email) VALUES ?",
+        [dataToInsert],
+        (err, results) => {
+          connection.release(); // Release the connection back to the pool
+
+          if (err) {
+            console.error("Error inserting data into MySQL:", err);
+            return res.status(500).json({ error: "Database insertion error" });
+          }
+
+          res.json({ message: "File uploaded and data inserted successfully" });
+        }
+      );
+    });
   } catch (error) {
     console.error("Error uploading Excel file:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -291,5 +322,5 @@ module.exports = {
   name,
   surname,
   deleteEmployes,
-  importExcel
+  importExcel,
 };

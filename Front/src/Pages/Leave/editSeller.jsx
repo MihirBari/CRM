@@ -255,7 +255,7 @@ const EditSeller = () => {
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           {inputs && Object.keys(inputs).length !== 0 ? (
             <form className="space-y-6" onSubmit={handleSubmit}>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                 {renderInput(
                   "name",
                   "Name",

@@ -99,6 +99,11 @@ const Users = () => {
             sortable: true,
         },
         {
+            name: 'Total Leave Taken',
+            selector: (row) => row.holidays_taken,
+            sortable: true,
+        },
+        {
             name: 'Created at',
             selector: (row) => {
               const date = new Date(row.created_at);

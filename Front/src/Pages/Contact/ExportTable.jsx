@@ -3,7 +3,7 @@ import Modal from "react-modal";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import * as XLSX from "xlsx";
-
+Modal.setAppElement("#root");
 const ExportTable = ({ data, isOpen, onRequestClose }) => {
   const [fileName, setFileName] = useState("");
 
@@ -44,6 +44,11 @@ const ExportTable = ({ data, isOpen, onRequestClose }) => {
       style={{
         overlay: {
           zIndex: 9999,
+        },
+        content: {
+          height: "20%",
+          width: "90%%",
+          margin: "auto",
         },
       }}
     >

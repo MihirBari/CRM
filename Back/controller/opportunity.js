@@ -558,31 +558,45 @@ const updateDaysLeftInAlerts = () => {
 };
 
 const sendAlert = async (req, res) => {
-  const { customerEntity, status } = req.query;
+  const { customerEntity, type, licenseType } = req.query;
+  console.log("customerEntity:", customerEntity);
+  console.log("type:", type);
+  console.log("licenseType:", licenseType);
 
   let dealerQuery = `
-  SELECT id, alert_entity, alert_description, license_to, alert_type, daysLeft, License_type, acknowledge, po_lost,reminder 
+    SELECT id, alert_entity, alert_description, license_to, alert_type, daysLeft, License_type, acknowledge, po_lost, reminder 
     FROM alert 
-    WHERE (acknowledge = "No" AND po_lost = "No" AND reminder = "No") 
-       OR (daysLeft = 30 AND acknowledge = "No" AND po_lost = "No")
-       OR (daysLeft <= 15 AND acknowledge = "No" AND po_lost = "No")
+    WHERE (
+      (acknowledge = "No" AND po_lost = "No" AND reminder = "No") 
+      OR (daysLeft = 30 AND acknowledge = "No" AND po_lost = "No")
+      OR (daysLeft <= 15 AND acknowledge = "No" AND po_lost = "No")
+    )
   `;
 
   let filterConditions = [];
 
-  if (customerEntity) {
-    filterConditions.push(`alert_entity LIKE '%${customerEntity}%'`);
+  if (customerEntity && customerEntity.length > 0) {
+    const customerEntities = customerEntity.map((entity) => `'${entity}'`).join(",");
+    filterConditions.push(`alert_entity IN (${customerEntities})`);
   }
 
-  if (status) {
-    filterConditions.push(`alert_type LIKE '%${status}%'`);
+  if (type && type.length > 0) {
+    const typeConditions = type.map(t => `alert_type LIKE '%${t}%'`).join(" OR ");
+    filterConditions.push(`(${typeConditions})`);
+  }
+
+  if (licenseType && licenseType.length > 0) {
+    const licenseTypeConditions = licenseType.map(l => `License_type LIKE '%${l}%'`).join(" OR ");
+    filterConditions.push(`(${licenseTypeConditions})`);
   }
 
   if (filterConditions.length > 0) {
-    dealerQuery += ` AND ${filterConditions.join(" AND ")}`;
+    dealerQuery += ` AND (${filterConditions.join(" AND ")})`;
   }
 
   dealerQuery += ` ORDER BY daysLeft`;
+
+  //console.log("Final Query:", dealerQuery);  // Add logging to debug the final query
 
   pool.query(dealerQuery, (error, results) => {
     if (error) {
@@ -620,25 +634,37 @@ cron.schedule('30 11 * * *', () => {
 });
 
 const sendPo = async (req, res) => { 
-  const { customerEntity, status } = req.query;
-
+  const { customerEntity = [], type = [], licenseType = [] } = req.query;
   let dealerQuery = `
-  SELECT id, alert_entity, alert_description, license_to, alert_type, daysLeft, acknowledge, po_lost FROM alert WHERE acknowledge = "Yes"
+  SELECT id, alert_entity, alert_description, license_to, alert_type, daysLeft, acknowledge, po_lost 
+  FROM alert 
+  WHERE acknowledge = "Yes"
   `;
 
   let filterConditions = [];
 
-  if (customerEntity) {
-    filterConditions.push(`alert_entity LIKE '%${customerEntity}%'`);
+  if (customerEntity.length > 0) {
+    const customerEntities = customerEntity.map((entity) => `'${entity}'`).join(",");
+    filterConditions.push(`alert_entity IN (${customerEntities})`);
   }
 
-  if (status) {
-    filterConditions.push(`alert_type LIKE '%${status}%'`);
+  if (type.length > 0) {
+    const typeConditions = type.map(t => `alert_type LIKE '%${t}%'`).join(" OR ");
+    filterConditions.push(`(${typeConditions})`);
+  }
+
+  if (licenseType.length > 0) {
+    const licenseTypeConditions = licenseType.map(l => `License_type LIKE '%${l}%'`).join(" OR ");
+    filterConditions.push(`(${licenseTypeConditions})`);
   }
 
   if (filterConditions.length > 0) {
-    dealerQuery += ` AND ${filterConditions.join(" AND ")}`;
+    dealerQuery += ` AND (${filterConditions.join(" AND ")})`;
   }
+
+  dealerQuery += ` ORDER BY daysLeft`;
+
+  console.log("Final Query:", dealerQuery);  // Add logging to debug the final query
 
   pool.query(dealerQuery, (error, results) => {
     if (error) {
@@ -646,10 +672,11 @@ const sendPo = async (req, res) => {
       res.status(500).json({ error: "Internal Server Error" });
       return;
     }
-    //console.log("Dealer details:", results);
+
     res.status(200).json({ products: results });
   });
 };
+
 
 const acknowledge = async (req, res) => {
   const { id } = req.body;

@@ -2,7 +2,7 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import Modal from "react-modal";
 import API_BASE_URL from "../../config";
-
+Modal.setAppElement("#root");
 const FilterModal = ({
   isOpen,
   onClose,

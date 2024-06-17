@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import Modal from "react-modal";
 import Select from "react-select";
 import API_BASE_URL from "../../config";
-
+Modal.setAppElement("#root");
 const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
   const [names, setNames] = useState([]);
   const [surnames, setSurnames] = useState([]);

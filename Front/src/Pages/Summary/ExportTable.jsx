@@ -3,7 +3,7 @@ import Modal from "react-modal";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import * as XLSX from "xlsx";
-
+Modal.setAppElement("#root");
 const ExportTable = ({ data, isOpen, onRequestClose }) => {
   const [fileName, setFileName] = useState("");
 

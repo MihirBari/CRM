@@ -4,7 +4,7 @@ import API_BASE_URL from "../../config";
 import axios from "axios";
 import Modal from "react-modal";
 
-
+Modal.setAppElement("#root");
 const EditContact = ({ isOpen, onClose,customerId  }) => {
   const initialInputs = {
     customer_entity: "",

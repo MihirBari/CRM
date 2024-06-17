@@ -3,7 +3,7 @@ import Modal from "react-modal";
 import axios from "axios";
 import API_BASE_URL from "../../config";
 import Select from "react-select";
-
+Modal.setAppElement("#root");
 const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
   const [city, setCity] = useState([]);
   const [cityOptions, setCityOptions] = useState([]);

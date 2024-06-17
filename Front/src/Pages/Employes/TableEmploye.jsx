@@ -204,7 +204,7 @@ const TableEmploye = () => {
     formData.append("file", selectedFile);
 
     axios
-      .post(`${API_BASE_URL}/api/Employes/uploadExcel`, formData, {
+      .post(`${API_BASE_URL}/api/Employes/importExcel`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -213,6 +213,7 @@ const TableEmploye = () => {
         console.log("File uploaded successfully:", response.data);
         toast.success("File uploaded successfully");
         // Optionally, update state or fetch data after successful upload
+        window.location.reload()
       })
       .catch((error) => {
         console.error("Error uploading file:", error);

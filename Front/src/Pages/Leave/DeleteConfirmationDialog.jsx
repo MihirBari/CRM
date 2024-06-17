@@ -1,6 +1,6 @@
 import React from "react";
 import Modal from "react-modal";
-
+Modal.setAppElement("#root");
 const DeleteConfirmationDialog = ({ isOpen, onClose, onDelete }) => {
   return (
     <Modal

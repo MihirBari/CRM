@@ -2,16 +2,10 @@ const { pool } = require("../database");
 const nodemailer = require("nodemailer");
 
 const showApplicationLeave = (req, res) => {
-    const {
-        fromDate,
-        type,
-        status,
-        toDate,
-        dateFilterType
-    } = req.query;
-    const { id, role } = req.user;
-console.log(req.user)
-    let query = `
+  const { fromDate, type, status, toDate, dateFilterType } = req.query;
+  const { id, role } = req.user;
+  console.log(req.user);
+  let query = `
         SELECT la.id, la.name,la.surname,la.status, la.fromDate, la.toDate,la.type, la.duration, 
         la.days, la.description, la.history,
         la.created_at, la.update_at
@@ -19,95 +13,98 @@ console.log(req.user)
         JOIN user u ON u.name = la.name
         `;
 
-        if (role === 'admin') {
-          // If the user is an admin, fetch all leave applications
-          query += `
+  if (role === "admin") {
+    // If the user is an admin, fetch all leave applications
+    query += `
               WHERE 1=1
           `;
-      } else {
-          // If the user is not an admin, fetch only their leave applications
-          query += `
+  } else {
+    // If the user is not an admin, fetch only their leave applications
+    query += `
               WHERE u.id = ?
           `;
+  }
+
+  let filterConditions = [];
+
+  if (status) {
+    filterConditions.push(`status LIKE '%${status}%'`);
+  }
+
+  if (type) {
+    filterConditions.push(`type LIKE '%${type}%'`);
+  }
+
+  if (dateFilterType && fromDate && toDate) {
+    if (dateFilterType === "equal") {
+      filterConditions.push(
+        `fromDate = '${fromDate}' AND toDate = '${toDate}'`
+      );
+    } else if (dateFilterType === "before") {
+      filterConditions.push(
+        `fromDate < '${fromDate}' AND toDate < '${toDate}'`
+      );
+    } else if (dateFilterType === "after") {
+      filterConditions.push(
+        `fromDate > '${fromDate}' AND toDate > '${toDate}'`
+      );
+    } else if (dateFilterType === "between") {
+      filterConditions.push(`fromDate BETWEEN '${fromDate}' AND '${toDate}'`);
+    }
+  }
+
+  if (filterConditions.length > 0) {
+    query += ` AND ${filterConditions.join(" AND ")}`;
+  }
+
+  query += ` ORDER BY id DESC`;
+
+  // Start a transaction
+  pool.getConnection((err, connection) => {
+    if (err) {
+      console.error("Error getting connection from pool:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+
+    connection.beginTransaction((err) => {
+      if (err) {
+        console.error("Error starting transaction:", err);
+        res.status(500).json({ error: "Internal Server Error" });
+        return;
       }
 
-    let filterConditions = [];
-
-    if (status) {
-        filterConditions.push(`status LIKE '%${status}%'`);
-    }
-
-    if (type) {
-        filterConditions.push(`type LIKE '%${type}%'`);
-    }
-
-   
-
-    if (dateFilterType && fromDate && toDate) {
-        if (dateFilterType === "equal") {
-            filterConditions.push(`fromDate = '${fromDate}' AND toDate = '${toDate}'`);
-        } else if (dateFilterType === "before") {
-            filterConditions.push(`fromDate < '${fromDate}' AND toDate < '${toDate}'`);
-        } else if (dateFilterType === "after") {
-            filterConditions.push(`fromDate > '${fromDate}' AND toDate > '${toDate}'`);
-        } else if (dateFilterType === "between") {
-            filterConditions.push(`fromDate BETWEEN '${fromDate}' AND '${toDate}'`);
-        }
-    }
-
-    if (filterConditions.length > 0) {
-        query += ` AND ${filterConditions.join(" AND ")}`;
-    }
-
-    query += ` ORDER BY id DESC`;
-
-    // Start a transaction
-    pool.getConnection((err, connection) => {
-        if (err) {
-            console.error("Error getting connection from pool:", err);
+      // Run the query with user ID and role
+      connection.query(query, [id, role], (error, results) => {
+        if (error) {
+          return connection.rollback(() => {
+            console.error("Error executing query:", error);
             res.status(500).json({ error: "Internal Server Error" });
-            return;
+            connection.release();
+          });
         }
 
-        connection.beginTransaction((err) => {
-            if (err) {
-                console.error("Error starting transaction:", err);
-                res.status(500).json({ error: "Internal Server Error" });
-                return;
-            }
-
-            // Run the query with user ID and role
-            connection.query(query, [id, role], (error, results) => {
-                if (error) {
-                    return connection.rollback(() => {
-                        console.error("Error executing query:", error);
-                        res.status(500).json({ error: "Internal Server Error" });
-                        connection.release();
-                    });
-                }
-
-                // Commit the transaction if the query is successful
-                connection.commit((err) => {
-                    if (err) {
-                        return connection.rollback(() => {
-                            console.error("Error committing transaction:", err);
-                            res.status(500).json({ error: "Internal Server Error" });
-                            connection.release();
-                        });
-                    }
-
-                    res.status(200).json({ dealers: results });
-                    //console.log(results)
-                    // Release connection back to the pool
-                    connection.release();
-                });
+        // Commit the transaction if the query is successful
+        connection.commit((err) => {
+          if (err) {
+            return connection.rollback(() => {
+              console.error("Error committing transaction:", err);
+              res.status(500).json({ error: "Internal Server Error" });
+              connection.release();
             });
+          }
+
+          res.status(200).json({ dealers: results });
+          //console.log(results)
+          // Release connection back to the pool
+          connection.release();
         });
+      });
     });
+  });
 };
 
 const showOneApplicationLeave = async (req, res) => {
-  
   const dealerQuery = `
   SELECT id, name,surname, status, fromDate, toDate, type, duration, 
   days, description, history, created_at
@@ -159,7 +156,7 @@ const addApplicationLeave = (req, res) => {
         req.body.days,
         req.body.description,
         req.body.history,
-        req.body.name
+        req.body.name,
       ];
 
       // Execute the first query
@@ -202,6 +199,12 @@ const addApplicationLeave = (req, res) => {
 
           console.log("Fetched user email:", rows[0].sender);
 
+          // Format the dates
+          const fromDate = new Date(rows[0].fromDate).toLocaleDateString(
+            "en-GB"
+          );
+          const toDate = new Date(rows[0].toDate).toLocaleDateString("en-GB");
+
           // Nodemailer configuration
           const transporter = nodemailer.createTransport({
             host: process.env.SMPT_HOST,
@@ -212,7 +215,7 @@ const addApplicationLeave = (req, res) => {
               pass: process.env.SMPT_PASSWORD,
             },
           });
- 
+
           const mailOptions = {
             from: `"TechSa CRM" <${process.env.SMPT_MAIL}>`,
             to: `${process.env.SMPT_MAIL}`,
@@ -220,11 +223,11 @@ const addApplicationLeave = (req, res) => {
             //replyTo: `${rows[0].sender}`, // Setting the actual sender's email in replyTo
             subject: `Leave Application Confirmation`,
             text: `Hi Sir,
-            
-            I am writing this mail to ask for ${rows[0].type} from ${rows[0].fromDate} to ${rows[0].toDate}.
-            
-            Regards,
-            ${rows[0].name} ${rows[0].surname}
+
+        I, ${rows[0].name} ${rows[0].surname}, am writing to request ${rows[0].type} leave from ${fromDate} to ${toDate} for ${rows[0].days}. ${rows[0].description}
+
+Regards,
+${rows[0].name} ${rows[0].surname}
             `,
           };
 
@@ -262,7 +265,7 @@ const addApplicationLeave = (req, res) => {
 
 const editApplicationAdmin = (req, res) => {
   const checkStatusQuery = `
-    SELECT la.name, la.surname, u.email, la.status 
+    SELECT la.name, la.surname, u.email, la.status, la.history 
     FROM leaveapplication la
     JOIN user AS u ON u.name = la.name
     WHERE la.id = ?;
@@ -291,6 +294,9 @@ const editApplicationAdmin = (req, res) => {
       const userEmail = rows[0].email;
       const userName = rows[0].name;
       const userSurname = rows[0].surname;
+      const comment = rows[0].history;
+
+      console.log("comment:",comment)
 
       // Check if the new status is 'approved' or 'rejected'
       if (req.body.status === "approved" || req.body.status === "rejected") {
@@ -309,7 +315,10 @@ const editApplicationAdmin = (req, res) => {
           from: `<${process.env.SMPT_MAIL}>`,
           to: userEmail,
           subject: "Leave Application Status Update",
-          text: `Hi ${userName} ${userSurname},\n\nYour leave application has been ${req.body.status}.\n\nRegards,\nTechSa CRM`,
+          text: `Hi ${userName} ${userSurname},\n\nYour leave application has been ${req.body.status}.
+          ${comment}
+
+          \n\nRegards,\nTechsa CRM`,
         };
 
         // Send email

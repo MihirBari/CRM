@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import Modal from "react-modal";
 import API_BASE_URL from "../../config";
 import Select from "react-select";
-
+Modal.setAppElement("#root");
 const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
   const [type, setType] = useState("");
   const [LicenseType, setLicenseType] = useState("");

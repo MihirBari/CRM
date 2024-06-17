@@ -4,7 +4,7 @@ import jsPDF from "jspdf";
 import "jspdf-autotable";
 import API_BASE_URL from "../../config";
 import axios from "axios";
-
+Modal.setAppElement("#root");
 const ExportTable = ({ data, isOpen, onRequestClose }) => {
   const [fileName, setFileName] = useState("");
 

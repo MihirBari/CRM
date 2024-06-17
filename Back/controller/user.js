@@ -3,8 +3,6 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { promisify } = require('util');
 const nodemailer = require('nodemailer');
-const excelToJson = require("convert-excel-to-json");
-const saltRounds = 10; 
 
 const login = (req, res) => {
   // Create the SQL query
@@ -48,19 +46,49 @@ const login = (req, res) => {
   });
 };
 
-const getUserData = (req,res) => {
-    const getAllUsersQuery = 'SELECT id,name,surname, email, role, created_at FROM user';
+const getUserData = (req, res) => {
+  const getAllUsersQuery = 'SELECT id, name, surname, email, role, holidays_taken, created_at FROM user';
 
-    pool.query(getAllUsersQuery, (error, results) => {
+  pool.getConnection((err, connection) => {
+    if (err) {
+      console.error("Error connecting to database:", err);
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+
+    connection.query(getAllUsersQuery, (error, users) => {
       if (error) {
         console.error('Error executing query:', error);
-        return;
+        connection.release();
+        return res.status(500).json({ error: "Internal Server Error" });
       }
       
-      //console.log('All users:', results);
-      res.status(200).json(results)
+      // Iterate through each user to update holidays_taken
+      const updateUserPromises = users.map(user => {
+        return new Promise((resolve, reject) => {
+          updateUserHolidaysTaken(user.name, user.surname, connection, (error, results) => {
+            if (error) {
+              reject(error);
+            } else {
+              resolve(results);
+            }
+          });
+        });
+      });
+
+      // Execute all update promises
+      Promise.all(updateUserPromises)
+        .then(() => {
+          connection.release();
+          res.status(200).json(users);
+        })
+        .catch(error => {
+          console.error("Error updating holidays_taken for users:", error);
+          connection.release();
+          res.status(500).json({ error: "Internal Server Error" });
+        });
     });
-}
+  });
+};
 
 const getOneUserData = (req, res) => {
   const getOneUserQuery = 'SELECT id, name,surname, email, password, role FROM user WHERE id = ?';
@@ -80,6 +108,38 @@ const getOneUserData = (req, res) => {
   });
 };
 
+const updateUserHolidaysTaken = (userName, userSurname, connection, callback) => {
+  const calculateApprovedDaysQuery = `
+    SELECT SUM(days) as totalDays
+    FROM leaveapplication
+    WHERE name = ? AND surname = ? AND status = 'approved';
+  `;
+
+  const updateUserHolidaysQuery = `
+    UPDATE user
+    SET holidays_taken = ?
+    WHERE name = ? AND surname = ?;
+  `;
+
+  connection.query(calculateApprovedDaysQuery, [userName, userSurname], (error, results) => {
+    if (error) {
+      console.error("Error calculating approved days:", error);
+      return callback(error);
+    }
+
+    const totalApprovedDays = results[0].totalDays || 0;
+
+    connection.query(updateUserHolidaysQuery, [totalApprovedDays, userName, userSurname], (error, results) => {
+      if (error) {
+        console.error("Error updating holidays_taken:", error);
+        return callback(error);
+      }
+
+      console.log("Updated user holidays_taken:", results);
+      callback(null, results);
+    });
+  });
+};
 
 const addUser = async (req, res) => {
   const { name, surname, email, password, role } = req.body;

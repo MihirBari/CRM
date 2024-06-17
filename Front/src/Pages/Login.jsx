@@ -125,7 +125,7 @@ const Login = () => {
                 <button
                   type="button"
                   onClick={() => navigate("/register")}
-                  className="font-medium text-blue-600 "
+                  className="font-medium text-blue-600"
                 >
                   Create account? Register
                 </button>
