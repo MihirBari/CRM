@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useContext } from "react";
-import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import API_BASE_URL from "../../config";
 import axios from "axios";
@@ -7,7 +6,7 @@ import { AuthContext } from "../../context/AuthContext";
 import Modal from "react-modal";
 Modal.setAppElement("#root");
 
-export const EditLeaveModal = ({ isOpen, onClose }) => {
+export const EditLeaveModal = ({ isOpen, onClose,id }) => {
   const initialInputs = {
     name: "",
     surname: "",
@@ -21,7 +20,6 @@ export const EditLeaveModal = ({ isOpen, onClose }) => {
     history: "",
   };
 
-  const { id } = useParams();
   const [inputs, setInputs] = useState(initialInputs);
   const [err, setError] = useState(null);
   const { currentUser } = useContext(AuthContext); // Assuming you have currentUser from context

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import SideNavBar from '../Sidebar/Navbar';
-import SellerDetails from './LeaveDetail';
+import LeaveDetail from './LeaveDetail';
 import axios from 'axios';
 import API_BASE_URL from "../../config";
 
@@ -36,7 +36,7 @@ const ViewLeave = () => {
             )}
           </div>
 
-          {product && <SellerDetails product={product} />}
+          {product && <LeaveDetail product={product} />}
         </div>
       </div>
     </>

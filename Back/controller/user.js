@@ -48,7 +48,7 @@ const login = (req, res) => {
 };
 
 const getUserData = (req, res) => {
-  const getAllUsersQuery = 'SELECT id, name, surname, email, role, holidays_taken, created_at FROM user';
+  const getAllUsersQuery = 'SELECT id, name, surname, email, role, holidays_taken,half_day, created_at FROM user';
 
   pool.getConnection((err, connection) => {
     if (err) {
