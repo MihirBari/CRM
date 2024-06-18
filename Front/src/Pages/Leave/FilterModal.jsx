@@ -2,6 +2,8 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import Modal from "react-modal";
 import API_BASE_URL from "../../config";
+import Select from "react-select";
+
 Modal.setAppElement("#root");
 const FilterModal = ({
   isOpen,
@@ -20,38 +22,41 @@ const FilterModal = ({
   const [endDate, setEndDate] = useState(null);
   const [shouldApplyFilters, setShouldApplyFilters] = useState(false);
 
-
-
-
   const applyFilters = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/Leave/showApplicationLeave`, {
-        params: {
+      const response = await axios.get(
+        `${API_BASE_URL}/api/Leave/showApplicationLeave`,
+        {
+          params: {
+            status,
+            type,
+            dateFilterType,
+            selectedDate: dateFilterType !== "between" ? selectedDate : null,
+            startDate: dateFilterType === "between" ? startDate : null,
+            endDate: dateFilterType === "between" ? endDate : null,
+          },
+        }
+      );
+      onApplyFilters(response.data.dealers);
+      localStorage.setItem(
+        "SellerFilters",
+        JSON.stringify({
           status,
           type,
           dateFilterType,
-          selectedDate: dateFilterType !== "between" ? selectedDate : null,
-          startDate: dateFilterType === "between" ? startDate : null,
-          endDate: dateFilterType === "between" ? endDate : null,
-        }
-      });
-      onApplyFilters(response.data.dealers); 
-      localStorage.setItem('SellerFilters', JSON.stringify({
-        status,
-        type,
-        dateFilterType,
-        selectedDate,
-        startDate,
-        endDate,
-      }));
+          selectedDate,
+          startDate,
+          endDate,
+        })
+      );
     } catch (error) {
       console.error("Error applying filters:", error.message);
     }
   };
-  
+
   useEffect(() => {
     // Retrieve filter values from localStorage
-    const storedFilters = localStorage.getItem('SellerFilters');
+    const storedFilters = localStorage.getItem("SellerFilters");
     if (storedFilters) {
       const {
         status: storedStatus,
@@ -59,9 +64,9 @@ const FilterModal = ({
         dateFilterType: storedDateFilterType,
         selectedDate: storedSelectedDate,
         startDate: storedStartDate,
-        endDate: storedEndDate
+        endDate: storedEndDate,
       } = JSON.parse(storedFilters);
-  
+
       // Set filter values to state
       setStatus(storedStatus);
       setType(storedType);
@@ -69,8 +74,7 @@ const FilterModal = ({
       setSelectedDate(storedSelectedDate);
       setStartDate(storedStartDate);
       setEndDate(storedEndDate);
-      
-  
+
       // Apply retrieved filters
       setShouldApplyFilters(true);
     }
@@ -84,7 +88,6 @@ const FilterModal = ({
       setShouldApplyFilters(false);
     }
   }, [shouldApplyFilters]);
-  
 
   const handleResetFilters = () => {
     setStatus("");
@@ -96,6 +99,17 @@ const FilterModal = ({
     resetFilters();
   };
 
+  const statusOptions = [
+    { value: "request", label: "Request" },
+    { value: "approved", label: "Approved" },
+    { value: "rejected", label: "Rejected" },
+  ];
+
+  const typeOptions = [
+    { value: "paid leave", label: "paid leave" },
+    { value: "sick leave", label: "sick leave" },
+  ];
+
   return (
     <Modal
       isOpen={isOpen}
@@ -105,42 +119,43 @@ const FilterModal = ({
           zIndex: 9999,
         },
         content: {
-          
-          height: '50%', // Set the height here, e.g., 50%
-          margin: 'auto', // Center the modal horizontally
+          height: "50%", // Set the height here, e.g., 50%
+          margin: "auto", // Center the modal horizontally
         },
       }}
     >
-      <div className="filter-modal">
-  
-      <select
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-          className="p-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2"
-        >
-          <option value="">Status</option>
-          <option value="request">Request</option>
-          <option value="approved">Approved</option>
-          <option value="rejected">Rejected</option>
-        </select>
-
-        <select
-          value={type}
-          onChange={(e) => setType(
-           e.target.value
+      <div className="flex flex-wrap">
+        <Select
+          isMulti
+          options={statusOptions}
+          value={statusOptions.filter((option) =>
+            status.includes(option.value)
           )}
-          className="p-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2"
-          
-        >
-           <option value=" " disabled selected>Select Option</option>
-                    <option value="Full Day" >
-                      Full day
-                    </option>
-                    <option value="Half Day">Half Day</option>
-                    <option value="Early leave" >
-                    Early leave
-                    </option>
-        </select>
+          onChange={(selectedOptions) =>
+            setStatus(
+              selectedOptions
+                ? selectedOptions.map((option) => option.value)
+                : []
+            )
+          }
+          placeholder="Select Status Type"
+          className="p-2 w-full md:w-1/4 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2 m-2"
+        />
+
+        <Select
+          isMulti
+          options={typeOptions}
+          value={typeOptions.filter((option) => type.includes(option.value))}
+          onChange={(selectedOptions) =>
+            setType(
+              selectedOptions
+                ? selectedOptions.map((option) => option.value)
+                : []
+            )
+          }
+          placeholder="Select Type"
+          className="p-2 w-full md:w-1/4 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2 m-2"
+        />
 
         <select
           value={dateFilterType}

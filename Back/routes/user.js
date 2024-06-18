@@ -1,5 +1,5 @@
 const express = require("express");
-const { login, getUserData,addUser,getOneUserData, deleteUser,logout,editUser,requestResetPassword,ResetPassword } = require("../controller/user");
+const { login, getUserData,addUser,getOneUserData, deleteUser,logout,editUser,requestResetPassword,ResetPassword,paidLeave,SickLeave,RestDetail } = require("../controller/user");
 
 
 const router = express.Router();
@@ -9,6 +9,9 @@ router.get("/userData", getUserData);
 router.get("/getOneUserData/:id", getOneUserData);
 router.get("/logout", logout);
 router.post("/addUser", addUser);
+router.post("/paidLeave", paidLeave);
+router.post("/SickLeave", SickLeave);
+router.post("/RestDetail", RestDetail);
 router.post("/requestResetPassword", requestResetPassword);
 router.post("/ResetPassword/:token", ResetPassword);
 router.put("/editUser/:id", editUser);

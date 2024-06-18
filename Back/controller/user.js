@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { promisify } = require('util');
 const nodemailer = require('nodemailer');
+const cron = require("node-cron");
 
 const login = (req, res) => {
   // Create the SQL query
@@ -103,41 +104,8 @@ const getOneUserData = (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    console.log('User data:', results[0]);
+    //console.log('User data:', results[0]);
     res.status(200).json(results);
-  });
-};
-
-const updateUserHolidaysTaken = (userName, userSurname, connection, callback) => {
-  const calculateApprovedDaysQuery = `
-    SELECT SUM(days) as totalDays
-    FROM leaveapplication
-    WHERE name = ? AND surname = ? AND status = 'approved';
-  `;
-
-  const updateUserHolidaysQuery = `
-    UPDATE user
-    SET holidays_taken = ?
-    WHERE name = ? AND surname = ?;
-  `;
-
-  connection.query(calculateApprovedDaysQuery, [userName, userSurname], (error, results) => {
-    if (error) {
-      console.error("Error calculating approved days:", error);
-      return callback(error);
-    }
-
-    const totalApprovedDays = results[0].totalDays || 0;
-
-    connection.query(updateUserHolidaysQuery, [totalApprovedDays, userName, userSurname], (error, results) => {
-      if (error) {
-        console.error("Error updating holidays_taken:", error);
-        return callback(error);
-      }
-
-      console.log("Updated user holidays_taken:", results);
-      callback(null, results);
-    });
   });
 };
 
@@ -202,7 +170,7 @@ const addUser = async (req, res) => {
               return res.status(500).json({ error: 'Internal Server Error' });
             }
 
-            console.log('Added User:', results);
+            //console.log('Added User:', results);
             return res.status(201).json({ message: 'User added successfully!' });
           });
         } catch (hashError) {
@@ -219,7 +187,7 @@ const addUser = async (req, res) => {
 
 const editUser = async (req, res) => {
   const { name,surname, email, password, role } = req.body;
-
+console.log(email, password)
   try {
     let hashedPassword = null;
 
@@ -240,7 +208,7 @@ const editUser = async (req, res) => {
         UPDATE user
         SET name = ?,surname=?, email = ?, password = ?, role = ?
       `;
-      values.splice(2, 0, hashedPassword); // Insert hashedPassword at the right position
+      values.splice(3, 0, hashedPassword); // Insert hashedPassword at the right position
     }
 
     userQuery += ` WHERE id = ?`;
@@ -253,7 +221,7 @@ const editUser = async (req, res) => {
         return;
       }
 
-      console.log('Updated User:', results);
+      //console.log('Updated User:', results);
       res.status(200).json({ message: 'User updated successfully!' });
     });
   } catch (hashError) {
@@ -308,7 +276,7 @@ const generateResetToken = (email) => {
 
 const requestResetPassword = async(req,res) => {
   const { email } = req.body;
-console.log(email)
+//console.log(email)
   try {
     const token = generateResetToken(email);
     const resetLink = `${process.env.Frontend_url}/resetPassword/${token}`;
@@ -365,4 +333,173 @@ const ResetPassword = async(req,res) => {
   }
 }
 
-module.exports = { login,getUserData,getOneUserData,addUser,deleteUser,logout,editUser,ResetPassword,requestResetPassword };
+const updateUserHolidaysTaken = (userName, userSurname, connection, callback) => {
+  // Calculate the start and end dates for the current financial year
+  const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().getMonth();
+  const startYear = currentMonth >= 3 ? currentYear : currentYear - 1;
+  const startDate = new Date(startYear, 3, 1); // April 1st of the current/start year
+  const endDate = new Date(startYear + 1, 2, 31, 23, 59, 59); // March 31st of the next year
+
+  const calculateApprovedDaysQuery = `
+    SELECT 
+      SUM(CASE WHEN duration = 'Full Day' THEN days ELSE 0 END) AS totalFullDays,
+      SUM(CASE WHEN duration = 'Half Day' THEN days ELSE 0 END) AS totalHalfDays
+    FROM leaveapplication
+    WHERE name = ? AND surname = ? AND status = 'approved'
+    AND fromDate >= ? AND toDate <= ?;
+  `;
+
+  const updateUserHolidaysQuery = `
+    UPDATE user
+    SET holidays_taken = ?, half_day = half_day + ?
+    WHERE name = ? AND surname = ?;
+  `;
+
+  connection.query(calculateApprovedDaysQuery, [userName, userSurname, startDate, endDate], (error, results) => {
+    if (error) {
+      console.error("Error calculating approved days:", error);
+      return callback(error);
+    }
+
+    const totalFullDays = results[0].totalFullDays || 0;
+    const totalHalfDays = results[0].totalHalfDays || 0;
+    const totalHalfDaysCount = Math.floor(totalHalfDays / 2);
+
+    const holidaysTaken = totalFullDays + totalHalfDaysCount;
+    const remainingHalfDays = totalHalfDays % 2;
+
+    connection.query(updateUserHolidaysQuery, [holidaysTaken, remainingHalfDays, userName, userSurname], (error, results) => {
+      if (error) {
+        console.error("Error updating holidays_taken:", error);
+        return callback(error);
+      }
+
+      // console.log("Updated user holidays_taken:", results);
+      callback(null, results);
+    });
+  });
+};
+
+
+// Function to reset holidays_taken and half_day for all users at the start of a new financial year
+const resetUserHolidaysTaken = (connection, callback) => {
+  const resetHolidaysQuery = `
+    UPDATE user
+    SET holidays_taken = 0, half_day = 0;
+  `;
+
+  connection.query(resetHolidaysQuery, (error, results) => {
+    if (error) {
+      console.error("Error resetting holidays_taken:", error);
+      return callback(error);
+    }
+
+    // console.log("Reset user holidays_taken for new financial year:", results);
+    callback(null, results);
+  });
+};
+
+// Function to check and reset holidays_taken if today is April 1st
+const checkAndResetHolidays = (connection) => {
+  const today = new Date();
+  const isAprilFirst = today.getMonth() === 3 && today.getDate() === 1;
+
+  if (isAprilFirst) {
+    resetUserHolidaysTaken(connection, (error, results) => {
+      if (error) {
+        console.error("Error resetting holidays_taken:", error);
+      } else {
+        console.log("Holidays reset successfully for the new financial year");
+      }
+    });
+  }
+};
+
+// Schedule the checkAndResetHolidays function to run at midnight on April 1st
+cron.schedule('0 0 1 4 *', () => {
+  pool.getConnection((err, connection) => {
+    if (err) {
+      console.error("Error connecting to database:", err);
+      return;
+    }
+
+    checkAndResetHolidays(connection);
+
+    connection.release();
+  });
+});
+
+console.log('Cron job for resetting holidays_taken is scheduled.');
+
+const paidLeave = async (req, res) => {
+  const { name, surname } = req.body;
+
+  const dealerQuery = `
+    SELECT SUM(la.days) AS totalDays
+    FROM leaveapplication la
+    JOIN user u ON u.name = la.name AND u.surname = la.surname
+    WHERE la.status = 'approved' AND la.type = 'paid leave' and duration = 'Full Day' AND u.name = ? AND u.surname = ?
+  `;
+
+  pool.query(dealerQuery, [name, surname], (error, results) => {
+    if (error) {
+      console.error("Error executing query:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+
+    const totalDays = results[0].totalDays || 0; // Handle the case where no rows are returned
+    res.status(200).json({ totalDays });
+  });
+};
+
+const SickLeave = async (req, res) => {
+  const { name, surname } = req.body;
+
+  const dealerQuery = `
+    SELECT SUM(la.days) AS totalDays
+    FROM leaveapplication la
+    JOIN user u ON u.name = la.name AND u.surname = la.surname
+    WHERE la.status = 'approved' AND la.type = 'sick leave' and duration = 'Full Day' AND u.name = ? AND u.surname = ?
+  `;
+
+  pool.query(dealerQuery, [name, surname], (error, results) => {
+    if (error) {
+      console.error("Error executing query:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+
+    const totalDays = results[0].totalDays || 0; // Handle the case where no rows are returned
+    res.status(200).json({ totalDays });
+  });
+};
+
+const RestDetail = async (req, res) => {
+  const { name, surname } = req.body;
+
+  const dealerQuery = `
+    SELECT e.designation, e.joining_date, e.DOB
+    FROM employes e
+    JOIN user u ON u.name = e.name AND u.surname = e.surname
+    WHERE u.name = ? AND u.surname = ?
+  `;
+
+  pool.query(dealerQuery, [name, surname], (error, results) => {
+    if (error) {
+      console.error("Error executing query:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+
+    if (results.length > 0) {
+      res.status(200).json(results[0]); // Ensure it sends only the first result
+    } else {
+      res.status(404).json({ error: "No details found" });
+    }
+  });
+};
+
+
+module.exports = { login,getUserData,getOneUserData,addUser,deleteUser,logout,editUser,ResetPassword,requestResetPassword,paidLeave,SickLeave,RestDetail };

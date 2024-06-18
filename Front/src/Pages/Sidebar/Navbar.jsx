@@ -13,6 +13,7 @@ const SideNavBar = () => {
 
   const Menus = [
     { title: "User", src: "User", link: "/user" },
+    { title: "Profile", src: "User", link: "/Profile" },
     { title: "Summary", src: "Chart_fill", link: "/Summary" },
     { title: "Customer", src: "Chat", link: "/Customer" },
     { title: "Opportunity", src: "Setting", link: "/Opportunity" },
@@ -37,7 +38,7 @@ const SideNavBar = () => {
     );
   } else {
     filteredMenus = Menus.filter(
-      (menu) => menu.title === "Leave" || menu.title === "Calendar"
+      (menu) => menu.title === "Leave" || menu.title === "Calendar" | menu.title === "Profile"
     );
   }
 
@@ -57,7 +58,7 @@ const SideNavBar = () => {
         <div className="flex gap-x-4 items-center">
           <img
             src={require("../../assets/techsa.png")}
-            className={`cursor-pointer duration-500 ${open && "rotate-[360deg]"}`}
+            className={`cursor-pointer duration-500 techsa-logo`}
             alt=""
           />
           <h1

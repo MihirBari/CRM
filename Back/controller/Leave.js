@@ -4,7 +4,7 @@ const nodemailer = require("nodemailer");
 const showApplicationLeave = (req, res) => {
   const { fromDate, type, status, toDate, dateFilterType } = req.query;
   const { id, role } = req.user;
-  console.log(req.user);
+  //console.log(req.user);
   let query = `
         SELECT la.id, la.name,la.surname,la.status, la.fromDate, la.toDate,la.type, la.duration, 
         la.days, la.description, la.history,
@@ -27,12 +27,26 @@ const showApplicationLeave = (req, res) => {
 
   let filterConditions = [];
 
-  if (status) {
-    filterConditions.push(`status LIKE '%${status}%'`);
+  // if (status) {
+  //   filterConditions.push(`status LIKE '%${status}%'`);
+  // }
+
+  if (status && Array.isArray(status)) {
+    const statusConditions = 	status.map(status => `status LIKE '%${status}%'`);
+    if (statusConditions.length > 0) {
+      filterConditions.push(`(${statusConditions.join(" OR ")})`);
+    }
+  } else if (status) {
+    filterConditions.push(`status LIKE '${status}'`);
   }
 
-  if (type) {
-    filterConditions.push(`type LIKE '%${type}%'`);
+  if (type && Array.isArray(type)) {
+    const TypeConditions = type.map(type => `type LIKE '%${type}%'`);
+    if (TypeConditions.length > 0) {
+      filterConditions.push(`(${TypeConditions.join(" OR ")})`);
+    }
+  } else if (type) {
+    filterConditions.push(`type LIKE '${type}'`);
   }
 
   if (dateFilterType && fromDate && toDate) {
@@ -145,12 +159,13 @@ const addApplicationLeave = (req, res) => {
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
       `;
 
-      const value = [
+      // Prepare values for the insert query
+      let values = [
         req.body.name,
         req.body.surname,
         req.body.status,
-        req.body.fromDate,
-        req.body.toDate,
+        req.body.fromDate || null, // Using null if fromDate is null or empty string
+        req.body.toDate || null,   // Using null if toDate is null or empty string
         req.body.type,
         req.body.duration,
         req.body.days,
@@ -159,8 +174,8 @@ const addApplicationLeave = (req, res) => {
         req.body.name,
       ];
 
-      // Execute the first query
-      connection.query(addDealer, value, (error, results) => {
+      // Execute the insert query
+      connection.query(addDealer, values, (error, results) => {
         if (error) {
           console.error("Error executing query:", error);
           return connection.rollback(() => {
@@ -178,7 +193,7 @@ const addApplicationLeave = (req, res) => {
           WHERE la.id = ?
         `;
 
-        // Execute the second query
+        // Execute the second query to fetch inserted data
         connection.query(addDealer2, [results.insertId], (error, rows) => {
           if (error) {
             console.error("Error executing second query:", error);
@@ -199,11 +214,9 @@ const addApplicationLeave = (req, res) => {
 
           console.log("Fetched user email:", rows[0].sender);
 
-          // Format the dates
-          const fromDate = new Date(rows[0].fromDate).toLocaleDateString(
-            "en-GB"
-          );
-          const toDate = new Date(rows[0].toDate).toLocaleDateString("en-GB");
+          // Format the dates if they exist
+          const fromDate = rows[0].fromDate ? new Date(rows[0].fromDate).toLocaleDateString("en-GB") : null;
+          const toDate = rows[0].toDate ? new Date(rows[0].toDate).toLocaleDateString("en-GB") : null;
 
           // Nodemailer configuration
           const transporter = nodemailer.createTransport({
@@ -224,7 +237,7 @@ const addApplicationLeave = (req, res) => {
             subject: `Leave Application Confirmation`,
             text: `Hi Sir,
 
-        I, ${rows[0].name} ${rows[0].surname}, am writing to request ${rows[0].type} leave from ${fromDate} to ${toDate} for ${rows[0].days}. ${rows[0].description}
+        I, ${rows[0].name} ${rows[0].surname}, am writing to request ${rows[0].type} from ${fromDate || 'N/A'} to ${toDate || 'N/A'} for ${rows[0].days}. ${rows[0].description}
 
 Regards,
 ${rows[0].name} ${rows[0].surname}
@@ -263,9 +276,10 @@ ${rows[0].name} ${rows[0].surname}
   });
 };
 
+
 const editApplicationAdmin = (req, res) => {
   const checkStatusQuery = `
-    SELECT la.name, la.surname, u.email, la.status, la.history 
+    SELECT la.name, la.surname, u.email, la.status, la.history, la.fromDate, la.toDate, la.type, la.days, la.description 
     FROM leaveapplication la
     JOIN user AS u ON u.name = la.name
     WHERE la.id = ?;
@@ -294,89 +308,16 @@ const editApplicationAdmin = (req, res) => {
       const userEmail = rows[0].email;
       const userName = rows[0].name;
       const userSurname = rows[0].surname;
-      const comment = rows[0].history;
+      let comment = rows[0].history;
 
-      console.log("comment:",comment)
+      const fromDateChanged = req.body.fromDate !== rows[0].fromDate;
+      const toDateChanged = req.body.toDate !== rows[0].toDate;
 
-      // Check if the new status is 'approved' or 'rejected'
-      if (req.body.status === "approved" || req.body.status === "rejected") {
-        // Nodemailer configuration
-        const transporter = nodemailer.createTransport({
-          host: process.env.SMPT_HOST,
-          port: process.env.SMPT_PORT,
-          secure: true, // Use true for 465, false for other ports
-          auth: {
-            user: process.env.SMPT_MAIL,
-            pass: process.env.SMPT_PASSWORD,
-          },
-        });
+      if (fromDateChanged || toDateChanged) {
+        comment = `${comment || ''}`;
+      }
 
-        const mailOptions = {
-          from: `<${process.env.SMPT_MAIL}>`,
-          to: userEmail,
-          subject: "Leave Application Status Update",
-          text: `Hi ${userName} ${userSurname},\n\nYour leave application has been ${req.body.status}.
-          ${comment}
-
-          \n\nRegards,\nTechsa CRM`,
-        };
-
-        // Send email
-        transporter.sendMail(mailOptions, (error, info) => {
-          if (error) {
-            console.error("Error sending email:", error);
-            connection.release();
-            return res.status(500).json({ error: "Internal Server Error" });
-          }
-
-          console.log("Email sent:", info.response);
-
-          // Update the database after email is sent successfully
-          const updateDealer = `
-            UPDATE leaveapplication 
-            SET
-            name = ?,
-            surname = ?,
-            status = ?,
-            fromDate = ?,
-            toDate = ?, 
-            type = ?,
-            duration = ?,
-            days = ?,
-            description = ?,
-            history = ?,	
-            update_at = NOW()
-            WHERE id = ?;
-          `;
-
-          const values = [
-            req.body.name,
-            req.body.surname,
-            req.body.status,
-            req.body.fromDate,
-            req.body.toDate,
-            req.body.type,
-            req.body.duration,
-            req.body.days,
-            req.body.description,
-            req.body.history,
-            req.params.id,
-          ];
-
-          connection.query(updateDealer, values, (error, results) => {
-            if (error) {
-              console.error("Error executing update query:", error);
-              connection.release();
-              return res.status(500).json({ error: "Internal Server Error" });
-            }
-
-            console.log("Updated dealer:", results);
-            connection.release();
-            res.json(results);
-          });
-        });
-      } else {
-        // Update the database without sending email if status is not 'approved' or 'rejected'
+      const updateDatabase = () => {
         const updateDealer = `
           UPDATE leaveapplication 
           SET
@@ -389,7 +330,7 @@ const editApplicationAdmin = (req, res) => {
           duration = ?,
           days = ?,
           description = ?,
-          history = ?,	
+          history = ?,  
           update_at = NOW()
           WHERE id = ?;
         `;
@@ -415,10 +356,81 @@ const editApplicationAdmin = (req, res) => {
             return res.status(500).json({ error: "Internal Server Error" });
           }
 
-          console.log("Updated dealer:", results);
+          //console.log("Updated leave application:", results);
           connection.release();
           res.json(results);
         });
+      };
+
+      if ((currentStatus === 'approved' || currentStatus === 'rejected') && (fromDateChanged || toDateChanged)) {
+        req.body.status = 'request';
+
+        const mailOptions = {
+          from: `"Techsa CRM" <${process.env.SMPT_MAIL}>`,
+          to: `${process.env.SMPT_MAIL}`,
+          cc: "mihir.b@techsa.net",
+          subject: `Leave Application Confirmation`,
+          text: `Hi Sir,
+
+I, ${userName} ${userSurname}, am writing to request ${rows[0].type} from ${req.body.fromDate} to ${req.body.toDate} for ${req.body.days} days. ${rows[0].description}
+
+Regards,
+${userName} ${userSurname}`,
+        };
+
+        const transporter = nodemailer.createTransport({
+          host: process.env.SMPT_HOST,
+          port: process.env.SMPT_PORT,
+          secure: true, // Use true for 465, false for other ports
+          auth: {
+            user: process.env.SMPT_MAIL,
+            pass: process.env.SMPT_PASSWORD,
+          },
+        });
+
+        transporter.sendMail(mailOptions, (error, info) => {
+          if (error) {
+            console.error("Error sending email:", error);
+            connection.release();
+            return res.status(500).json({ error: "Internal Server Error" });
+          }
+
+          console.log("Email sent:", info.response);
+          updateDatabase();
+        });
+      } else if (req.body.status === "approved" || req.body.status === "rejected") {
+        const mailOptions = {
+          from: `<${process.env.SMPT_MAIL}>`,
+          to: userEmail,
+          subject: "Leave Application Status Update",
+          text: `Hi ${userName} ${userSurname},\n\nYour leave application has been ${req.body.status}.
+          ${comment}
+
+          \n\nRegards,\nTechsa CRM`,
+        };
+
+        const transporter = nodemailer.createTransport({
+          host: process.env.SMPT_HOST,
+          port: process.env.SMPT_PORT,
+          secure: true, // Use true for 465, false for other ports
+          auth: {
+            user: process.env.SMPT_MAIL,
+            pass: process.env.SMPT_PASSWORD,
+          },
+        });
+
+        transporter.sendMail(mailOptions, (error, info) => {
+          if (error) {
+            console.error("Error sending email:", error);
+            connection.release();
+            return res.status(500).json({ error: "Internal Server Error" });
+          }
+
+          console.log("Email sent:", info.response);
+          updateDatabase();
+        });
+      } else {
+        updateDatabase();
       }
     });
   });

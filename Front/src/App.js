@@ -35,9 +35,13 @@ import EditEmployes from './Pages/Employes/edit.jsx';
 import Register from './Pages/Register.jsx';
 import ForgetPassword from './Pages/ForgetPassword.jsx';
 import ResetPassword from './Pages/ResetPassword.jsx';
+import MobileLeave from './Pages/Leave/mobileLeave.jsx';
+import { useMediaQuery } from 'react-responsive';
+import Profile from './Pages/Profile/profile.jsx';
 
 function App() {
   const { currentUser } = useContext(AuthContext);
+  const isMobile = useMediaQuery({ query: '(max-width: 768px)' });
 
   return (
     <>
@@ -61,7 +65,15 @@ function App() {
         <Route path='/adduser' element={<ProtectedRoute adminOnly><AddUser /></ProtectedRoute>} />
         <Route path='/Customer' element={<ProtectedRoute adminOnly><Expense /></ProtectedRoute>} />
         <Route path='/Summary' element={<ProtectedRoute adminOnly ><Summary /></ProtectedRoute>} />
-        <Route path='/Leave' element={<ProtectedRoute><Seller /></ProtectedRoute>} />
+        <Route
+  path='/Leave'
+  element={
+    <ProtectedRoute>
+      {isMobile ? <MobileLeave /> : <Seller />}
+    </ProtectedRoute>
+  }
+/>
+      <Route path="*" element={<Navigate to="/Leave" />} />
         <Route path='/Alert' element={<ProtectedRoute adminOnly ><Alert /></ProtectedRoute>} />
         <Route path='/Opportunity' element={<ProtectedRoute adminOnly><Opportunity /></ProtectedRoute>} />
         <Route path='/PO' element={<ProtectedRoute adminOnly><PO /></ProtectedRoute>} />
@@ -85,6 +97,7 @@ function App() {
         <Route path='/register' element={<Register />} />
         <Route path='/forgetPassword' element={<ForgetPassword />} />
         <Route path='/resetPassword/:token' element={<ResetPassword />} />
+        <Route path='/Profile' element={<ProtectedRoute ><Profile /></ProtectedRoute>} />
       </Routes>
 
       <ToastContainer

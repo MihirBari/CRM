@@ -1,45 +1,49 @@
 .sidenav-container {
-    display: flex;
-    position: relative;
-  }
-  
+  display: flex;
+  position: relative;
+}
+
+.hamburger {
+  display: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: white;
+  padding: 16px;
+}
+
+.sidenav {
+  width: 72px;
+  background-color: #000000; /* Changed to black */
+  height: 100vh;
+  padding: 16px;
+  transition: width 0.3s;
+  overflow-x: hidden;
+  z-index: 1000; /* Ensure it's above everything */
+}
+
+.sidenav.open {
+  width: 240px;
+}
+
+@media (max-width: 768px) {
   .hamburger {
-    display: none;
-    font-size: 24px;
-    cursor: pointer;
-    color: white;
-    padding: 16px;
+    display: block;
   }
   
   .sidenav {
-    width: 72px;
-    background-color: #000000; /* Changed to black */
-    height: 100vh;
-    padding: 16px;
-    transition: width 0.3s;
-    overflow-x: hidden;
+    position: absolute;
+    top: 0;
+    left: -240px;
+    transition: left 0.3s;
     z-index: 1000; /* Ensure it's above everything */
   }
   
   .sidenav.open {
-    width: 240px;
+    left: 0;
   }
-  
-  @media (max-width: 768px) {
-    .hamburger {
-      display: block;
-    }
-    
-    .sidenav {
-      position: absolute;
-      top: 0;
-      left: -240px;
-      transition: left 0.3s;
-      z-index: 1000; /* Ensure it's above everything */
-    }
-    
-    .sidenav.open {
-      left: 0;
-    }
-  }
-  
+}
+
+.techsa-logo {
+  width: 48px; /* Set a fixed width */
+  height: auto; /* Maintain aspect ratio */
+}

@@ -292,8 +292,6 @@ const EditSeller = () => {
                       { value: "", label: "Select an option" },
                       { value: "paid leave", label: "paid leave" },
                       { value: "sick leave", label: "sick leave" },
-                      { value: "casual leave", label: "casual leave" },
-                      { value: "other leave", label: "other leave" },
                     ],
                     false
                   )}
@@ -306,7 +304,6 @@ const EditSeller = () => {
                       { value: "", label: "Select an option" },
                       { value: "Full Day", label: "Full Day" },
                       { value: "Half Day", label: "Half Day" },
-                      { value: "Early leave", label: "Early leave" },
                     ],
                     false
                   )}

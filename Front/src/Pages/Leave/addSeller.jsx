@@ -16,7 +16,7 @@ const AddSeller = () => {
     toDate: "",
     type: "",
     duration: "",
-    days: "",
+    days: "1",
     description: "",
   };
 
@@ -73,7 +73,7 @@ const AddSeller = () => {
     e.preventDefault();
     const requiredFields = [
       "fromDate",
-      "toDate",
+ 
       "type",
       "duration",
       "description",
@@ -168,23 +168,25 @@ const AddSeller = () => {
                 </div>
               </div>
 
-              <div className="md:col-span-1">
-                <label
-                  htmlFor="toDate"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  To Date
-                </label>
-                <div className="mt-1">
-                  <input
-                    type="date"
-                    name="toDate"
-                    required
-                    onChange={handleChange}
-                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  />
+              {inputs.duration === "Full Day" && (
+                <div className="md:col-span-1">
+                  <label
+                    htmlFor="toDate"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    To Date
+                  </label>
+                  <div className="mt-1">
+                    <input
+                      type="date"
+                      name="toDate"
+                      required
+                      onChange={handleChange}
+                      className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div className="md:col-span-1">
                 <label
@@ -205,8 +207,6 @@ const AddSeller = () => {
                     </option>
                     <option value="paid leave">Paid Leave</option>
                     <option value="sick leave">Sick Leave</option>
-                    <option value="casual leave">Casual Leave</option>
-                    <option value="other leave">Other Leave</option>
                   </select>
                 </div>
               </div>
@@ -225,12 +225,11 @@ const AddSeller = () => {
                     onChange={handleChange}
                     className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   >
-                    <option value="" >
+                    <option value="">
                       Select Option
                     </option>
                     <option value="Full Day">Full Day</option>
                     <option value="Half Day">Half Day</option>
-                    <option value="Early leave">Early Leave</option>
                   </select>
                 </div>
               </div>
@@ -272,7 +271,6 @@ const AddSeller = () => {
                 </div>
               </div>
             </div>
-
             <div className="flex justify-between items-center mt-4">
               <button
                 onClick={handleSubmit}
@@ -297,3 +295,4 @@ const AddSeller = () => {
 };
 
 export default AddSeller;
+
