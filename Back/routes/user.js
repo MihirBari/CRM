@@ -9,8 +9,6 @@ router.get("/userData", getUserData);
 router.get("/getOneUserData/:id", getOneUserData);
 router.get("/logout", logout);
 router.post("/addUser", addUser);
-router.post("/paidLeave", paidLeave);
-router.post("/SickLeave", SickLeave);
 router.post("/RestDetail", RestDetail);
 router.post("/requestResetPassword", requestResetPassword);
 router.post("/ResetPassword/:token", ResetPassword);

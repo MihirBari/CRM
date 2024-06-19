@@ -13,9 +13,8 @@ export const EditLeaveModal = ({ isOpen, onClose,id }) => {
     status: "",
     fromDate: "",
     toDate: "",
-    type: "",
     duration: "",
-    days: 0, // Initialize days as 0
+    days: 0, 
     description: "",
     history: "",
   };
@@ -47,7 +46,7 @@ export const EditLeaveModal = ({ isOpen, onClose,id }) => {
         const from = new Date(fromDate);
         const to = new Date(toDate);
         const timeDifference = to.getTime() - from.getTime();
-        const daysDifference = Math.ceil(timeDifference / (1000 * 3600 * 24)) + 1; // Adding 1 to include both start and end dates
+        const daysDifference = Math.ceil(timeDifference / (1000 * 3600 * 24)) + 1;
         setInputs((prev) => ({
           ...prev,
           days: daysDifference,
@@ -67,7 +66,7 @@ export const EditLeaveModal = ({ isOpen, onClose,id }) => {
         const response = await axios.get(
           `${API_BASE_URL}/api/Leave/showOneApplicationLeave/${id}`
         );
-        const sellerData = response.data[0]; // Assuming the response is an array and you're accessing the first element
+        const sellerData = response.data[0]; 
         console.log("Seller Data:", sellerData);
 
         if (sellerData) {
@@ -107,10 +106,17 @@ export const EditLeaveModal = ({ isOpen, onClose,id }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+  
+    // Check the duration and set toDate to null if duration is "Half Day"
+    const updatedInputs = {
+      ...inputs,
+      toDate: inputs.duration === "Half Day" ? null : inputs.toDate,
+    };
+  
     try {
       await axios.put(
         `${API_BASE_URL}/api/Leave/editApplicationAdmin/${id}`,
-        inputs
+        updatedInputs
       );
       setInputs(initialInputs);
       toast.success("Updated successfully");
@@ -336,18 +342,6 @@ export const EditLeaveModal = ({ isOpen, onClose,id }) => {
                   {renderInput("toDate", "To", "Enter Date", "date", false)}
                   <div>
                     {renderSelect(
-                      "type",
-                      "Type",
-                      [
-                        { value: "", label: "Select an option" },
-                        { value: "paid leave", label: "paid leave" },
-                        { value: "sick leave", label: "sick leave" },
-                      ],
-                      false
-                    )}
-                  </div>
-                  <div>
-                    {renderSelect(
                       "duration",
                       "Duration Of leave",
                       [
@@ -374,7 +368,6 @@ export const EditLeaveModal = ({ isOpen, onClose,id }) => {
                           "Status",
                           [
                             { value: "", label: "Select an option" },
-                            { value: "request", label: "request" },
                             { value: "approved", label: "approved" },
                             { value: "rejected", label: "rejected" },
                           ],

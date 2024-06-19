@@ -4,8 +4,6 @@ import API_BASE_URL from "../../config";
 import { AuthContext } from "../../context/AuthContext";
 
 const Main = () => {
-  const [paidLeaveDays, setPaidLeaveDays] = useState(null);
-  const [sickLeaveDays, setSickLeaveDays] = useState(null);
   const [restDetails, setRestDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const { currentUser } = useContext(AuthContext);
@@ -13,17 +11,7 @@ const Main = () => {
   useEffect(() => {
     const fetchLeaveDetails = async () => {
       try {
-        const paidLeaveResponse = await axios.post(`${API_BASE_URL}/api/user/paidLeave`, {
-          name: currentUser.name,
-          surname: currentUser.surname,
-        });
-        setPaidLeaveDays(paidLeaveResponse.data.totalDays);
 
-        const sickLeaveResponse = await axios.post(`${API_BASE_URL}/api/user/SickLeave`, {
-          name: currentUser.name,
-          surname: currentUser.surname,
-        });
-        setSickLeaveDays(sickLeaveResponse.data.totalDays);
 
         const restDetailResponse = await axios.post(`${API_BASE_URL}/api/user/RestDetail`, {
           name: currentUser.name,
@@ -79,15 +67,7 @@ const Main = () => {
           )}
         </div>
 
-        <div className="mt-4">
-          <h2 className="text-2xl font-semibold mb-4">Leave Details</h2>
-          <p className="text-lg mb-2"><span className="font-bold">Paid Leave:</span> {paidLeaveDays !== null ? paidLeaveDays : "N/A"} / 10</p>
-          <p className="text-lg mb-2"><span className="font-bold">Sick Leave:</span> {sickLeaveDays !== null ? sickLeaveDays : "N/A"} / 10</p>
-        </div>
-
-        {paidLeaveDays === null && sickLeaveDays === null && (
-          <div className="text-xl font text-center mt-6">Please add details.</div>
-        )}
+        
       </div>
     </div>
   );

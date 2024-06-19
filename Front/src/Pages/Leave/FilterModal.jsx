@@ -13,7 +13,7 @@ const FilterModal = ({
   resetFilters,
 }) => {
   const [status, setStatus] = useState("");
-  const [type, setType] = useState("");
+ 
   const [dateFilterType, setDateFilterType] = useState("");
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split("T")[0]
@@ -29,7 +29,7 @@ const FilterModal = ({
         {
           params: {
             status,
-            type,
+            
             dateFilterType,
             selectedDate: dateFilterType !== "between" ? selectedDate : null,
             startDate: dateFilterType === "between" ? startDate : null,
@@ -42,7 +42,7 @@ const FilterModal = ({
         "SellerFilters",
         JSON.stringify({
           status,
-          type,
+          
           dateFilterType,
           selectedDate,
           startDate,
@@ -60,7 +60,6 @@ const FilterModal = ({
     if (storedFilters) {
       const {
         status: storedStatus,
-        type: storedType,
         dateFilterType: storedDateFilterType,
         selectedDate: storedSelectedDate,
         startDate: storedStartDate,
@@ -69,7 +68,7 @@ const FilterModal = ({
 
       // Set filter values to state
       setStatus(storedStatus);
-      setType(storedType);
+      
       setDateFilterType(storedDateFilterType);
       setSelectedDate(storedSelectedDate);
       setStartDate(storedStartDate);
@@ -91,7 +90,7 @@ const FilterModal = ({
 
   const handleResetFilters = () => {
     setStatus("");
-    setType("");
+   
     setDateFilterType("");
     setSelectedDate(new Date().toISOString().split("T")[0]);
     setStartDate(null);
@@ -105,11 +104,7 @@ const FilterModal = ({
     { value: "rejected", label: "Rejected" },
   ];
 
-  const typeOptions = [
-    { value: "paid leave", label: "paid leave" },
-    { value: "sick leave", label: "sick leave" },
-  ];
-
+  
   return (
     <Modal
       isOpen={isOpen}
@@ -142,20 +137,7 @@ const FilterModal = ({
           className="p-2 w-full md:w-1/4 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2 m-2"
         />
 
-        <Select
-          isMulti
-          options={typeOptions}
-          value={typeOptions.filter((option) => type.includes(option.value))}
-          onChange={(selectedOptions) =>
-            setType(
-              selectedOptions
-                ? selectedOptions.map((option) => option.value)
-                : []
-            )
-          }
-          placeholder="Select Type"
-          className="p-2 w-full md:w-1/4 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2 m-2"
-        />
+        
 
         <select
           value={dateFilterType}

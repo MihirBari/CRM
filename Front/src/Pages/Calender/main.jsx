@@ -9,10 +9,11 @@ import { AuthContext } from '../../context/AuthContext';
 const Main = () => {
   const [file, setFile] = useState(null);
   const [holidays, setHolidays] = useState([]);
+  const [birthdays, setBirthdays] = useState([]); // Add state for birthdays
   const [value, setValue] = useState(new Date());
-  const [selectedHoliday, setSelectedHoliday] = useState(null);
+  const [selectedEvents, setSelectedEvents] = useState([]); // Change to array to handle multiple events
 
-  const { currentUser } = useContext(AuthContext); 
+  const { currentUser } = useContext(AuthContext);
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
@@ -49,8 +50,19 @@ const Main = () => {
     }
   };
 
+  const fetchBirthdays = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/Holiday/birthday`);
+      setBirthdays(Array.isArray(response.data) ? response.data : []); // Ensure the data is an array
+      console.log(response.data);
+    } catch (error) {
+      console.error('Error fetching birthdays:', error);
+    }
+  };
+
   useEffect(() => {
     fetchHolidays();
+    fetchBirthdays();
   }, []);
 
   const isHoliday = (date) => {
@@ -64,8 +76,18 @@ const Main = () => {
     });
   };
 
+  const isBirthday = (date) => {
+    return birthdays.some(birthday => {
+      const birthdayDate = new Date(birthday.DOB);
+      return (
+        birthdayDate.getMonth() === date.getMonth() &&
+        birthdayDate.getDate() === date.getDate()
+      );
+    });
+  };
+
   const handleDateClick = (date) => {
-    const holiday = holidays.find(holiday => {
+    const holidayEvents = holidays.filter(holiday => {
       const holidayDate = new Date(holiday.date);
       return (
         holidayDate.getFullYear() === date.getFullYear() &&
@@ -73,24 +95,38 @@ const Main = () => {
         holidayDate.getDate() === date.getDate()
       );
     });
-    setSelectedHoliday(holiday || null);
+
+    const birthdayEvents = birthdays.filter(birthday => {
+      const birthdayDate = new Date(birthday.DOB);
+      return (
+        birthdayDate.getMonth() === date.getMonth() &&
+        birthdayDate.getDate() === date.getDate()
+      );
+    });
+
+    setSelectedEvents([...holidayEvents, ...birthdayEvents]);
   };
 
   const handleTodayClick = () => {
     setValue(new Date()); // Set the calendar value to today's date
-    setSelectedHoliday(null); // Clear selected holiday when going to today
+    setSelectedEvents([]); // Clear selected events when going to today
   };
 
   const tileClassName = ({ date, view }) => {
-    if (view === 'month' && isHoliday(date)) {
-      return 'holiday';
+    if (view === 'month') {
+      if (isHoliday(date)) {
+        return 'holiday';
+      }
+      if (isBirthday(date)) {
+        return 'birthday';
+      }
     }
     return 'default';
   };
 
   return (
     <div className="container">
-      <h1>Holiday Calendar</h1>
+      <h1>Holiday and Birthday Calendar</h1>
       {currentUser.role === 'admin' && (
         <div>
           <div className="file-upload">
@@ -106,10 +142,14 @@ const Main = () => {
         tileClassName={tileClassName}
         onClickMonth={handleTodayClick} // Navigate to today when clicking on "Today" button
       />
-      {selectedHoliday && (
-        <div className="holiday-details">
-          <h2>{selectedHoliday.name}</h2>
-          <p>{new Date(selectedHoliday.date).toDateString()}</p>
+      {selectedEvents.length > 0 && (
+        <div className="event-details">
+          {selectedEvents.map((event, index) => (
+            <div key={index}>
+              <h2>{`${event.name} ${event.surname ? event.surname : ''} ${event.DOB ? 'Birthday' : ''}`}</h2>
+              <p>{new Date(event.date || event.DOB).toDateString()}</p>
+            </div>
+          ))}
         </div>
       )}
     </div>

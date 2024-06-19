@@ -277,7 +277,7 @@ const importExcel = async (req, res) => {
     
       // If dateString is already in expected format (dd-mm-yyyy), convert it
       if (typeof dateString === 'string') {
-        const parts = dateString.split('-');
+        const parts = dateString.split('/');
         if (parts.length === 3) {
           return `${parts[2]}-${parts[1]}-${parts[0]}`;
         }

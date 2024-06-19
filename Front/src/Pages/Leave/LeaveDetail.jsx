@@ -28,7 +28,6 @@ const LeaveDetail = ({ product }) => {
     status,
     fromDate,
     toDate,
-    type,
     duration,
     days,
     description,
@@ -45,9 +44,8 @@ const LeaveDetail = ({ product }) => {
         <p className="text-gray-600 mb-2">Status : {status}</p>
         <p className="text-gray-600 mb-2">From Date : {formatDate(fromDate)}</p>
         <p className="text-gray-600 mb-2">To Date : {formatDate(toDate)}</p>
-        <p className="text-gray-600 mb-2">Leave Type : {type}</p>
-        <p className="text-gray-600 mb-2">License Type : {duration}</p>
-        <p className="text-gray-600 mb-2">Closure Time : {days}</p>
+        <p className="text-gray-600 mb-2">Duration Type : {duration}</p>
+        <p className="text-gray-600 mb-2">No Of Days : {days}</p>
         <p className="text-gray-600 mb-2">Description : {description}</p>
         <p className="text-gray-600 mb-2">Comments : {history}</p>
 

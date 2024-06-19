@@ -14,7 +14,6 @@ const AddSeller = () => {
     status: "request",
     fromDate: "",
     toDate: "",
-    type: "",
     duration: "",
     days: "1",
     description: "",
@@ -73,8 +72,6 @@ const AddSeller = () => {
     e.preventDefault();
     const requiredFields = [
       "fromDate",
- 
-      "type",
       "duration",
       "description",
     ];
@@ -188,28 +185,7 @@ const AddSeller = () => {
                 </div>
               )}
 
-              <div className="md:col-span-1">
-                <label
-                  htmlFor="type"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Paid Status
-                </label>
-                <div className="mt-1">
-                  <select
-                    name="type"
-                    required
-                    onChange={handleChange}
-                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  >
-                    <option value="">
-                      Select Option
-                    </option>
-                    <option value="paid leave">Paid Leave</option>
-                    <option value="sick leave">Sick Leave</option>
-                  </select>
-                </div>
-              </div>
+              
 
               <div className="md:col-span-1">
                 <label
@@ -257,7 +233,7 @@ const AddSeller = () => {
                   htmlFor="description"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Description / Summary
+                 Reason
                 </label>
                 <div className="mt-1">
                   <textarea
@@ -265,7 +241,7 @@ const AddSeller = () => {
                     autoComplete="current-password"
                     required
                     onChange={handleChange}
-                    placeholder="Description / Summary"
+                    placeholder="Describe Your Reason"
                     className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   />
                 </div>

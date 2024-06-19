@@ -16,11 +16,29 @@ const ExportTable = ({ data, isOpen, onRequestClose }) => {
   };
 
   const downloadExcel = () => {
-    const worksheet = XLSX.utils.json_to_sheet(data);
+    // Format data including date fields
+    const formattedData = data.map(row => ({
+      ...row,
+      joining_date: formatDate(row.joining_date),
+      last_date: formatDate(row.last_date),
+      DOB: formatDate(row.DOB),
+    }));
+  
+    const worksheet = XLSX.utils.json_to_sheet(formattedData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
     XLSX.writeFile(workbook, `${fileName}.xlsx`);
     onRequestClose();
+  };
+  
+  // Helper function to format dates
+  const formatDate = (date) => {
+    if (!date) return ""; // Handle case when date is null or undefined
+    const formattedDate = new Date(date);
+    if (formattedDate.getTime() === new Date("1970-01-01T00:00:00Z").getTime()) {
+      return ""; // Handle case of default date (1970-01-01)
+    }
+    return formattedDate.toLocaleDateString("en-GB"); // Adjust locale as per your requirement
   };
 
   const downloadPDF = () => {
@@ -40,7 +58,7 @@ const ExportTable = ({ data, isOpen, onRequestClose }) => {
   return (
     <Modal
       isOpen={isOpen}
-      onRequestClose={onRequestClose}
+      onRequestClose={onRequestClose} 
       style={{
         overlay: {
           zIndex: 9999,

@@ -27,7 +27,6 @@ const Users = () => {
     status: "",
     fromDate: "",
     toDate:"",
-    type:"",
     duration:"",
     days:"",
     description:"",
@@ -162,12 +161,6 @@ const Users = () => {
       },
       sortable: true,
       width: "150px",
-    },
-    {
-      name: "Type",
-      selector: (row) => row.type,
-      sortable: true,
-      width: "250px",
     },
     {
       name: "Duration",
@@ -321,7 +314,6 @@ const Users = () => {
     status: "",
     fromDate: "",
     toDate:"",
-    type:"",
     duration:"",
     days:"",
     description:"",

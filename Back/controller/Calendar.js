@@ -68,7 +68,20 @@ const getHolidays = (req, res) => {
   });
 };
 
+const birthday = (req, res) => {
+  pool.query('SELECT DOB, name, surname FROM employes', (err, results) => {
+    if (err) {
+      console.error('Error fetching birthdays:', err);
+      res.status(500).send('Internal server error.');
+      return;
+    }
+    //console.log(results)
+    res.json(results); // Adjust based on your database driver
+  });
+}; 
+
 module.exports = {
   holiday,
-  getHolidays
+  getHolidays,
+  birthday
 };

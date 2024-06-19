@@ -81,3 +81,15 @@ body {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   }
   
+  .holiday {
+    background-color: #ffdddd;
+  }
+  
+  .birthday {
+    background-color: #ddffdd;
+  background-image: url('../../assets/techsa.png');
+    background-repeat: no-repeat;
+    background-position: right top;
+    background-size: 20px 20px;
+  }
+  

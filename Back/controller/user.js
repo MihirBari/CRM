@@ -48,7 +48,7 @@ const login = (req, res) => {
 };
 
 const getUserData = (req, res) => {
-  const getAllUsersQuery = 'SELECT id, name, surname, email, role, holidays_taken,half_day, created_at FROM user';
+  const getAllUsersQuery = 'SELECT id, name, surname, email, role, holidays_taken, created_at FROM user';
 
   pool.getConnection((err, connection) => {
     if (err) {
@@ -334,7 +334,6 @@ const ResetPassword = async(req,res) => {
 }
 
 const updateUserHolidaysTaken = (userName, userSurname, connection, callback) => {
-  // Calculate the start and end dates for the current financial year
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth();
   const startYear = currentMonth >= 3 ? currentYear : currentYear - 1;
@@ -343,50 +342,60 @@ const updateUserHolidaysTaken = (userName, userSurname, connection, callback) =>
 
   const calculateApprovedDaysQuery = `
     SELECT 
-      SUM(CASE WHEN duration = 'Full Day' THEN days ELSE 0 END) AS totalFullDays,
-      SUM(CASE WHEN duration = 'Half Day' THEN days ELSE 0 END) AS totalHalfDays
-    FROM leaveapplication
-    WHERE name = ? AND surname = ? AND status = 'approved'
-    AND fromDate >= ? AND toDate <= ?;
+      SUM(CASE WHEN duration = 'Full Day' THEN days ELSE 0 END) AS totalFullDays, 
+      SUM(CASE WHEN duration = 'Half Day' THEN 0.5 ELSE 0 END) AS totalHalfDays 
+    FROM leaveapplication 
+    WHERE name = ? AND surname = ? AND status = 'approved' 
   `;
 
   const updateUserHolidaysQuery = `
-    UPDATE user
-    SET holidays_taken = ?, half_day = half_day + ?
+    UPDATE user 
+    SET holidays_taken = ? 
     WHERE name = ? AND surname = ?;
   `;
 
-  connection.query(calculateApprovedDaysQuery, [userName, userSurname, startDate, endDate], (error, results) => {
+ // console.log(`Executing query for ${userName} ${userSurname} from ${startDate.toISOString()} to ${endDate.toISOString()}`);
+
+  const params = [userName, userSurname, startDate, endDate];
+  //console.log("Query parameters:", params); // Log the parameters for debugging
+
+  connection.query(calculateApprovedDaysQuery, params, (error, results) => {
     if (error) {
       console.error("Error calculating approved days:", error);
       return callback(error);
     }
 
-    const totalFullDays = results[0].totalFullDays || 0;
-    const totalHalfDays = results[0].totalHalfDays || 0;
-    const totalHalfDaysCount = Math.floor(totalHalfDays / 2);
+    console.log("Query results:", results); // Log the results for debugging
 
-    const holidaysTaken = totalFullDays + totalHalfDaysCount;
-    const remainingHalfDays = totalHalfDays % 2;
+    if (results.length === 0 || !results[0]) {
+      console.error(`No results returned for ${userName} ${userSurname}.`);
+      return callback(new Error("No results returned from the query."));
+    }
 
-    connection.query(updateUserHolidaysQuery, [holidaysTaken, remainingHalfDays, userName, userSurname], (error, results) => {
+    const totalFullDays = parseFloat(results[0].totalFullDays) || 0;
+    const totalHalfDays = parseFloat(results[0].totalHalfDays) || 0;
+
+    //console.log(`Total Full Days: ${totalFullDays}, Total Half Days: ${totalHalfDays}`);
+
+    // Calculate holidaysTaken considering fractional days
+    const holidaysTaken = totalFullDays + totalHalfDays;
+
+    connection.query(updateUserHolidaysQuery, [holidaysTaken, userName, userSurname], (error, results) => {
       if (error) {
         console.error("Error updating holidays_taken:", error);
         return callback(error);
       }
 
-      // console.log("Updated user holidays_taken:", results);
       callback(null, results);
     });
   });
 };
 
-
 // Function to reset holidays_taken and half_day for all users at the start of a new financial year
 const resetUserHolidaysTaken = (connection, callback) => {
   const resetHolidaysQuery = `
     UPDATE user
-    SET holidays_taken = 0, half_day = 0;
+    SET holidays_taken = 0;
   `;
 
   connection.query(resetHolidaysQuery, (error, results) => {
@@ -432,49 +441,7 @@ cron.schedule('0 0 1 4 *', () => {
 
 console.log('Cron job for resetting holidays_taken is scheduled.');
 
-const paidLeave = async (req, res) => {
-  const { name, surname } = req.body;
 
-  const dealerQuery = `
-    SELECT SUM(la.days) AS totalDays
-    FROM leaveapplication la
-    JOIN user u ON u.name = la.name AND u.surname = la.surname
-    WHERE la.status = 'approved' AND la.type = 'paid leave' and duration = 'Full Day' AND u.name = ? AND u.surname = ?
-  `;
-
-  pool.query(dealerQuery, [name, surname], (error, results) => {
-    if (error) {
-      console.error("Error executing query:", error);
-      res.status(500).json({ error: "Internal Server Error" });
-      return;
-    }
-
-    const totalDays = results[0].totalDays || 0; // Handle the case where no rows are returned
-    res.status(200).json({ totalDays });
-  });
-};
-
-const SickLeave = async (req, res) => {
-  const { name, surname } = req.body;
-
-  const dealerQuery = `
-    SELECT SUM(la.days) AS totalDays
-    FROM leaveapplication la
-    JOIN user u ON u.name = la.name AND u.surname = la.surname
-    WHERE la.status = 'approved' AND la.type = 'sick leave' and duration = 'Full Day' AND u.name = ? AND u.surname = ?
-  `;
-
-  pool.query(dealerQuery, [name, surname], (error, results) => {
-    if (error) {
-      console.error("Error executing query:", error);
-      res.status(500).json({ error: "Internal Server Error" });
-      return;
-    }
-
-    const totalDays = results[0].totalDays || 0; // Handle the case where no rows are returned
-    res.status(200).json({ totalDays });
-  });
-};
 
 const RestDetail = async (req, res) => {
   const { name, surname } = req.body;
@@ -502,4 +469,4 @@ const RestDetail = async (req, res) => {
 };
 
 
-module.exports = { login,getUserData,getOneUserData,addUser,deleteUser,logout,editUser,ResetPassword,requestResetPassword,paidLeave,SickLeave,RestDetail };
+module.exports = { login,getUserData,getOneUserData,addUser,deleteUser,logout,editUser,ResetPassword,requestResetPassword,RestDetail };

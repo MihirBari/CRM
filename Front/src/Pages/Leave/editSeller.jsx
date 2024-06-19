@@ -12,7 +12,6 @@ const EditSeller = () => {
     status: "",
     fromDate: "",
     toDate: "",
-    type: "",
     duration: "",
     days: 0, // Initialize days as 0
     description: "",
@@ -94,21 +93,29 @@ const EditSeller = () => {
     fetchSeller();
   }, [id]);
 
-  const handleSubmit = async (e) => {
+    const handleSubmit = async (e) => {
     e.preventDefault();
+  
+    // Check the duration and set toDate to null if duration is "Half Day"
+    const updatedInputs = {
+      ...inputs,
+      toDate: inputs.duration === "Half Day" ? null : inputs.toDate,
+    };
+  
     try {
       await axios.put(
         `${API_BASE_URL}/api/Leave/editApplicationAdmin/${id}`,
-        inputs
+        updatedInputs
       );
       setInputs(initialInputs);
       toast.success("Updated successfully");
-      navigate("/Leave");
+      navigate("/Leave")
     } catch (err) {
       console.error(err);
       toast.error("Failed to update");
     }
   };
+
 
   const renderInput = (
     name,
@@ -308,18 +315,6 @@ const EditSeller = () => {
                   {renderInput("toDate", "To", "Enter Date", "date", false)}
                   <div>
                     {renderSelect(
-                      "type",
-                      "Type",
-                      [
-                        { value: "", label: "Select an option" },
-                        { value: "paid leave", label: "paid leave" },
-                        { value: "sick leave", label: "sick leave" },
-                      ],
-                      false
-                    )}
-                  </div>
-                  <div>
-                    {renderSelect(
                       "duration",
                       "Duration Of leave",
                       [
@@ -346,7 +341,6 @@ const EditSeller = () => {
                           "Status",
                           [
                             { value: "", label: "Select an option" },
-                            { value: "request", label: "request" },
                             { value: "approved", label: "approved" },
                             { value: "rejected", label: "rejected" },
                           ],

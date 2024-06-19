@@ -297,13 +297,18 @@ const TableEmploye = () => {
       <div className="filter-container">
         {/* <button onClick={handleCiFilterClick} className="bg-blue-500 text-white px-4 py-2 rounded ml-2 m-2">
           <CiFilter /> Filter
-        </button>
+        </button> */}
+        <ExportTable
+  isOpen={exportModalIsOpen}
+  onRequestClose={handleExportModalClose} // Correct prop name should match ExportTable's props
+  data={filteredUsers}
+/>
         <button
           onClick={handleExportButtonClick}
           className="bg-blue-500 text-white px-4 py-2 rounded ml-2 m-2"
         >
           Export
-        </button> */}
+        </button>
          <input
           type="file"
           onChange={handleFileChange}

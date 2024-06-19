@@ -6,6 +6,7 @@ const DeleteConfirmationDialog = ({ isOpen, onClose, onDelete }) => {
     <Modal
       isOpen={isOpen}
       onRequestClose={onClose}
+      contentLabel="Delete Confirmation"
       style={{
         overlay: {
           zIndex: 9999,

@@ -104,11 +104,6 @@ const Users = () => {
             sortable: true,
         },
         {
-            name: 'Half Day Taken',
-            selector: (row) => row.half_day,
-            sortable: true,
-        },
-        {
             name: 'Created at',
             selector: (row) => {
               const date = new Date(row.created_at);

@@ -2,11 +2,11 @@ const { pool } = require("../database");
 const nodemailer = require("nodemailer");
 
 const showApplicationLeave = (req, res) => {
-  const { fromDate, type, status, toDate, dateFilterType } = req.query;
+  const { fromDate, status, toDate, dateFilterType } = req.query;
   const { id, role } = req.user;
   //console.log(req.user);
   let query = `
-        SELECT la.id, la.name,la.surname,la.status, la.fromDate, la.toDate,la.type, la.duration, 
+        SELECT la.id, la.name,la.surname,la.status, la.fromDate, la.toDate, la.duration, 
         la.days, la.description, la.history,
         la.created_at, la.update_at
         FROM leaveapplication la
@@ -40,14 +40,14 @@ const showApplicationLeave = (req, res) => {
     filterConditions.push(`status LIKE '${status}'`);
   }
 
-  if (type && Array.isArray(type)) {
-    const TypeConditions = type.map(type => `type LIKE '%${type}%'`);
-    if (TypeConditions.length > 0) {
-      filterConditions.push(`(${TypeConditions.join(" OR ")})`);
-    }
-  } else if (type) {
-    filterConditions.push(`type LIKE '${type}'`);
-  }
+  // if (type && Array.isArray(type)) {
+  //   const TypeConditions = type.map(type => `type LIKE '%${type}%'`);
+  //   if (TypeConditions.length > 0) {
+  //     filterConditions.push(`(${TypeConditions.join(" OR ")})`);
+  //   }
+  // } else if (type) {
+  //   filterConditions.push(`type LIKE '${type}'`);
+  // }
 
   if (dateFilterType && fromDate && toDate) {
     if (dateFilterType === "equal") {
@@ -120,7 +120,7 @@ const showApplicationLeave = (req, res) => {
 
 const showOneApplicationLeave = async (req, res) => {
   const dealerQuery = `
-  SELECT id, name,surname, status, fromDate, toDate, type, duration, 
+  SELECT id, name,surname, status, fromDate, toDate, duration, 
   days, description, history, created_at
   FROM leaveapplication
   WHERE id = ?
@@ -154,9 +154,9 @@ const addApplicationLeave = (req, res) => {
 
       const addDealer = `
         INSERT INTO leaveapplication
-        (name, surname, status, fromDate, toDate, type, duration, days, description,
+        (name, surname, status, fromDate, toDate, duration, days, description,
         history, createdBy, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
       `;
 
       // Prepare values for the insert query
@@ -165,8 +165,7 @@ const addApplicationLeave = (req, res) => {
         req.body.surname,
         req.body.status,
         req.body.fromDate || null, // Using null if fromDate is null or empty string
-        req.body.toDate || null,   // Using null if toDate is null or empty string
-        req.body.type,
+        req.body.toDate || null,  
         req.body.duration,
         req.body.days,
         req.body.description,
@@ -237,7 +236,7 @@ const addApplicationLeave = (req, res) => {
             subject: `Leave Application Confirmation`,
             text: `Hi Sir,
 
-        I, ${rows[0].name} ${rows[0].surname}, am writing to request ${rows[0].type} from ${fromDate || 'N/A'} to ${toDate || 'N/A'} for ${rows[0].days}. ${rows[0].description}
+        I, ${rows[0].name} ${rows[0].surname}, am writing to request a leave from ${fromDate || 'N/A'} to ${toDate || 'N/A'} for ${rows[0].days}. ${rows[0].description}
 
 Regards,
 ${rows[0].name} ${rows[0].surname}
@@ -276,10 +275,9 @@ ${rows[0].name} ${rows[0].surname}
   });
 };
 
-
 const editApplicationAdmin = (req, res) => {
   const checkStatusQuery = `
-    SELECT la.name, la.surname, u.email, la.status, la.history, la.fromDate, la.toDate, la.type, la.days, la.description 
+    SELECT la.name, la.surname, u.email, la.status, la.history, la.fromDate, la.toDate, la.days, la.description 
     FROM leaveapplication la
     JOIN user AS u ON u.name = la.name
     WHERE la.id = ?;
@@ -326,7 +324,6 @@ const editApplicationAdmin = (req, res) => {
           status = ?,
           fromDate = ?,
           toDate = ?, 
-          type = ?,
           duration = ?,
           days = ?,
           description = ?,
@@ -339,9 +336,8 @@ const editApplicationAdmin = (req, res) => {
           req.body.name,
           req.body.surname,
           req.body.status,
-          req.body.fromDate,
-          req.body.toDate,
-          req.body.type,
+          req.body.fromDate || null, // Set to null if undefined or empty
+          req.body.toDate || null,  
           req.body.duration,
           req.body.days,
           req.body.description,
@@ -372,7 +368,7 @@ const editApplicationAdmin = (req, res) => {
           subject: `Leave Application Confirmation`,
           text: `Hi Sir,
 
-I, ${userName} ${userSurname}, am writing to request ${rows[0].type} from ${req.body.fromDate} to ${req.body.toDate} for ${req.body.days} days. ${rows[0].description}
+I, ${userName} ${userSurname}, am writing to request a leave from ${req.body.fromDate} to ${req.body.toDate} for ${req.body.days} days. ${rows[0].description}
 
 Regards,
 ${userName} ${userSurname}`,
@@ -435,6 +431,7 @@ ${userName} ${userSurname}`,
     });
   });
 };
+
 
 module.exports = {
   showApplicationLeave,
