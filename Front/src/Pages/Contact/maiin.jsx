@@ -2,12 +2,13 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import TableExpense from "./tableExpense";
 import TableCustomer from "./tableCustomer";
+import { IoMdAddCircle } from "react-icons/io";
+
 
 const Maiin = () => {
   const navigate = useNavigate();
 
   const handleAddClick = () => {
-
     navigate("/addCustomer");
   };
 
@@ -18,28 +19,15 @@ const Maiin = () => {
           <h1 className="text-2xl font-semibold text-center">Customer</h1>
         </div>
         <div style={{ float: "right" }}>
-          <button
-            style={{
-              backgroundColor: "blue",
-              color: "white",
-              padding: "8px 16px",
-              cursor: "pointer",
-              border: "none",
-              borderRadius: "4px",
-            }}
-            onClick={handleAddClick}
-          >
-            Add
-          </button>
+          <IoMdAddCircle size={40} onClick={handleAddClick} />
         </div>
         <div style={{ marginTop: "70px" }}>
-          <TableCustomer/>
+          <TableCustomer />
         </div>
       </div>
+      
     </>
   );
 };
 
 export default Maiin;
-
-

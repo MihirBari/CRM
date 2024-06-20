@@ -90,9 +90,9 @@ function App() {
         <Route path='/Customer/view/:customer_entity/:id' element={<ProtectedRoute adminOnly><CustomerDetailVeiw /></ProtectedRoute>} />
         <Route path='/Customer/:customer_entity' element={<ProtectedRoute adminOnly><CustomerDetail /></ProtectedRoute>} />
         <Route path='/Calendar' element={<ProtectedRoute ><Calender /></ProtectedRoute>} />
-        <Route path='/Employes' element={<ProtectedRoute ><Employes /></ProtectedRoute>} />
-        <Route path='/Employes/edit/:id' element={<ProtectedRoute ><EditEmployes /></ProtectedRoute>} />
-        <Route path='/addEmployes' element={<ProtectedRoute ><AddEmployes /></ProtectedRoute>} />
+        <Route path='/Employees' element={<ProtectedRoute ><Employes /></ProtectedRoute>} />
+        <Route path='/Employees/edit/:id' element={<ProtectedRoute ><EditEmployes /></ProtectedRoute>} />
+        <Route path='/addEmployees' element={<ProtectedRoute ><AddEmployes /></ProtectedRoute>} />
         <Route path='/unauthorized' element={<Unauthorized />} />
         <Route path='/register' element={<Register />} />
         <Route path='/forgetPassword' element={<ForgetPassword />} />

@@ -28,8 +28,12 @@ const AddSeller = () => {
     // Fetch holidays from the backend
     const fetchHolidays = async () => {
       try {
-        const response = await axios.get(`${API_BASE_URL}/api/Holiday/holidays`);
-        const formattedHolidays = response.data.map(holiday => holiday.date.split('T')[0]);
+        const response = await axios.get(
+          `${API_BASE_URL}/api/Holiday/holidays`
+        );
+        const formattedHolidays = response.data.map(
+          (holiday) => holiday.date.split("T")[0]
+        );
         setHolidays(formattedHolidays);
         console.log("Holidays:", formattedHolidays);
       } catch (err) {
@@ -53,9 +57,13 @@ const AddSeller = () => {
       const toDate = new Date(newInputs.toDate);
       let daysDifference = 0;
 
-      for (let d = new Date(fromDate); d <= toDate; d.setDate(d.getDate() + 1)) {
+      for (
+        let d = new Date(fromDate);
+        d <= toDate;
+        d.setDate(d.getDate() + 1)
+      ) {
         const day = d.getDay();
-        const formattedDate = d.toISOString().split('T')[0];
+        const formattedDate = d.toISOString().split("T")[0];
 
         if (day !== 0 && day !== 6 && !holidays.includes(formattedDate)) {
           daysDifference++;
@@ -70,11 +78,7 @@ const AddSeller = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const requiredFields = [
-      "fromDate",
-      "duration",
-      "description",
-    ];
+    const requiredFields = ["fromDate", "duration", "description"];
 
     for (const field of requiredFields) {
       if (!inputs[field]) {
@@ -185,8 +189,6 @@ const AddSeller = () => {
                 </div>
               )}
 
-              
-
               <div className="md:col-span-1">
                 <label
                   htmlFor="duration"
@@ -194,19 +196,29 @@ const AddSeller = () => {
                 >
                   Leave Duration
                 </label>
-                <div className="mt-1">
+                <div className="mt-1 relative">
                   <select
                     name="duration"
                     required
+                    value={inputs.duration}
                     onChange={handleChange}
                     className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   >
-                    <option value="">
+                    <option value="" disabled>
                       Select Option
                     </option>
                     <option value="Full Day">Full Day</option>
                     <option value="Half Day">Half Day</option>
                   </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                    <svg
+                      className="fill-current h-4 w-4"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 20 20"
+                    >
+                      <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 011.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                    </svg>
+                  </div>
                 </div>
               </div>
 
@@ -233,7 +245,7 @@ const AddSeller = () => {
                   htmlFor="description"
                   className="block text-sm font-medium text-gray-700"
                 >
-                 Reason
+                  Reason
                 </label>
                 <div className="mt-1">
                   <textarea
@@ -271,4 +283,3 @@ const AddSeller = () => {
 };
 
 export default AddSeller;
-

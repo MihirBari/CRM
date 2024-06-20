@@ -37,7 +37,7 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
         }
       );
       onApplyFilters(response.data.products);
-      console.log("server", response.data.aggregates);
+      //console.log("server", response.data.aggregates);
       localStorage.setItem(
         "SummaryFilters",
         JSON.stringify({

@@ -6,7 +6,7 @@ import API_BASE_URL from "../../config";
 import { MdDelete, MdEdit } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { CiFilter } from "react-icons/ci";
+import { CiExport, CiFilter } from "react-icons/ci";
 import FilterModal from "./FilterModal";
 import ExportTable from "./ExportTable";
 import DeleteConfirmationDialog from "./DeleteConfirmationDialog.jsx";
@@ -292,13 +292,12 @@ const TableOpportunity = () => {
 
   return (
     <div className="order">
-      <div className="flex items-center">
-        <button
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-          onClick={handleExportClick}
-        >
-          Export
-        </button>
+      <div className="flex items-center">  
+        <CiExport  
+   size={40}
+   style={{ marginLeft: "25px" }}
+   onClick={handleExportClick}
+/>
         <ExportTable
           data={filteredUsers}
           isOpen={exportModalIsOpen}

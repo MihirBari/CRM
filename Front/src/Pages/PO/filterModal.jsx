@@ -21,7 +21,7 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
           `${API_BASE_URL}/api/opportunity/customerEntityAlert`
         );
         setCustomerEntitys(response.data);
-        console.log("Entity:", response.data);
+        //console.log("Entity:", response.data);
       } catch (error) {
         console.error("Error fetching customer entities:", error.message);
       }

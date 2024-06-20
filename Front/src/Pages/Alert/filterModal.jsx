@@ -4,6 +4,7 @@ import axios from "axios";
 import API_BASE_URL from "../../config";
 import Select from "react-select";
 Modal.setAppElement("#root");
+
 const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
   const [customerEntity, setCustomerEntity] = useState([]);
   const [customerEntitys, setCustomerEntitys] = useState([]);
@@ -19,7 +20,7 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
           `${API_BASE_URL}/api/opportunity/customerEntityAlert`
         );
         setCustomerEntitys(response.data);
-        console.log("Entity:", response.data);
+        // console.log("Entity:", response.data);
       } catch (error) {
         console.error("Error fetching customer entities:", error.message);
       }
@@ -34,9 +35,9 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
         `${API_BASE_URL}/api/Opportunity/sendAlert`,
         {
           params: {
-            customerEntity: customerEntity.map((entity) => entity.value),
-            type: type.map((t) => t.value),
-            licenseType: licenseType.map((l) => l.value),  // Changed from LicenseType to licenseType
+            customerEntity: customerEntity?.map((entity) => entity.value),
+            type: type?.map((t) => t.value),
+            licenseType: licenseType?.map((l) => l.value),
           },
         }
       );
@@ -49,7 +50,7 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
         JSON.stringify({
           customerEntity,
           type,
-          licenseType,  // Changed from LicenseType to licenseType
+          licenseType,
         })
       );
     } catch (error) {
@@ -64,13 +65,13 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
       const {
         customerEntity: storedCustomerEntity,
         type: storedType,
-        licenseType: storedLicenseType,  // Changed from LicenseType to licenseType
+        licenseType: storedLicenseType,
       } = JSON.parse(storedFilters);
 
       // Set filter values to state
-      setCustomerEntity(storedCustomerEntity);
-      setType(storedType);
-      setLicenseType(storedLicenseType);
+      setCustomerEntity(storedCustomerEntity || []);
+      setType(storedType || []);
+      setLicenseType(storedLicenseType || []);
       setShouldApplyFilters(true);
     }
   };
@@ -123,8 +124,8 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
           zIndex: 9999,
         },
         content: {
-          height: "50%", // Set the height here, e.g., 50%
-          margin: "auto", // Center the modal horizontally
+          height: "50%",
+          margin: "auto",
         },
       }}
     >

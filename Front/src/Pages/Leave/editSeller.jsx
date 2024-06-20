@@ -39,15 +39,16 @@ const EditSeller = () => {
         const from = new Date(fromDate);
         const to = new Date(toDate);
         const timeDifference = to.getTime() - from.getTime();
-        const daysDifference = Math.ceil(timeDifference / (1000 * 3600 * 24)) + 1; // Adding 1 to include both start and end dates
+        const daysDifference =
+          Math.ceil(timeDifference / (1000 * 3600 * 24)) + 1; // Adding 1 to include both start and end dates
         setInputs((prev) => ({
           ...prev,
-          days: daysDifference
+          days: daysDifference,
         }));
       } else {
         setInputs((prev) => ({
           ...prev,
-          days: 0
+          days: 0,
         }));
       }
     }
@@ -93,15 +94,15 @@ const EditSeller = () => {
     fetchSeller();
   }, [id]);
 
-    const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     // Check the duration and set toDate to null if duration is "Half Day"
     const updatedInputs = {
       ...inputs,
       toDate: inputs.duration === "Half Day" ? null : inputs.toDate,
     };
-  
+
     try {
       await axios.put(
         `${API_BASE_URL}/api/Leave/editApplicationAdmin/${id}`,
@@ -109,13 +110,12 @@ const EditSeller = () => {
       );
       setInputs(initialInputs);
       toast.success("Updated successfully");
-      navigate("/Leave")
+      navigate("/Leave");
     } catch (err) {
       console.error(err);
       toast.error("Failed to update");
     }
   };
-
 
   const renderInput = (
     name,
@@ -221,6 +221,15 @@ const EditSeller = () => {
               </option>
             ))}
           </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+            <svg
+              className="fill-current h-4 w-4"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+            >
+              <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 011.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+            </svg>
+          </div>
         </div>
       </div>
     );
@@ -278,7 +287,7 @@ const EditSeller = () => {
             required
             onChange={handleChange}
             value={inputs[name]}
-            disabled ={!isEditable}
+            disabled={!isEditable}
             className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
           >
             {options.map((option) => (
@@ -287,6 +296,15 @@ const EditSeller = () => {
               </option>
             ))}
           </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+            <svg
+              className="fill-current h-4 w-4"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+            >
+              <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 011.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+            </svg>
+          </div>
         </div>
       </div>
     );
@@ -302,63 +320,69 @@ const EditSeller = () => {
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           {inputs && Object.keys(inputs).length !== 0 ? (
             <form className="space-y-6" onSubmit={handleSubmit}>
-             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                  {renderInput("name", "Name", "Enter Name", "text", true)}
-                  {renderInput(
-                    "surname",
-                    "Surname",
-                    "Enter Surname",
-                    "text",
-                    true
-                  )}
-                  {renderInput("fromDate", "From", "Enter Date", "date", false)}
-                  {renderInput("toDate", "To", "Enter Date", "date", false)}
-                  <div>
-                    {renderSelect(
-                      "duration",
-                      "Duration Of leave",
-                      [
-                        { value: "", label: "Select an option" },
-                        { value: "Full Day", label: "Full Day" },
-                        { value: "Half Day", label: "Half Day" },
-                      ],
-                      false
-                    )}
-                  </div>
-                  {renderInput("days", "No of Days", "Enter No Of Days", "text", true)}
-                  {renderTextArea(
-                    "description",
-                    "Description / Summary",
-                    "Enter Summary",
-                    "text",
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                {renderInput("name", "Name", "Enter Name", "text", true)}
+                {renderInput(
+                  "surname",
+                  "Surname",
+                  "Enter Surname",
+                  "text",
+                  true
+                )}
+                {renderInput("fromDate", "From", "Enter Date", "date", false)}
+                {renderInput("toDate", "To", "Enter Date", "date", false)}
+                <div>
+                  {renderSelect(
+                    "duration",
+                    "Duration Of leave",
+                    [
+                      { value: "", label: "Select an option" },
+                      { value: "Full Day", label: "Full Day" },
+                      { value: "Half Day", label: "Half Day" },
+                    ],
                     false
                   )}
-                  {currentUser.role === "admin" && (
-                    <>
-                      <div>
-                        {renderSelectAdmin(
-                          "status",
-                          "Status",
-                          [
-                            { value: "", label: "Select an option" },
-                            { value: "approved", label: "approved" },
-                            { value: "rejected", label: "rejected" },
-                          ],
-                          false
-                        )}
-                      </div>
-                      <div>
-                        {renderTextAreaAdmin(
-                          "history",
-                          "Comments / History",
-                          "Enter Comment",
-                          "text",
-                          false
-                        )}
-                      </div>
-                    </>
-                  )}
                 </div>
+                {renderInput(
+                  "days",
+                  "No of Days",
+                  "Enter No Of Days",
+                  "text",
+                  true
+                )}
+                {renderTextArea(
+                  "description",
+                  "Description / Summary",
+                  "Enter Summary",
+                  "text",
+                  false
+                )}
+                {currentUser.role === "admin" && (
+                  <>
+                    <div>
+                      {renderSelectAdmin(
+                        "status",
+                        "Status",
+                        [
+                          { value: "", label: "Select an option" },
+                          { value: "approved", label: "approved" },
+                          { value: "rejected", label: "rejected" },
+                        ],
+                        false
+                      )}
+                    </div>
+                    <div>
+                      {renderTextAreaAdmin(
+                        "history",
+                        "Comments / History",
+                        "Enter Comment",
+                        "text",
+                        false
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
 
               <div className="flex justify-between items-center mt-4">
                 <button

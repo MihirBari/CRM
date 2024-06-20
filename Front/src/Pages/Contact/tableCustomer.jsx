@@ -8,10 +8,9 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { FaEye } from "react-icons/fa";
 import ExportTable from "./ExportTable";
-import { CiFilter } from "react-icons/ci";
+import { CiExport, CiFilter } from "react-icons/ci";
 import FilterModal from "./FilterModal";
 import DeleteConfirmationDialog from "./DeleteConfirmationDialog";
-
 
 const TableCustomer = () => {
   const [users, setUsers] = useState([]);
@@ -19,27 +18,27 @@ const TableCustomer = () => {
   const [exportModalIsOpen, setExportModalIsOpen] = useState(false);
   const [filterModalIsOpen, setFilterModalIsOpen] = useState(false);
   const [filteredUsers, setFilteredUsers] = useState([]);
-  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false); 
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [deleteItemId, setDeleteItemId] = useState(null);
   const [filters, setFilters] = useState({
     city: "",
-    customerentity:""
+    customerentity: "",
   });
 
   useEffect(() => {
-    const controller = new AbortController(); 
-    const signal = controller.signal; 
+    const controller = new AbortController();
+    const signal = controller.signal;
     const fetchOrders = async () => {
       try {
         const response = await axios.get(
-          `${API_BASE_URL}/api/contact/showCustomer`,{
+          `${API_BASE_URL}/api/contact/showCustomer`,
+          {
             signal: signal,
           }
         );
         setUsers(response.data.products);
         setFilteredUsers(response.data.products);
         console.log(response.data.products);
-        
       } catch (err) {
         if (axios.isCancel(err)) {
           console.log("Request canceled", err.message);
@@ -59,11 +58,11 @@ const TableCustomer = () => {
     navigate(`edit/${userId.id}`);
   };
 
-
-
   const handleDeleteConfirmation = (itemId) => {
     axios
-      .delete(`${API_BASE_URL}/api/Contact/deleteCustomer`, { data: { id: itemId } })
+      .delete(`${API_BASE_URL}/api/Contact/deleteCustomer`, {
+        data: { id: itemId },
+      })
       .then((response) => {
         console.log("Delete successful:", response.data);
         toast.success("Deleted Successfully");
@@ -87,7 +86,7 @@ const TableCustomer = () => {
   };
 
   const handleViewClick = (customer_entity) => {
-    console.log("customer_entity",customer_entity)
+    console.log("customer_entity", customer_entity);
     navigate(`${customer_entity}`);
   };
 
@@ -183,7 +182,7 @@ const TableCustomer = () => {
 
   const initialFilters = {
     city: "",
-    customerentity:""
+    customerentity: "",
   };
 
   createTheme(
@@ -249,7 +248,7 @@ const TableCustomer = () => {
   const handleCiFilterClick = () => {
     setFilterModalIsOpen(true);
   };
-  
+
   const handleExportClick = () => {
     setExportModalIsOpen(true);
   };
@@ -260,12 +259,11 @@ const TableCustomer = () => {
         <div
           style={{ display: "flex", alignItems: "center", marginLeft: "10px" }}
         >
-          <button
-            className="bg-blue-500 text-white px-4 py-2 rounded"
+          <CiExport
+            size={40}
+            style={{ marginLeft: "25px" }}
             onClick={handleExportClick}
-          >
-            Export
-          </button>
+          />
           <ExportTable
             data={filteredUsers}
             isOpen={exportModalIsOpen}
@@ -285,7 +283,7 @@ const TableCustomer = () => {
             filters={filters}
             resetFilters={() => setFilters(initialFilters)}
           />
-         
+
           <DeleteConfirmationDialog
             isOpen={showDeleteConfirmation}
             onClose={handleCloseDeleteConfirmation}

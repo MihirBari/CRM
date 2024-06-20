@@ -61,7 +61,7 @@ const AddEmployes = () => {
       await axios.post(`${API_BASE_URL}/api/Employes/addEmployes`, inputs);
       setInputs(initialInputs);
       toast.success("Contacts created successfully");
-      navigate("/Employes");
+      navigate("/Employees");
     } catch (err) {
       console.error(err);
       setError(err.response);
@@ -71,7 +71,7 @@ const AddEmployes = () => {
 
   const handleClose = () => {
     setInputs(initialInputs);
-    navigate("/Employes");
+    navigate("/Employees");
   };
 
   return (

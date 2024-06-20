@@ -20,7 +20,7 @@ const Main = () => {
         const response = await fetch(`${API_BASE_URL}/api/Opportunity/sendPo`);
         const data = await response.json();
         setAlerts(data.products || []);
-        console.log(data.products);
+        //console.log(data.products);
         setFilteredUsers(data.products || []);
       } catch (error) {
         console.error("Error fetching alerts:", error);

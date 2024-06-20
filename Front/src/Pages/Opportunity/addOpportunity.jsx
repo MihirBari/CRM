@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import API_BASE_URL from "../../config";
 import axios from "axios";
-import Select from 'react-select';
+import Select from "react-select";
 
 const AddOpportunity = () => {
   const initialInputs = {
@@ -11,7 +11,7 @@ const AddOpportunity = () => {
     name: "",
     description: "",
     type: "",
-    License_type:"",
+    License_type: "",
     value: "",
     closure_time: "",
     status: "",
@@ -30,7 +30,9 @@ const AddOpportunity = () => {
   useEffect(() => {
     const fetchCustomerEntities = async () => {
       try {
-        const response = await axios.get(`${API_BASE_URL}/api/Contact/customerentity`);
+        const response = await axios.get(
+          `${API_BASE_URL}/api/Contact/customerentity`
+        );
         setCustomerEntities(response.data);
       } catch (error) {
         console.error("Error fetching customer entities:", error);
@@ -42,7 +44,10 @@ const AddOpportunity = () => {
 
   const fetchName = async (customerEntity) => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/api/Opportunity/name`, { customer_entity: customerEntity });
+      const response = await axios.post(
+        `${API_BASE_URL}/api/Opportunity/name`,
+        { customer_entity: customerEntity }
+      );
       setNameOptions(response.data);
     } catch (error) {
       console.error("Error fetching names:", error);
@@ -64,12 +69,12 @@ const AddOpportunity = () => {
   const handlePdfChange = (e) => {
     const file = e.target.files[0];
     const maxSize = 50 * 1024 * 1024; // 50 MB
-  
+
     if (file && file.size > maxSize) {
       toast.error("File size exceeds the maximum limit of 50 MB.");
       return;
     }
-  
+
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -92,10 +97,13 @@ const AddOpportunity = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`${API_BASE_URL}/api/Opportunity/addOpportunity`, inputs);
+      await axios.post(
+        `${API_BASE_URL}/api/Opportunity/addOpportunity`,
+        inputs
+      );
       setInputs(initialInputs);
       toast.success("Opportunity created successfully");
-      navigate("/Opportunity")
+      navigate("/Opportunity");
     } catch (err) {
       console.error(err);
       setError(err.response);
@@ -119,16 +127,20 @@ const AddOpportunity = () => {
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="grid grid-cols-3 gap-4">
-              
               <div>
-                <label htmlFor="customer_entity" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="customer_entity"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Name Of Customer Entity
                 </label>
                 <div className="mt-1">
                   <Select
                     options={customerEntityOptions}
                     onChange={handleSelectChange}
-                    value={customerEntityOptions.find(option => option.value === inputs.customer_entity)}
+                    value={customerEntityOptions.find(
+                      (option) => option.value === inputs.customer_entity
+                    )}
                     placeholder="Select Customer Entity"
                     className="basic-single"
                     classNamePrefix="select"
@@ -137,7 +149,10 @@ const AddOpportunity = () => {
               </div>
 
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="name"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Name
                 </label>
                 <div className="mt-1 relative">
@@ -160,7 +175,10 @@ const AddOpportunity = () => {
               </div>
 
               <div>
-                <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="description"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Opportunity Description
                 </label>
                 <div className="mt-1 relative">
@@ -177,7 +195,10 @@ const AddOpportunity = () => {
               </div>
 
               <div>
-                <label htmlFor="type" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="type"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Opportunity Type
                 </label>
                 <div className="mt-1 relative">
@@ -197,11 +218,23 @@ const AddOpportunity = () => {
                     <option value="Tenable">Tenable</option>
                     <option value="Armis">Armis</option>
                   </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                    <svg
+                      className="fill-current h-4 w-4"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 20 20"
+                    >
+                      <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 011.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                    </svg>
+                  </div>
                 </div>
               </div>
 
               <div>
-                <label htmlFor="License_type" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="License_type"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   License Type
                 </label>
                 <div className="mt-1 relative">
@@ -217,13 +250,24 @@ const AddOpportunity = () => {
                     </option>
                     <option value="New">New</option>
                     <option value="Renewal">Renewal</option>
-                   
                   </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                    <svg
+                      className="fill-current h-4 w-4"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 20 20"
+                    >
+                      <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 011.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                    </svg>
+                  </div>
                 </div>
               </div>
 
               <div>
-                <label htmlFor="value" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="value"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Opportunity Value
                 </label>
                 <div className="mt-1 relative">
@@ -240,7 +284,10 @@ const AddOpportunity = () => {
               </div>
 
               <div>
-                <label htmlFor="closure_time" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="closure_time"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Opportunity Closure Time
                 </label>
                 <div className="mt-1 relative">
@@ -257,7 +304,10 @@ const AddOpportunity = () => {
               </div>
 
               <div>
-                <label htmlFor="period" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="period"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Comment
                 </label>
                 <div className="mt-1 relative">
@@ -273,7 +323,10 @@ const AddOpportunity = () => {
               </div>
 
               <div>
-                <label htmlFor="status" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="status"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Opportunity Status
                 </label>
                 <div className="mt-1 relative">
@@ -294,13 +347,25 @@ const AddOpportunity = () => {
                     <option value="Won">Won</option>
                     <option value="Lost">Lost</option>
                   </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                    <svg
+                      className="fill-current h-4 w-4"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 20 20"
+                    >
+                      <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 011.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                    </svg>
+                  </div>
                 </div>
               </div>
 
               {inputs.status === "Won" && (
                 <>
                   <div>
-                    <label htmlFor="license_from" className="block text-sm font-medium text-gray-700">
+                    <label
+                      htmlFor="license_from"
+                      className="block text-sm font-medium text-gray-700"
+                    >
                       Opportunity License From
                     </label>
                     <div className="mt-1 relative">
@@ -317,7 +382,10 @@ const AddOpportunity = () => {
                   </div>
 
                   <div>
-                    <label htmlFor="license_to" className="block text-sm font-medium text-gray-700">
+                    <label
+                      htmlFor="license_to"
+                      className="block text-sm font-medium text-gray-700"
+                    >
                       Opportunity License To
                     </label>
                     <div className="mt-1 relative">
@@ -332,7 +400,6 @@ const AddOpportunity = () => {
                       />
                     </div>
                   </div>
-              
                 </>
               )}
 
@@ -352,7 +419,6 @@ const AddOpportunity = () => {
                   />
                 </div>
               </div>
-
             </div>
 
             <div className="flex justify-between items-center mt-4">

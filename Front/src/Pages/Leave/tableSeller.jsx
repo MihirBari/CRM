@@ -40,7 +40,7 @@ const Users = () => {
         const response = await axios.get(
           `${API_BASE_URL}/api/Leave/showApplicationLeave`
         );
-        console.log(response.data)
+        //console.log(response.data)
         setUsers(response.data.dealers);
         setFilteredUsers(response.data.dealers);
       

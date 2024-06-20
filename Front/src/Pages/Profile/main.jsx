@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import API_BASE_URL from "../../config";
 import { AuthContext } from "../../context/AuthContext";
+import { Loader } from "../loader";
 
 const Main = () => {
   const [restDetails, setRestDetails] = useState(null);
@@ -43,7 +44,7 @@ const Main = () => {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <Loader /> ;
   }
 
   return (

@@ -6,7 +6,7 @@ import { AuthContext } from "../../context/AuthContext";
 import Modal from "react-modal";
 Modal.setAppElement("#root");
 
-export const EditLeaveModal = ({ isOpen, onClose,id }) => {
+export const EditLeaveModal = ({ isOpen, onClose, id }) => {
   const initialInputs = {
     name: "",
     surname: "",
@@ -14,7 +14,7 @@ export const EditLeaveModal = ({ isOpen, onClose,id }) => {
     fromDate: "",
     toDate: "",
     duration: "",
-    days: 0, 
+    days: 0,
     description: "",
     history: "",
   };
@@ -46,7 +46,8 @@ export const EditLeaveModal = ({ isOpen, onClose,id }) => {
         const from = new Date(fromDate);
         const to = new Date(toDate);
         const timeDifference = to.getTime() - from.getTime();
-        const daysDifference = Math.ceil(timeDifference / (1000 * 3600 * 24)) + 1;
+        const daysDifference =
+          Math.ceil(timeDifference / (1000 * 3600 * 24)) + 1;
         setInputs((prev) => ({
           ...prev,
           days: daysDifference,
@@ -66,7 +67,7 @@ export const EditLeaveModal = ({ isOpen, onClose,id }) => {
         const response = await axios.get(
           `${API_BASE_URL}/api/Leave/showOneApplicationLeave/${id}`
         );
-        const sellerData = response.data[0]; 
+        const sellerData = response.data[0];
         console.log("Seller Data:", sellerData);
 
         if (sellerData) {
@@ -106,13 +107,13 @@ export const EditLeaveModal = ({ isOpen, onClose,id }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     // Check the duration and set toDate to null if duration is "Half Day"
     const updatedInputs = {
       ...inputs,
       toDate: inputs.duration === "Half Day" ? null : inputs.toDate,
     };
-  
+
     try {
       await axios.put(
         `${API_BASE_URL}/api/Leave/editApplicationAdmin/${id}`,
@@ -232,6 +233,15 @@ export const EditLeaveModal = ({ isOpen, onClose,id }) => {
               </option>
             ))}
           </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+            <svg
+              className="fill-current h-4 w-4"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+            >
+              <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 011.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+            </svg>
+          </div>
         </div>
       </div>
     );
@@ -289,7 +299,7 @@ export const EditLeaveModal = ({ isOpen, onClose,id }) => {
             required
             onChange={handleChange}
             value={inputs[name]}
-            disabled ={!isEditable}
+            disabled={!isEditable}
             className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
           >
             {options.map((option) => (
@@ -298,6 +308,15 @@ export const EditLeaveModal = ({ isOpen, onClose,id }) => {
               </option>
             ))}
           </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+            <svg
+              className="fill-current h-4 w-4"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+            >
+              <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 011.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+            </svg>
+          </div>
         </div>
       </div>
     );
@@ -352,7 +371,13 @@ export const EditLeaveModal = ({ isOpen, onClose,id }) => {
                       false
                     )}
                   </div>
-                  {renderInput("days", "No of Days", "Enter No Of Days", "text", true)}
+                  {renderInput(
+                    "days",
+                    "No of Days",
+                    "Enter No Of Days",
+                    "text",
+                    true
+                  )}
                   {renderTextArea(
                     "description",
                     "Description / Summary",
@@ -407,4 +432,3 @@ export const EditLeaveModal = ({ isOpen, onClose,id }) => {
 };
 
 export default EditLeaveModal;
-

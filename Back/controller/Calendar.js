@@ -33,18 +33,18 @@ const holiday = async (req, res) => {
     const vevents = comp.getAllSubcomponents('vevent');
 
     // Log the number of events found
-    console.log(`Number of events found: ${vevents.length}`);
+   // console.log(`Number of events found: ${vevents.length}`);
 
     // Store the events in the database
     for (const vevent of vevents) {
       const summary = vevent.getFirstPropertyValue('summary');
       const dtstart = formatDate(vevent.getFirstPropertyValue('dtstart')); // Format date to 'YYYY-MM-DD'
 
-      console.log(`Inserting event: ${summary} on ${dtstart}`);
+      //console.log(`Inserting event: ${summary} on ${dtstart}`);
 
       try {
         const results = await insertEvent(dtstart, summary);
-        console.log('Inserted event with ID:', results.insertId);
+        //console.log('Inserted event with ID:', results.insertId);
       } catch (err) {
         console.error('Error executing database query:', err);
       }

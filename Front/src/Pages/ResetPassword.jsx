@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import axios from 'axios';
 import API_BASE_URL from '../config';
 import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
+import img from "../assets/techsa.png"
 
 const ResetPassword = () => {
     const { token } = useParams();
@@ -29,6 +30,7 @@ const ResetPassword = () => {
     return (
         <div className='min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8'>
             <div className="sm:mx-auto sm:w-full sm:max-w-md">
+            <img style={{height:"20%", width:"20%", marginLeft:"40%"}} src={img} alt="logo" />
                 <h2 className='mt-6 text-center text-3xl font-extrabold text-gray-900'>
                     RESET PASSWORD
                 </h2>

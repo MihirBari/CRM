@@ -365,7 +365,7 @@ const updateUserHolidaysTaken = (userName, userSurname, connection, callback) =>
       return callback(error);
     }
 
-    console.log("Query results:", results); // Log the results for debugging
+    //console.log("Query results:", results); // Log the results for debugging
 
     if (results.length === 0 || !results[0]) {
       console.error(`No results returned for ${userName} ${userSurname}.`);
@@ -440,7 +440,6 @@ cron.schedule('0 0 1 4 *', () => {
 });
 
 console.log('Cron job for resetting holidays_taken is scheduled.');
-
 
 
 const RestDetail = async (req, res) => {

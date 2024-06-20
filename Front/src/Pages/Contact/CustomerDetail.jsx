@@ -9,6 +9,7 @@ import { Link, useParams } from "react-router-dom";
 import EditContact from "./editContact";
 import FilterModal from "./filterModalContact";
 import { CiFilter } from "react-icons/ci";
+import { IoMdAddCircle } from "react-icons/io";
 
 const CustomerDetail = () => {
   const [addContactIsOpen, setAddContactIsOpen] = useState(false);
@@ -100,19 +101,10 @@ const CustomerDetail = () => {
         <h1 className="text-2xl font-semibold text-center">{customer_entity}</h1>
       </div>
       <div style={{ float: "right" }}>
-        <button
-          style={{
-            backgroundColor: "blue",
-            color: "white",
-            padding: "8px 16px",
-            cursor: "pointer",
-            border: "none",
-            borderRadius: "4px",
-          }}
-          onClick={handleAddClick}
-        >
-          Add
-        </button>
+      <IoMdAddCircle 
+        size={40}
+        onClick={handleAddClick}
+        />
         <AddContact
           isOpen={addContactIsOpen}
           onClose={() => setAddContactIsOpen(false)}

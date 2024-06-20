@@ -5,13 +5,14 @@ import API_BASE_URL from '../../config';
 import 'react-calendar/dist/Calendar.css';
 import './holiday.css'; // Import the CSS file for custom styles
 import { AuthContext } from '../../context/AuthContext';
+import { PiConfettiBold } from "react-icons/pi";
 
 const Main = () => {
   const [file, setFile] = useState(null);
   const [holidays, setHolidays] = useState([]);
-  const [birthdays, setBirthdays] = useState([]); // Add state for birthdays
+  const [birthdays, setBirthdays] = useState([]);
   const [value, setValue] = useState(new Date());
-  const [selectedEvents, setSelectedEvents] = useState([]); // Change to array to handle multiple events
+  const [selectedEvents, setSelectedEvents] = useState([]);
 
   const { currentUser } = useContext(AuthContext);
 
@@ -35,7 +36,7 @@ const Main = () => {
         }
       });
       console.log('File uploaded successfully:', response.data);
-      fetchHolidays(); // Fetch holidays after successful upload
+      fetchHolidays();
     } catch (error) {
       console.error('Error uploading file:', error);
     }
@@ -53,8 +54,7 @@ const Main = () => {
   const fetchBirthdays = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/api/Holiday/birthday`);
-      setBirthdays(Array.isArray(response.data) ? response.data : []); // Ensure the data is an array
-      console.log(response.data);
+      setBirthdays(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error('Error fetching birthdays:', error);
     }
@@ -108,8 +108,15 @@ const Main = () => {
   };
 
   const handleTodayClick = () => {
-    setValue(new Date()); // Set the calendar value to today's date
-    setSelectedEvents([]); // Clear selected events when going to today
+    setValue(new Date());
+    setSelectedEvents([]);
+  };
+
+  const tileContent = ({ date, view }) => {
+    if (view === 'month' && isBirthday(date)) {
+      return <PiConfettiBold style={{ color: 'green' }} />;
+    }
+    return null;
   };
 
   const tileClassName = ({ date, view }) => {
@@ -126,7 +133,7 @@ const Main = () => {
 
   return (
     <div className="container">
-      <h1>Holiday and Birthday Calendar</h1>
+      <h1 className="text-2xl font-semibold text-center">Techsa Calendar</h1>
       {currentUser.role === 'admin' && (
         <div>
           <div className="file-upload">
@@ -140,14 +147,14 @@ const Main = () => {
         value={value}
         onClickDay={handleDateClick}
         tileClassName={tileClassName}
-        onClickMonth={handleTodayClick} // Navigate to today when clicking on "Today" button
+        tileContent={tileContent} // Add the tileContent prop
       />
       {selectedEvents.length > 0 && (
         <div className="event-details">
           {selectedEvents.map((event, index) => (
             <div key={index}>
               <h2>{`${event.name} ${event.surname ? event.surname : ''} ${event.DOB ? 'Birthday' : ''}`}</h2>
-              <p>{new Date(event.date || event.DOB).toDateString()}</p>
+              {/* <p>{new Date(event.date || event.DOB).toDateString()}</p> */}
             </div>
           ))}
         </div>

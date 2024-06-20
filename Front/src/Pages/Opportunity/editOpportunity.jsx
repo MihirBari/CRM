@@ -10,11 +10,11 @@ const EditOpportunity = () => {
     name: "",
     description: "",
     type: "",
-    License_type:"",
+    License_type: "",
     value: "",
     closure_time: "",
     status: "",
-    period:"",
+    period: "",
     license_from: "",
     license_to: "",
   };
@@ -28,7 +28,9 @@ const EditOpportunity = () => {
   useEffect(() => {
     const fetchOrder = async () => {
       try {
-        const response = await axios.get(`${API_BASE_URL}/api/Opportunity/showOneOpportunity/${id}`);
+        const response = await axios.get(
+          `${API_BASE_URL}/api/Opportunity/showOneOpportunity/${id}`
+        );
         const orderData = response.data[0];
         console.log("Fetched Order Data:", orderData);
 
@@ -98,9 +100,15 @@ const EditOpportunity = () => {
     try {
       await axios.put(`${API_BASE_URL}/api/Opportunity/editOpportunity/${id}`, {
         ...inputs,
-        closure_time: inputs.closure_time ? new Date(inputs.closure_time).toISOString() : null,
-        license_from: inputs.license_from ? new Date(inputs.license_from).toISOString() : null,
-        license_to: inputs.license_to ? new Date(inputs.license_to).toISOString() : null,
+        closure_time: inputs.closure_time
+          ? new Date(inputs.closure_time).toISOString()
+          : null,
+        license_from: inputs.license_from
+          ? new Date(inputs.license_from).toISOString()
+          : null,
+        license_to: inputs.license_to
+          ? new Date(inputs.license_to).toISOString()
+          : null,
       });
 
       setInputs(initialInputs);
@@ -125,63 +133,76 @@ const EditOpportunity = () => {
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="grid grid-cols-4 gap-4">
               <div>
-                {renderInput("customer_entity", "Customer Entity", "Enter Customer Entity")}
+                {renderInput(
+                  "customer_entity",
+                  "Customer Entity",
+                  "Enter Customer Entity"
+                )}
               </div>
               <div>{renderSelect("name", "Name", nameOptions)}</div>
               <div>
                 {renderInput("description", "Description", "Enter description")}
               </div>
               <div>
-                  {renderSelect("type", "Opportunity Type", [
-                    { value: "BigFix", name: "BigFix" },
-                    { value: "SolarWinds", name: "SolarWinds" },
-                    { value: "Services", name: "Services" },
-                    { value: "Tenable", name: "Tenable" },
-                    { value: "Armis", name: "Armis" },
-                  ])}
-                </div>
-                <div>
-                  {renderSelect("License_type", "License Type", [
-                    { value: "New", name: "New" },
-                    { value: "Renewal", name: "Renewal" },
-                  ])}
-                </div>
-              <div>
-                {renderInput("value", "Value", "Enter value")}
+                {renderSelect("type", "Opportunity Type", [
+                  { value: "BigFix", name: "BigFix" },
+                  { value: "SolarWinds", name: "SolarWinds" },
+                  { value: "Services", name: "Services" },
+                  { value: "Tenable", name: "Tenable" },
+                  { value: "Armis", name: "Armis" },
+                ])}
               </div>
               <div>
-                {renderInput("closure_time", "Closure Time", "Closure Time", "date")}
+                {renderSelect("License_type", "License Type", [
+                  { value: "New", name: "New" },
+                  { value: "Renewal", name: "Renewal" },
+                ])}
               </div>
+              <div>{renderInput("value", "Value", "Enter value")}</div>
               <div>
-                {renderInput("period", "Comment", "Comment")}
+                {renderInput(
+                  "closure_time",
+                  "Closure Time",
+                  "Closure Time",
+                  "date"
+                )}
               </div>
+              <div>{renderInput("period", "Comment", "Comment")}</div>
               <div>
-                  {renderSelect("status", "Status", [
-                    { value: "Quotation Done", name: "Quotation Done" },
-                    { value: "Demo Done", name: "Demo Done" },
-                    { value: "POC Done", name: "POC Done" },
-                    { value: "Progress Sub", name: "Progress Sub" },
-                    { value: "Won", name: "Won" },
-                    { value: "Lost", name: "Lost" },
-                  ])}
-                </div>
+                {renderSelect("status", "Status", [
+                  { value: "Quotation Done", name: "Quotation Done" },
+                  { value: "Demo Done", name: "Demo Done" },
+                  { value: "POC Done", name: "POC Done" },
+                  { value: "Progress Sub", name: "Progress Sub" },
+                  { value: "Won", name: "Won" },
+                  { value: "Lost", name: "Lost" },
+                ])}
+              </div>
 
               {inputs.status === "Won" && (
                 <>
                   <div>
-                    {renderInput("license_from", "License From", "License From", "date")}
+                    {renderInput(
+                      "license_from",
+                      "License From",
+                      "License From",
+                      "date"
+                    )}
                   </div>
                   <div>
-                    {renderInput("license_to", "License To", "License To", "date")}
+                    {renderInput(
+                      "license_to",
+                      "License To",
+                      "License To",
+                      "date"
+                    )}
                   </div>
                 </>
               )}
             </div>
             <div className="flex justify-between items-center mt-4">
               {renderButton("Update")}
-              <Link to="/Opportunity">
-                {renderButton("Back")}
-              </Link>
+              <Link to="/Opportunity">{renderButton("Back")}</Link>
             </div>
           </form>
         </div>
@@ -192,14 +213,16 @@ const EditOpportunity = () => {
   function renderInput(name, label, placeholder, type = "text") {
     return (
       <>
-        <label htmlFor={name} className="block text-sm font-medium text-gray-700">
+        <label
+          htmlFor={name}
+          className="block text-sm font-medium text-gray-700"
+        >
           {label}
         </label>
         <div className="mt-1">
           <input
             type={type}
             name={name}
-            
             onChange={handleChange}
             placeholder={placeholder}
             value={inputs[name]}
@@ -233,6 +256,15 @@ const EditOpportunity = () => {
               </option>
             ))}
           </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+            <svg
+              className="fill-current h-4 w-4"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+            >
+              <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 011.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+            </svg>
+          </div>
         </div>
       </>
     );

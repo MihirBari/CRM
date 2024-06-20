@@ -6,7 +6,7 @@ import API_BASE_URL from "../../config";
 import { MdDelete, MdEdit } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { CiFilter } from "react-icons/ci";
+import { CiExport, CiFilter } from "react-icons/ci";
 import FilterModal from "./FilterModal";
 import ExportTable from "./ExportTable";
 import DeleteConfirmationDialog from "./DeleteConfirmationDialog.jsx";
@@ -295,21 +295,16 @@ const TableEmploye = () => {
   return (
     <>
       <div className="filter-container">
-        {/* <button onClick={handleCiFilterClick} className="bg-blue-500 text-white px-4 py-2 rounded ml-2 m-2">
-          <CiFilter /> Filter
-        </button> */}
         <ExportTable
-  isOpen={exportModalIsOpen}
-  onRequestClose={handleExportModalClose} // Correct prop name should match ExportTable's props
-  data={filteredUsers}
-/>
-        <button
+          isOpen={exportModalIsOpen}
+          onClose={handleExportModalClose}
+          data={filteredUsers}
+        />   
+        <CiExport
+          size={40}
           onClick={handleExportButtonClick}
-          className="bg-blue-500 text-white px-4 py-2 rounded ml-2 m-2"
-        >
-          Export
-        </button>
-         <input
+        />
+        <input
           type="file"
           onChange={handleFileChange}
           accept=".xls,.xlsx"
@@ -326,7 +321,7 @@ const TableEmploye = () => {
        className="dataTable"
        columns={modifiedColumns}
        data={filteredUsers}
-       customStyles={customStyles} // Pass the updated customStyles object here
+       customStyles={customStyles}
        fixedHeaderScrollHeight="800px"
        striped
        theme="solarized"
@@ -346,11 +341,6 @@ const TableEmploye = () => {
         onClose={() => setFilterModalIsOpen(false)}
         onApplyFilters={handleApplyFilters}
         resetFilters={resetFilters}
-      />
-      <ExportTable
-        isOpen={exportModalIsOpen}
-        onClose={handleExportModalClose}
-        data={filteredUsers}
       />
       <DeleteConfirmationDialog
         isOpen={showDeleteConfirmation}

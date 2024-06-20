@@ -86,7 +86,7 @@ const EditEmployes = () => {
     try {
       await axios.put(`${API_BASE_URL}/api/Employes/editEmployes/${id}`, inputs);
       toast.success("Employee updated successfully");
-      navigate("/Employes");
+      navigate("/Employees");
     } catch (err) {
       console.error(err);
       toast.error("Failed to update employee");
@@ -94,7 +94,7 @@ const EditEmployes = () => {
   };
 
   const handleClose = () => {
-    navigate("/Employes");
+    navigate("/Employees");
   };
 
 

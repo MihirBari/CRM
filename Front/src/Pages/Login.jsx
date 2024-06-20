@@ -2,7 +2,8 @@ import React, { useState, useContext } from "react";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { AuthContext } from "../context/AuthContext";
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import img from "../assets/techsa.png"
 
 const Login = () => {
   const [visible, setVisible] = useState(false);
@@ -46,6 +47,7 @@ const Login = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <img style={{height:"20%", width:"20%", marginLeft:"40%"}} src={img} alt="logo" />
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
           LOGIN TO YOUR ACCOUNT
         </h2>
@@ -122,13 +124,12 @@ const Login = () => {
               </div>
 
               <div className="text-sm">
-                <button
-                  type="button"
-                  onClick={() => navigate("/register")}
-                  className="font-medium text-blue-600"
-                >
-                  Create account? Register
-                </button>
+                <div className="font-medium ">
+                  Create account?{" "}
+                  <Link to="/register" className="font-medium text-blue-600 ">
+                    Register
+                  </Link>
+                </div>
               </div>
             </div>
             <div>
@@ -140,13 +141,11 @@ const Login = () => {
               </button>
             </div>
             <div className="text-sm mt-4">
-              <button
-                type="button"
-                onClick={() => navigate("/forgetPassword")}
-                className="font-medium text-blue-600"
-              >
-                Forgot password?
-              </button>
+              <Link to="/forgetPassword">
+                <div className="font-medium text-blue-600">
+                  Forgot password?
+                </div>
+              </Link>
             </div>
           </form>
         </div>

@@ -30,7 +30,8 @@ const showOpportunity = (req, res) => {
       if (err) {
         console.error("Error beginning transaction:", err);
         res.status(500).json({ error: "Internal Server Error" });
-        return connection.release();
+        connection.release();
+        return;
       }
 
       let query = `
@@ -60,9 +61,6 @@ const showOpportunity = (req, res) => {
       } else if (type) {
         filterConditions.push(`type LIKE '${type}'`);
       }
-      // if (type) {
-      //   filterConditions.push(`type LIKE '%${type}%'`);
-      // }
 
       if (LicenseType && Array.isArray(LicenseType)) {
         const LicenseTypeConditions = LicenseType.map(LicenseType => `License_type LIKE '${LicenseType}'`);
@@ -72,10 +70,6 @@ const showOpportunity = (req, res) => {
       } else if (LicenseType) {
         filterConditions.push(`License_type LIKE '${LicenseType}'`);
       }
-
-      // if (LicenseType) {
-      //   filterConditions.push(`License_type LIKE '${LicenseType}'`);
-      // }
 
       if (value) {
         filterConditions.push(`value LIKE '%${value}%'`);
@@ -94,21 +88,15 @@ const showOpportunity = (req, res) => {
         filterConditions.push(`status LIKE '${status}'`);
       }
 
-      // if (status) {
-      //   filterConditions.push(`status LIKE '%${status}%'`);
-      // }
-
       if (period) {
         filterConditions.push(`period LIKE '%${period}%'`);
       }
 
-      if (licenseFrom) {
-        // Include data where license_from is equal to or later than the provided licenseFrom
+      if (licenseFrom && licenseTo) {
+        filterConditions.push(`license_from >= '${licenseFrom}' AND license_to <= '${licenseTo}'`);
+      } else if (licenseFrom) {
         filterConditions.push(`license_from >= '${licenseFrom}'`);
-      }
-
-      if (licenseTo) {
-        // Include data where license_to is equal to or earlier than the provided licenseTo
+      } else if (licenseTo) {
         filterConditions.push(`license_to <= '${licenseTo}'`);
       }
 
@@ -166,7 +154,6 @@ const showOpportunity = (req, res) => {
               });
             }
             connection.release();
-           // console.log(results2[0] )
             res.status(200).json({ products: results, aggregates: results2[0] });
           });
         });
@@ -174,6 +161,7 @@ const showOpportunity = (req, res) => {
     });
   });
 };
+
 
 const showOneOpportunity = async (req, res) => {
   const dealerQuery = `
@@ -564,9 +552,6 @@ const updateDaysLeftInAlerts = () => {
 
 const sendAlert = async (req, res) => {
   const { customerEntity, type, licenseType } = req.query;
-  console.log("customerEntity:", customerEntity);
-  console.log("type:", type);
-  console.log("licenseType:", licenseType);
 
   let dealerQuery = `
     SELECT id, alert_entity, alert_description, license_to, alert_type, daysLeft, License_type, acknowledge, po_lost, reminder 
@@ -669,7 +654,7 @@ const sendPo = async (req, res) => {
 
   dealerQuery += ` ORDER BY daysLeft`;
 
-  console.log("Final Query:", dealerQuery);  // Add logging to debug the final query
+  //console.log("Final Query:", dealerQuery);  // Add logging to debug the final query
 
   pool.query(dealerQuery, (error, results) => {
     if (error) {

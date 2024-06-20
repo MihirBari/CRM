@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import Table from "./tableUser";
+import { IoMdAddCircle } from "react-icons/io";
 
 const Maiin = () => {
   const navigate = useNavigate();
@@ -17,24 +18,16 @@ const Maiin = () => {
           <h1 className="text-2xl font-semibold text-center">Users</h1>
         </div>
         <div style={{ float: "right" }}>
-          <button
-            style={{
-              backgroundColor: "blue",
-              color: "white",
-              padding: "8px 16px",
-              cursor: "pointer",
-              border: "none",
-              borderRadius: "4px",
-            }}
-            onClick={handleAddClick}
-          >
-            Add
-          </button>
+        <IoMdAddCircle
+        size={40}
+        onClick={handleAddClick}
+        />
         </div>
         <div style={{ marginTop: "70px" }}>
           <Table />
         </div>
       </div>
+      
     </>
   );
 };

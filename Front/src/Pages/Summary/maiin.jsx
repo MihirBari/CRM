@@ -4,6 +4,7 @@ import API_BASE_URL from "../../config";
 import FilterModal from "./FilterModal";
 import { CiFilter } from "react-icons/ci";
 import ExportTable from "./ExportTable";
+import { Loader } from "../loader";
 
 const Main = () => {
   const [filterModalIsOpen, setFilterModalIsOpen] = useState(false);
@@ -83,6 +84,7 @@ const Main = () => {
 
 
   return (
+    <>
 <div className="h-screen flex-1 p-7">
   <div>
     <h1 className="text-2xl font-semibold text-center">Summary</h1>
@@ -115,7 +117,7 @@ const Main = () => {
 
   <div>
     {loading ? (
-      <div>Loading...</div>
+      <Loader />
     ) : users.length === 0 ? (
       <div className="text-xl font text-center">Please add details.</div>
     ) : (
@@ -166,6 +168,8 @@ const Main = () => {
   </div>
 </div>
 
+
+ </>
   );  
 };
 

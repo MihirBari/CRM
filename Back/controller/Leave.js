@@ -71,7 +71,7 @@ const showApplicationLeave = (req, res) => {
     query += ` AND ${filterConditions.join(" AND ")}`;
   }
 
-  query += ` ORDER BY id DESC`;
+  query += `ORDER BY status DESC`;
 
   // Start a transaction
   pool.getConnection((err, connection) => {
@@ -183,7 +183,7 @@ const addApplicationLeave = (req, res) => {
           });
         }
 
-        console.log("Leave application added successfully:");
+        //console.log("Leave application added successfully:");
 
         const addDealer2 = `
           SELECT la.*, uu.email as sender
@@ -211,7 +211,7 @@ const addApplicationLeave = (req, res) => {
             });
           }
 
-          console.log("Fetched user email:", rows[0].sender);
+          //console.log("Fetched user email:", rows[0].sender);
 
           // Format the dates if they exist
           const fromDate = rows[0].fromDate ? new Date(rows[0].fromDate).toLocaleDateString("en-GB") : null;
@@ -231,12 +231,17 @@ const addApplicationLeave = (req, res) => {
           const mailOptions = {
             from: `"TechSa CRM" <${process.env.SMPT_MAIL}>`,
             to: `${process.env.SMPT_MAIL}`,
-            cc: "mihir.b@techsa.net",
+            cc: ["ravi.k@techsa.net", "sanjiv.s@techsa.net"],
             //replyTo: `${rows[0].sender}`, // Setting the actual sender's email in replyTo
             subject: `Leave Application Confirmation`,
             text: `Hi Sir,
 
-        I, ${rows[0].name} ${rows[0].surname}, am writing to request a leave from ${fromDate || 'N/A'} to ${toDate || 'N/A'} for ${rows[0].days}. ${rows[0].description}
+        I ${rows[0].name} ${rows[0].surname}, am writing to request a leave from 
+         Start Date : ${fromDate || 'N/A'} 
+         End Date   : ${toDate || 'N/A'} for 
+         Total Number of days : ${rows[0].days}.
+         Leave Type :  ${rows[0].duration}
+         Reason for Leave : ${rows[0].description}
 
 Regards,
 ${rows[0].name} ${rows[0].surname}
@@ -364,11 +369,15 @@ const editApplicationAdmin = (req, res) => {
         const mailOptions = {
           from: `"Techsa CRM" <${process.env.SMPT_MAIL}>`,
           to: `${process.env.SMPT_MAIL}`,
-          cc: "mihir.b@techsa.net",
+          cc: ["ravi.k@techsa.net", "sanjiv.s@techsa.net"],
           subject: `Leave Application Confirmation`,
           text: `Hi Sir,
-
-I, ${userName} ${userSurname}, am writing to request a leave from ${req.body.fromDate} to ${req.body.toDate} for ${req.body.days} days. ${rows[0].description}
+          
+          I ${rows[0].name} ${rows[0].surname}, am writing to request a leave from 
+         Start Date : ${fromDate || 'N/A'} 
+         End Date   : ${toDate || 'N/A'} for 
+         Total Number of days : ${rows[0].days}.
+         Reason for Leave : ${rows[0].description}
 
 Regards,
 ${userName} ${userSurname}`,
@@ -431,7 +440,6 @@ ${userName} ${userSurname}`,
     });
   });
 };
-
 
 module.exports = {
   showApplicationLeave,

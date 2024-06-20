@@ -20,7 +20,7 @@ const MobileDetail = ({ product }) => {
         `${API_BASE_URL}/api/Leave/showOneApplicationLeave/${id}`
       );
       setEditProduct(response.data);
-      console.log(response.data);
+      //console.log(response.data);
     } catch (error) {
       console.error("Error fetching product data for editing:", error);
     }
