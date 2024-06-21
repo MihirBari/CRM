@@ -25,6 +25,7 @@ const EditOpportunityModal = ({ isOpen, onClose }) => {
   const { id } = useParams();
   const [inputs, setInputs] = useState(initialInputs);
   const [nameOptions, setNameOptions] = useState([]);
+  const [typeOptions, setTypeOptions] = useState([]);
   const [err, setError] = useState(null);
 
   useEffect(() => {
@@ -35,7 +36,7 @@ const EditOpportunityModal = ({ isOpen, onClose }) => {
         );
         const orderData = response.data[0];
         console.log("Fetched Order Data:", orderData);
-
+  
         // Adjust the timezone offset and convert to yyyy-MM-dd format
         const formatDate = (dateString) => {
           if (!dateString) return "";
@@ -44,7 +45,18 @@ const EditOpportunityModal = ({ isOpen, onClose }) => {
           const adjustedDate = new Date(date.getTime() - timezoneOffset);
           return adjustedDate.toISOString().split("T")[0];
         };
-
+  
+        const fetchTypeOptions = async () => {
+          try {
+            const response = await axios.get(`${API_BASE_URL}/api/Opportunity/product`);
+            setTypeOptions(response.data);
+          } catch (error) {
+            console.error("Error fetching type options:", error);
+          }
+        };
+  
+        fetchTypeOptions(); // Call fetchTypeOptions to populate typeOptions
+  
         setInputs({
           customer_entity: orderData.customer_entity,
           name: orderData.name,
@@ -64,7 +76,7 @@ const EditOpportunityModal = ({ isOpen, onClose }) => {
         toast.error("Failed to fetch order details");
       }
     };
-
+  
     fetchOrder();
   }, [id]);
 
@@ -176,13 +188,7 @@ const EditOpportunityModal = ({ isOpen, onClose }) => {
                   )}
                 </div>
                 <div>
-                  {renderSelect("type", "Opportunity Type", [
-                    { value: "BigFix", name: "BigFix" },
-                    { value: "SolarWinds", name: "SolarWinds" },
-                    { value: "Services", name: "Services" },
-                    { value: "Tenable", name: "Tenable" },
-                    { value: "Armis", name: "Armis" },
-                  ])}
+                  {renderSelect("type", "Opportunity Type", typeOptions)}
                 </div>
                 <div>
                   {renderSelect("License_type", "License Type", [

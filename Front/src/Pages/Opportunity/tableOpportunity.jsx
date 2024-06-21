@@ -134,7 +134,7 @@ const TableOpportunity = () => {
         <span
           className="view-link"
           onClick={() => handleViewClick(row.id)}
-          style={{ cursor: "pointer", width: "100%", height: "100%" }}
+          style={{ cursor: "pointer", width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}
         >
           {row.id}
         </span>
@@ -290,9 +290,23 @@ const TableOpportunity = () => {
     setExportModalIsOpen(true);
   };
 
+  const handleSearch = (e) => {
+    const searchTerm = e.target.value.toLowerCase();
+    const filteredData = users.filter(user => 
+      user.customer_entity && user.customer_entity.toLowerCase().includes(searchTerm)
+    );
+    setFilteredUsers(filteredData);
+  };
+
   return (
     <div className="order">
       <div className="flex items-center">  
+      <input
+                type="text"
+                placeholder="Search"
+                onChange={handleSearch}
+                className="p-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500"
+            />
         <CiExport  
    size={40}
    style={{ marginLeft: "25px" }}

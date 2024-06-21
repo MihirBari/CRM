@@ -110,7 +110,7 @@ const Users = () => {
         <span
           className="view-link"
           onClick={() => handleViewClicked(row.id)}
-          style={{ cursor: "pointer", width: "100%", height: "100%" }}
+          style={{ cursor: "pointer", width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}
         >
           {row.id}
         </span>

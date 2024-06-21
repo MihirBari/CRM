@@ -12,7 +12,8 @@ const {   showContact,
   editCustomer,
   showCustomer,
     deleteContact,
-    deleteCustomer} = require("../controller/Contact");
+    deleteCustomer,
+    showCustomerOpportunity} = require("../controller/Contact");
 const router = express.Router();
 const { authenticateToken } = require('../utils/authenticateToken ');
 
@@ -31,5 +32,6 @@ router.get("/city", city);
 router.get("/designation", designation);
 router.get("/customerentity", customerentity);
 router.get("/name", name);
+router.get("/showCustomerOpportunity/:customer_entity", showCustomerOpportunity);
 
 module.exports = router;

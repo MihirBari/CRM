@@ -10,6 +10,7 @@ import EditContact from "./editContact";
 import FilterModal from "./filterModalContact";
 import { CiFilter } from "react-icons/ci";
 import { IoMdAddCircle } from "react-icons/io";
+import OpportunityDetails from "./opportunityDetails";
 
 const CustomerDetail = () => {
   const [addContactIsOpen, setAddContactIsOpen] = useState(false);
@@ -96,6 +97,7 @@ const CustomerDetail = () => {
   }, [customer_entity]);
 
   return (
+    <>
     <div className="h-screen flex-1 p-7">
       <div>
         <h1 className="text-2xl font-semibold text-center">{customer_entity}</h1>
@@ -209,7 +211,11 @@ const CustomerDetail = () => {
           Back
         </button>
       </Link>
+    <div>
+      <OpportunityDetails customer_entity={customer_entity} />
     </div>
+    </div>
+    </>
   );
 };
 

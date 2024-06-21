@@ -5,7 +5,8 @@ import API_BASE_URL from "../../config";
 import Select from "react-select";
 Modal.setAppElement("#root");
 const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
-  const [type, setType] = useState("");
+  const [type, setType] = useState([]);
+  const [selectedTypes, setSelectedTypes] = useState([]);
   const [LicenseType, setLicenseType] = useState("");
   const [status, setStatus] = useState([]);
   const [licenseFrom, setLicenseFrom] = useState("");
@@ -18,13 +19,29 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
   const [endDate, setEndDate] = useState(null);
   const [shouldApplyFilters, setShouldApplyFilters] = useState(false);
 
+  useEffect(() => {
+ 
+    const fetchTypeOptions = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/api/Opportunity/product`);
+        setType(response.data);
+      } catch (error) {
+        console.error("Error fetching type options:", error);
+      }
+    };
+
+    fetchTypeOptions();
+
+  }, []);
+
+
   const applyFilters = async () => {
     try {
       const response = await axios.get(
         `${API_BASE_URL}/api/Opportunity/showOpportunity`,
         {
           params: {
-            type,
+            type: selectedTypes,
             status,
             LicenseType,
             licenseFrom,
@@ -41,7 +58,7 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
       localStorage.setItem(
         "SummaryFilters",
         JSON.stringify({
-          type,
+          selectedTypes,
           status,
           LicenseType,
           licenseFrom,
@@ -61,7 +78,7 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
     const storedFilters = localStorage.getItem("SummaryFilters");
     if (storedFilters) {
       const {
-        type: storedType,
+        selectedTypes: storedSelectedTypes,
         status: storedStatus,
         LicenseType: storedLicenseType,
         licenseFrom: storedLicenseFrom,
@@ -72,7 +89,7 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
         endDate: storedEndDate,
       } = JSON.parse(storedFilters);
 
-      setType(storedType);
+      setSelectedTypes(storedSelectedTypes || []);
       setLicenseType(storedLicenseType);
       setStatus(storedStatus);
       setLicenseFrom(storedLicenseFrom);
@@ -94,7 +111,7 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
   }, [shouldApplyFilters]);
 
   const handleResetFilters = () => {
-    setType("");
+    setSelectedTypes([]);
     setStatus("");
     setLicenseType("");
     setLicenseFrom("");
@@ -106,14 +123,10 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
     resetFilters();
   };
 
-  const opportunityTypeOptions = [
-    { value: "BigFix", label: "BigFix" },
-    { value: "SolarWinds", label: "SolarWinds" },
-    { value: "Services", label: "Services" },
-    { value: "Tenable", label: "Tenable" },
-    { value: "Armis", label: "Armis" },
-  ];
-
+  const typeOptionsTransformed = type.map((entity) => ({
+    value: entity.name,
+    label: entity.name,
+  }));
   const opportunityStatusOptions = [
     { value: "Quotation Done", label: "Quotation Done" },
     { value: "Demo Done", label: "Demo Done" },
@@ -144,21 +157,17 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
     >
       <div className="filter-modal">
         <div className="flex flex-wrap">
-          <Select
+        <Select
             isMulti
-            options={opportunityTypeOptions}
-            value={opportunityTypeOptions.filter((option) =>
-              type.includes(option.value)
+            options={typeOptionsTransformed}
+            value={typeOptionsTransformed.filter((option) =>
+              selectedTypes.includes(option.value)
             )}
             onChange={(selectedOptions) =>
-              setType(
-                selectedOptions
-                  ? selectedOptions.map((option) => option.value)
-                  : []
-              )
+              setSelectedTypes(selectedOptions ? selectedOptions.map((option) => option.value) : [])
             }
             placeholder="Select Opportunity Type"
-            className="p-2 rounded w-full md:w-1/4 border border-gray-300 focus:outline-none focus:border-blue-500 ml-2 m-2"
+            className="p-2 w-full md:w-1/4 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2 m-2"
           />
 
           <Select

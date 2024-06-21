@@ -9,7 +9,9 @@ const {     showOpportunity,
     customerEntityAlert,
     PoLost,
     sendPo,
-    reminder} = require("../controller/opportunity");
+    reminder,
+    product
+  } = require("../controller/opportunity");
 const router = express.Router();
 const multer = require('multer');
 const upload = multer({
@@ -29,5 +31,6 @@ router.get("/sendAlert",sendAlert);
 router.get("/sendPo",sendPo);
 router.post("/reminder",reminder);
 router.get("/customerEntityAlert",customerEntityAlert);
+router.get("/product",product);
 router.delete("/deleteOpportunity", deleteOpportunity);
 module.exports = router; 

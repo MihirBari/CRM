@@ -99,6 +99,7 @@ const TableCustomer = () => {
       name: "ID",
       selector: (row) => row.id,
       sortable: true,
+      center: true,
     },
     {
       name: "Name Of Customer Entity",
@@ -109,46 +110,53 @@ const TableCustomer = () => {
         <span
           className="view-link"
           onClick={() => handleViewClick(row.customer_entity)}
-          style={{ cursor: "pointer", width: "100%", height: "100%" }}
+          style={{ cursor: "pointer", width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "flex-start" }}
         >
           {row.customer_entity}
         </span>
       ),
+      center: true,
     },
     {
       name: "E-Mail",
       selector: (row) => row.email,
       sortable: true,
       width: "250px",
+    
     },
     {
       name: "Address",
       selector: (row) => row.address,
       sortable: true,
       width: "250px",
+      center: true,
     },
     {
       name: "City",
       selector: (row) => row.city,
       sortable: true,
       width: "250px",
+      center: true,
     },
     {
       name: "State",
       selector: (row) => row.state,
       sortable: true,
       width: "250px",
+      center: true,
     },
     {
       name: "Website",
       selector: (row) => row.website,
       sortable: true,
       width: "250px",
+      center: true,
     },
     {
       name: "Edit",
       cell: (row) => <MdEdit onClick={() => handleEditClick(row)}>Edit</MdEdit>,
       button: true,
+      center: true,
     },
     {
       name: "Delete",
@@ -156,13 +164,16 @@ const TableCustomer = () => {
         <MdDelete onClick={() => handleDeleteClick(row)}>Delete</MdDelete>
       ),
       button: true,
+      center: true,
     },
     {
       name: "View",
       cell: (row) => <FaEye onClick={() => handleViewClicked(row)} />,
       button: true,
+      center: true,
     },
   ];
+
 
   const CustomHeader = ({ column }) => (
     <div title={column.name} style={{ whiteSpace: "normal" }}>
@@ -253,12 +264,26 @@ const TableCustomer = () => {
     setExportModalIsOpen(true);
   };
 
+  const handleSearch = (e) => {
+    const searchTerm = e.target.value.toLowerCase();
+    const filteredData = users.filter(user => 
+      user.customer_entity && user.customer_entity.toLowerCase().includes(searchTerm)
+    );
+    setFilteredUsers(filteredData);
+  };
+
   return (
     <div className="order">
       <div className="flex items-center">
         <div
           style={{ display: "flex", alignItems: "center", marginLeft: "10px" }}
         >
+          <input
+                type="text"
+                placeholder="Search"
+                onChange={handleSearch}
+                className="p-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500"
+            />
           <CiExport
             size={40}
             style={{ marginLeft: "25px" }}

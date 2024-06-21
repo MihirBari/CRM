@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import Logout from "../Logout";
 import { AuthContext } from "../../context/AuthContext";
 import {
-  FaBars,
+  
   FaUser,
   FaChartLine,
   FaCog,
@@ -21,7 +21,7 @@ const SideNavBar = () => {
   const { currentUser } = useContext(AuthContext);
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
-  const location = useLocation(); // To get the current path
+  const location = useLocation();
 
   const Menus = [
     { title: "User", icon: FaUser, link: "/user" },
@@ -57,11 +57,20 @@ const SideNavBar = () => {
     );
   }
 
+  const handleMouseEnter = () => {
+    setOpen(true);
+  };
+
+  const handleMouseLeave = () => {
+    setOpen(false);
+  };
+
   return (
-    <div className="sidenav-container">
-      <div className="hamburger" onClick={() => setOpen(!open)}>
-        <FaBars color="black" />
-      </div>
+    <div
+      className="sidenav-container"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
       <div className={`sidenav ${open ? "open" : ""}`}>
         <img
           src={require("../../assets/control.png")}

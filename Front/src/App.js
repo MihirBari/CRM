@@ -17,7 +17,7 @@ import EditSeller from './Pages/Leave/editSeller.jsx';
 import AddCustomer from './Pages/Contact/addCustomer.jsx';
 import EditCustomer from './Pages/Contact/editCustomer.jsx';
 import CustomerDetail from './Pages/Contact/CustomerDetail.jsx';
-import AddOpportunity from './Pages/Opportunity/addOpportunity.jsx';
+import AddOpportunity from './Pages/Opportunity/AddOpportunity1.jsx';
 import Opportunity from './Pages/Opportunity/Opportunity.jsx';
 import EditOpportunity from './Pages/Opportunity/editOpportunity.jsx';
 import Alert from './Pages/Alert/Alert.jsx';

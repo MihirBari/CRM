@@ -242,10 +242,7 @@ const addOpportunity = async (req, res) => {
     pdf
   } = req.body;
 
-  // Encrypt sensitive fields
-  const encryptedCustomerEntity = encrypt(customer_entity);
-  const encryptedType = encrypt(type);
-  const encryptedValue = encrypt(value.toString());
+
 
   // Set default values for license_from and license_to if they are not provided
   const licenseFrom = license_from || null;
@@ -263,12 +260,12 @@ const addOpportunity = async (req, res) => {
   }
 
   const values = [
-    encryptedCustomerEntity,
+    customer_entity,
     name,
     description,
-    encryptedType,
+    type,
     License_type,
-    encryptedValue,
+    value,
     closure_time,
     status,
     period,
@@ -742,6 +739,26 @@ const customerEntityAlert = async (req, res) => {
   });
 };
 
+const product = (req, res) => {
+  const dealerQuery = `SELECT DISTINCT(type) AS name FROM opportunity`;
+
+  pool.query(dealerQuery, (error, results) => {
+    if (error) {
+      console.error("Error executing query:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+
+    // Map results to include an id field
+    const types = results.map((row, index) => ({
+      id: index,
+      name: row.name
+    }));
+
+    res.status(200).json(types);
+  });
+};
+
 module.exports = {
   showOpportunity,
   showOneOpportunity,
@@ -754,5 +771,6 @@ module.exports = {
   customerEntityAlert,
   PoLost,
   sendPo,
-  reminder
+  reminder,
+  product
 };

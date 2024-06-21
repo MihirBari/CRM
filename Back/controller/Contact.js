@@ -437,6 +437,71 @@ const name = async (req, res) => {
   });
 };
 
+const showCustomerOpportunity = (req, res) => {
+  const { customer_entity } = req.params;
+
+  pool.getConnection((err, connection) => {
+    if (err) {
+      console.error("Error getting database connection:", err);
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+
+    connection.beginTransaction((err) => {
+      if (err) {
+        console.error("Error beginning transaction:", err);
+        connection.release();
+        return res.status(500).json({ error: "Internal Server Error" });
+      }
+
+      const query = `
+        SELECT id, customer_entity, name, description, type, period, value, closure_time, status, license_from, license_to, License_type
+        FROM opportunity 
+        WHERE customer_entity = ?
+      `;
+
+      const query2 = `
+        SELECT SUM(value) as TotalValue, COUNT(License_type) as TotalLicenseType, COUNT(type) as TotalType
+        FROM opportunity
+        WHERE customer_entity = ?
+      `;
+
+      connection.query(query, [customer_entity], (error, results) => {
+        if (error) {
+          console.error("Error executing first query:", error);
+          return connection.rollback(() => {
+            res.status(500).json({ error: "Internal Server Error" });
+            connection.release();
+          });
+        }
+
+        connection.query(query2, [customer_entity], (error2, results2) => {
+          if (error2) {
+            console.error("Error executing second query:", error2);
+            return connection.rollback(() => {
+              res.status(500).json({ error: "Internal Server Error" });
+              connection.release();
+            });
+          }
+
+          connection.commit((err) => {
+            if (err) {
+              console.error("Error committing transaction:", err);
+              return connection.rollback(() => {
+                res.status(500).json({ error: "Internal Server Error" });
+                connection.release();
+              });
+            }
+
+            connection.release();
+            res.status(200).json({ products: results, aggregates: results2[0] });
+          });
+        });
+      });
+    });
+  });
+};
+
+
 module.exports = {
   showContact,
   showOneContact,
@@ -452,4 +517,5 @@ module.exports = {
   showCustomer,
   deleteCustomer,
   showOneCustomer,
+  showCustomerOpportunity
 };

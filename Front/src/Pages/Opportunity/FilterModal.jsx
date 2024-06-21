@@ -8,18 +8,17 @@ Modal.setAppElement("#root");
 
 const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
   const [customerEntities, setCustomerEntities] = useState([]);
-  const [customerEntitiess, setCustomerEntitiess] = useState([]);
+  const [allCustomerEntities, setAllCustomerEntities] = useState([]);
   const [type, setType] = useState([]);
-  const [LicenseType, setLicenseType] = useState([]); // Initialize as an array
+  const [selectedTypes, setSelectedTypes] = useState([]);
+  const [licenseType, setLicenseType] = useState([]);
   const [value, setValue] = useState("");
   const [status, setStatus] = useState([]);
   const [closureTime, setClosureTime] = useState("");
   const [licenseFrom, setLicenseFrom] = useState("");
   const [licenseTo, setLicenseTo] = useState("");
   const [dateFilterType, setDateFilterType] = useState("");
-  const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [shouldApplyFilters, setShouldApplyFilters] = useState(false);
@@ -27,57 +26,62 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
   useEffect(() => {
     const controller = new AbortController();
     const signal = controller.signal;
+    
     const fetchCustomerEntities = async () => {
       try {
-        const response = await axios.get(
-          `${API_BASE_URL}/api/Contact/customerentity`,
-          {
-            signal: signal, // Pass the signal to the request
-          }
-        );
-        setCustomerEntitiess(response.data);
+        const response = await axios.get(`${API_BASE_URL}/api/Contact/customerentity`, { signal });
+        setAllCustomerEntities(response.data);
       } catch (err) {
         if (axios.isCancel(err)) {
           console.log("Request canceled", err.message);
         } else {
-          console.error("Error fetching orders:", err);
+          console.error("Error fetching customer entities:", err);
         }
       }
     };
+
+    const fetchTypeOptions = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/api/Opportunity/product`);
+        setType(response.data);
+      } catch (error) {
+        console.error("Error fetching type options:", error);
+      }
+    };
+
     fetchCustomerEntities();
+    fetchTypeOptions();
+
     return () => {
-      controller.abort(); // Cancel the request if the component unmounts
+      controller.abort();
     };
   }, []);
 
   const applyFilters = async () => {
     try {
-      const response = await axios.get(
-        `${API_BASE_URL}/api/Opportunity/showOpportunity`,
-        {
-          params: {
-            customerEntities,
-            type,
-            LicenseType,
-            value,
-            status,
-            closureTime,
-            licenseFrom,
-            licenseTo,
-            dateFilterType,
-            selectedDate: dateFilterType !== "between" ? selectedDate : null,
-            startDate: dateFilterType === "between" ? startDate : null,
-            endDate: dateFilterType === "between" ? endDate : null,
-          },
-        }
-      );
+      const response = await axios.get(`${API_BASE_URL}/api/Opportunity/showOpportunity`, {
+        params: {
+          customerEntities,
+          licenseType,
+          type: selectedTypes,
+          value,
+          status,
+          closureTime,
+          licenseFrom,
+          licenseTo,
+          dateFilterType,
+          selectedDate: dateFilterType !== "between" ? selectedDate : null,
+          startDate: dateFilterType === "between" ? startDate : null,
+          endDate: dateFilterType === "between" ? endDate : null,
+        },
+      });
       onApplyFilters(response.data.products);
       localStorage.setItem(
         "OrderFilters",
         JSON.stringify({
           customerEntities,
-          type,
-          LicenseType,
+          selectedTypes,
+          licenseType,
           value,
           status,
           closureTime,
@@ -99,8 +103,8 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
     if (storedFilters) {
       const {
         customerEntities: storedCustomerEntities,
-        type: storedType,
-        LicenseType: storedLicenseType,
+        selectedTypes: storedSelectedTypes,
+        licenseType: storedLicenseType,
         value: storedValue,
         status: storedStatus,
         closureTime: storedClosureTime,
@@ -113,7 +117,7 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
       } = JSON.parse(storedFilters);
 
       setCustomerEntities(storedCustomerEntities || []);
-      setType(storedType || []);
+      setSelectedTypes(storedSelectedTypes || []);
       setLicenseType(storedLicenseType || []);
       setValue(storedValue || "");
       setStatus(storedStatus || []);
@@ -121,9 +125,7 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
       setLicenseFrom(storedLicenseFrom || "");
       setLicenseTo(storedLicenseTo || "");
       setDateFilterType(storedDateFilterType || "");
-      setSelectedDate(
-        storedSelectedDate || new Date().toISOString().split("T")[0]
-      );
+      setSelectedDate(storedSelectedDate || new Date().toISOString().split("T")[0]);
       setStartDate(storedStartDate || null);
       setEndDate(storedEndDate || null);
 
@@ -140,7 +142,7 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
 
   const handleResetFilters = () => {
     setCustomerEntities([]);
-    setType([]);
+    setSelectedTypes([]);
     setLicenseType([]);
     setValue("");
     setStatus([]);
@@ -154,18 +156,15 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
     resetFilters();
   };
 
-  const customerEntityOptions = customerEntitiess.map((entity) => ({
+  const customerEntityOptions = allCustomerEntities.map((entity) => ({
     value: entity.customer_entity,
     label: entity.customer_entity,
   }));
 
-  const opportunityTypeOptions = [
-    { value: "BigFix", label: "BigFix" },
-    { value: "SolarWinds", label: "SolarWinds" },
-    { value: "Services", label: "Services" },
-    { value: "Tenable", label: "Tenable" },
-    { value: "Armis", label: "Armis" },
-  ];
+  const typeOptionsTransformed = type.map((entity) => ({
+    value: entity.name,
+    label: entity.name,
+  }));
 
   const opportunityStatusOptions = [
     { value: "Quotation Done", label: "Quotation Done" },
@@ -176,7 +175,7 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
     { value: "Lost", label: "Lost" },
   ];
 
-  const LicenseTypeOptions = [
+  const licenseTypeOptions = [
     { value: "New", label: "New" },
     { value: "Renewal", label: "Renewal" },
   ];
@@ -204,11 +203,7 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
               customerEntities.includes(option.value)
             )}
             onChange={(selectedOptions) =>
-              setCustomerEntities(
-                selectedOptions
-                  ? selectedOptions.map((option) => option.value)
-                  : []
-              )
+              setCustomerEntities(selectedOptions ? selectedOptions.map((option) => option.value) : [])
             }
             placeholder="Select Customer Entity"
             className="p-2 w-full md:w-1/4 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2 m-2"
@@ -216,16 +211,12 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
 
           <Select
             isMulti
-            options={opportunityTypeOptions}
-            value={opportunityTypeOptions.filter((option) =>
-              type.includes(option.value)
+            options={typeOptionsTransformed}
+            value={typeOptionsTransformed.filter((option) =>
+              selectedTypes.includes(option.value)
             )}
             onChange={(selectedOptions) =>
-              setType(
-                selectedOptions
-                  ? selectedOptions.map((option) => option.value)
-                  : []
-              )
+              setSelectedTypes(selectedOptions ? selectedOptions.map((option) => option.value) : [])
             }
             placeholder="Select Opportunity Type"
             className="p-2 w-full md:w-1/4 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2 m-2"
@@ -233,16 +224,12 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
 
           <Select
             isMulti
-            options={LicenseTypeOptions}
-            value={LicenseTypeOptions.filter((option) =>
-              LicenseType.includes(option.value)
+            options={licenseTypeOptions}
+            value={licenseTypeOptions.filter((option) =>
+              licenseType.includes(option.value)
             )}
             onChange={(selectedOptions) =>
-              setLicenseType(
-                selectedOptions
-                  ? selectedOptions.map((option) => option.value)
-                  : []
-              )
+              setLicenseType(selectedOptions ? selectedOptions.map((option) => option.value) : [])
             }
             placeholder="Select License Type"
             className="p-2 w-full md:w-1/4 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2 m-2"
@@ -263,11 +250,7 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
               status.includes(option.value)
             )}
             onChange={(selectedOptions) =>
-              setStatus(
-                selectedOptions
-                  ? selectedOptions.map((option) => option.value)
-                  : []
-              )
+              setStatus(selectedOptions ? selectedOptions.map((option) => option.value) : [])
             }
             placeholder="Select Opportunity Status"
             className="p-2 w-full md:w-1/4 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2 m-2"
@@ -301,7 +284,7 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
           </div>
         </div>
 
-        <div className="mt-2" >
+        <div className="mt-2">
           <button
             onClick={() => {
               applyFilters();

@@ -4,7 +4,6 @@ import SideNavBar from '../Sidebar/Navbar';
 import ExpenseDetails from './ExpenseDetails';
 import axios from 'axios';
 import API_BASE_URL from "../../config";
-import { Footer } from '../Footer';
 
 const ViewCustomer = () => {
   const { id } = useParams(); 
@@ -37,9 +36,7 @@ const ViewCustomer = () => {
           {product && <ExpenseDetails product={product} />}
         </div>
       </div>
-      <div>
- <Footer />
-  </div>
+
     </>
   );
 };
