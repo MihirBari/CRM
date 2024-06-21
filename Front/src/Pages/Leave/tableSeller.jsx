@@ -59,7 +59,7 @@ const Users = () => {
 
   const handleDeleteConfirmation = (itemId) => {
     axios
-      .delete(`${API_BASE_URL}/api/dealer/delete`, { data: { id: itemId } })
+      .delete(`${API_BASE_URL}/api/Leave/deleteApplication`, { data: { id: itemId } })
       .then((response) => {
         console.log("Delete successful:", response.data);
         toast.success("Deleted Successfully");

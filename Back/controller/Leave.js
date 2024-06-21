@@ -231,7 +231,7 @@ const addApplicationLeave = (req, res) => {
           const mailOptions = {
             from: `"TechSa CRM" <${process.env.SMPT_MAIL}>`,
             to: `${process.env.SMPT_MAIL}`,
-            cc: ["ravi.k@techsa.net", "sanjiv.s@techsa.net"],
+           // cc: ["ravi.k@techsa.net", "sanjiv.s@techsa.net"],
             //replyTo: `${rows[0].sender}`, // Setting the actual sender's email in replyTo
             subject: `Leave Application Confirmation`,
             text: `Hi Sir,
@@ -369,7 +369,7 @@ const editApplicationAdmin = (req, res) => {
         const mailOptions = {
           from: `"Techsa CRM" <${process.env.SMPT_MAIL}>`,
           to: `${process.env.SMPT_MAIL}`,
-          cc: ["ravi.k@techsa.net", "sanjiv.s@techsa.net"],
+         // cc: ["ravi.k@techsa.net", "sanjiv.s@techsa.net"],
           subject: `Leave Application Confirmation`,
           text: `Hi Sir,
           
@@ -441,9 +441,26 @@ ${userName} ${userSurname}`,
   });
 };
 
+const deleteApplication = async (req, res) => {
+  const query = `DELETE from leaveapplication where id =?`
+   
+  const value = [req.body.id]
+ 
+  pool.query(query,value, (error, results) => {
+    if (error) {
+      console.error('Error executing query:', error);
+      return;
+    }
+  
+    console.log('Deleted', results);
+    res.json(results)
+  });
+}
+
 module.exports = {
   showApplicationLeave,
   addApplicationLeave,
   editApplicationAdmin,
   showOneApplicationLeave,
+  deleteApplication
 };

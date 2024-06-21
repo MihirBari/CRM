@@ -2,13 +2,20 @@ import React, { useContext, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import Logout from "../Logout";
 import { AuthContext } from "../../context/AuthContext";
-import { FaBars, FaUser, FaChartLine, FaCog, FaFileAlt, FaPlaneDeparture, FaCalendarAlt } from "react-icons/fa"; 
-import './SideNavBar.css';
+import {
+  FaBars,
+  FaUser,
+  FaChartLine,
+  FaCog,
+  FaFileAlt,
+  FaPlaneDeparture,
+  FaCalendarAlt,
+} from "react-icons/fa";
+import "./SideNavBar.css";
 import { CgProfile } from "react-icons/cg";
 import { RiCustomerService2Line } from "react-icons/ri";
-import { GoAlert } from "react-icons/go"
-import { FaPeopleGroup } from "react-icons/fa6";;
-
+import { GoAlert } from "react-icons/go";
+import { FaPeopleGroup } from "react-icons/fa6";
 
 const SideNavBar = () => {
   const { currentUser } = useContext(AuthContext);
@@ -43,7 +50,10 @@ const SideNavBar = () => {
     );
   } else {
     filteredMenus = Menus.filter(
-      (menu) => menu.title === "Leave" || menu.title === "Calendar" || menu.title === "Profile"
+      (menu) =>
+        menu.title === "Leave" ||
+        menu.title === "Calendar" ||
+        menu.title === "Profile"
     );
   }
 
@@ -60,27 +70,35 @@ const SideNavBar = () => {
           onClick={() => setOpen(!open)}
           alt=""
         />
-        <div className="flex gap-x-4 items-center">
+        <div className="flex flex-col items-center gap-y-4">
           <img
             src={require("../../assets/techsa.png")}
-            className={`cursor-pointer duration-500 techsa-logo`}
+            className="cursor-pointer duration-500 techsa-logo"
             alt=""
           />
           <h1
-            className={`text-white origin-left font-medium text-xl duration-200 ${!open && "scale-0"}`}
+            className={`text-white origin-left font-medium text-xl duration-200 ${
+              !open && "scale-0"
+            }`}
           >
-            Dashboards
+            DASHBOARD
           </h1>
         </div>
         <ul className="pt-6">
           {filteredMenus.map((Menu, index) => (
-            <Link to={Menu.link} key={index} onClick={() => handleTabClick(index)}>
+            <Link
+              to={Menu.link}
+              key={index}
+              onClick={() => handleTabClick(index)}
+            >
               <li
                 className={`flex rounded-md p-2 cursor-pointer hover:bg-light-white text-white text-l items-center gap-x-6 
                 ${location.pathname === Menu.link ? "bg-light-white" : ""}`}
               >
-                <Menu.icon size={20} /> {/* Use the icon component */}
-                <span className={`${!open && "hidden"} origin-left duration-200`}>
+                <Menu.icon size={20} />
+                <span
+                  className={`${!open && "hidden"} origin-left duration-200`}
+                >
                   {Menu.title}
                 </span>
               </li>
@@ -88,9 +106,12 @@ const SideNavBar = () => {
           ))}
         </ul>
         <div className="flex rounded-md p-2 cursor-pointer hover:bg-light-white text-white text-l items-center gap-x-6">
-          <span className={`${!open && "hidden"} origin-left duration-200 flex items-center`}>
+          <span
+            className={`${
+              !open && "hidden"
+            } origin-left duration-200 flex items-center`}
+          >
             <Logout />
-            <span className="ml-6">Logout</span>
           </span>
         </div>
       </div>
