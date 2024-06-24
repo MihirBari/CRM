@@ -136,12 +136,12 @@ const Main = () => {
             <tbody>
               {Array.isArray(users) &&
                 filteredUsers.map((user) => (
-                  <tr style={{ textAlign: "center" }} key={user.id}>
+                  <tr key={user.id}>
                     <td className="border px-4 py-2">{user.customer_entity}</td>
                     <td className="border px-4 py-2">{user.type}</td>
                     <td className="border px-4 py-2">{user.License_type}</td>
                     <td className="border px-4 py-2">{user.status}</td>
-                    <td className="border px-4 py-2">{formatIndianNumber(user.value)}</td>
+                    <td style={{ textAlign: "center" }} className="border px-4 py-2">{formatIndianNumber(user.value)}</td>
                   </tr>
                 ))}
             </tbody>
