@@ -143,9 +143,17 @@ const TableOpportunity = () => {
     },
     {
       name: "Customer Entity",
-      selector: (row) => row.customer_entity,
+    
       sortable: true,
-      width: "150px",
+      cell: (row) => (
+        <span
+          className="view-link"
+          onClick={() => handleViewClick(row.id)}
+          style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "flex-start"}}
+        >
+          {row.customer_entity}
+        </span>
+      ),
     },
     {
       name: "Opportunity Type",
