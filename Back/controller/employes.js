@@ -9,13 +9,14 @@ const addEmployes = async (req, res) => {
   const { contacts } = req.body; // Assuming the structure matches what React sends
 
   const insertQuery = `
-      INSERT INTO employes (name, surname, designation, joining_date, last_date, status, DOB, personal_email)
+      INSERT INTO employes (id,name, surname, designation, joining_date, last_date, status, DOB, personal_email)
       VALUES ?
     `;
 
   const values = contacts.map((contact) => {
     // Check and replace empty dates with null
     return [
+      contact.id,
       contact.name,
       contact.surname,
       contact.designation,
@@ -128,6 +129,7 @@ const editEmployes = async (req, res) => {
   const updateDealer = `
     UPDATE employes
     SET
+    id = ?,
     name = ?,
     surname = ?,
     designation = ?,
@@ -140,6 +142,7 @@ const editEmployes = async (req, res) => {
       id = ?;`;
 
   const values = [
+    req.body.id,
     req.body.name,
     req.body.surname,
     req.body.designation,

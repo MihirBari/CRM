@@ -446,7 +446,7 @@ const RestDetail = async (req, res) => {
   const { name, surname } = req.body;
 
   const dealerQuery = `
-    SELECT e.designation, e.joining_date, e.DOB
+    SELECT e.designation, e.joining_date, e.DOB, u.holidays_taken	
     FROM employes e
     JOIN user u ON u.name = e.name AND u.surname = e.surname
     WHERE u.name = ? AND u.surname = ?

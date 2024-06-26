@@ -32,6 +32,7 @@ const AddEmployes = () => {
       contacts: [
         ...prev.contacts,
         {
+          id:"",
           name: "",
           surname: "",
           designation: "",
@@ -100,6 +101,17 @@ const AddEmployes = () => {
                     )}
                   </label>
                   <div className="grid grid-rows-3 gap-4">
+                  <div>
+                      <input
+                        type="number"
+                        name="id"
+                        required
+                        onChange={(e) => handleChange(e, index)}
+                        placeholder="Enter Employee ID"
+                        value={contact.id}
+                        className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm h-[40px]"
+                      />
+                    </div>
                     <div>
                       <input
                         type="text"

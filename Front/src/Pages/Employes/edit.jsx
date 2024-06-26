@@ -6,6 +6,7 @@ import { useNavigate, useParams } from "react-router-dom";
 
 const EditEmployes = () => {
   const initialInputs = {
+    id:"",
     name: "",
     surname: "",
     designation: "",
@@ -37,6 +38,7 @@ const EditEmployes = () => {
         const employeeData = response.data[0];
         if (employeeData) {
           setInputs({
+            id: employeeData.id || "",
             name: employeeData.name || "",
             surname: employeeData.surname || "",
             designation: employeeData.designation || "",
@@ -110,6 +112,7 @@ const EditEmployes = () => {
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
+            {renderInput("id", "ID", "Employee's ID")}
               {renderInput("name", "Name", "Employee's Name")}
               {renderInput("surname", "Surname", "Employee's Surname")}
               {renderInput("designation", "Designation", "Employee's Designation")}

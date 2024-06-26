@@ -64,6 +64,7 @@ const Main = () => {
               <p className="text-lg mb-2"><span className="font-bold">Designation:</span> {restDetails.designation}</p>
               <p className="text-lg mb-2"><span className="font-bold">Joining Date:</span> {formatDate(restDetails.joining_date)}</p>
               <p className="text-lg mb-2"><span className="font-bold">DOB:</span> {formatDate(restDetails.DOB)}</p>
+              <p className="text-lg mb-2"><span className="font-bold">Holidays :</span> {(restDetails.holidays_taken)} / 12</p>
             </>
           )}
         </div>
