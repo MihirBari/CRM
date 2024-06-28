@@ -6,10 +6,10 @@ import API_BASE_URL from "../../config";
 import { MdDelete, MdEdit } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { CiExport, CiFilter } from "react-icons/ci";
 import FilterModal from "./FilterModal";
 import ExportTable from "./ExportTable";
 import DeleteConfirmationDialog from "./DeleteConfirmationDialog.jsx";
+import { PiExportBold } from "react-icons/pi";
 
 const TableEmploye = () => {
   const [users, setUsers] = useState([]);
@@ -294,16 +294,13 @@ const TableEmploye = () => {
 
   return (
     <>
-      <div className="filter-container">
+    <div>
+      <div className="flex items-center">
         <ExportTable
           isOpen={exportModalIsOpen}
           onClose={handleExportModalClose}
           data={filteredUsers}
         />   
-        <CiExport
-          size={40}
-          onClick={handleExportButtonClick}
-        />
         <input
           type="file"
           onChange={handleFileChange}
@@ -316,6 +313,10 @@ const TableEmploye = () => {
         >
           Upload Excel
         </button>
+        <PiExportBold
+          size={40}
+          onClick={handleExportButtonClick}
+        />
       </div>
       <DataTable 
        className="dataTable"
@@ -347,6 +348,7 @@ const TableEmploye = () => {
         onClose={handleCloseDeleteConfirmation}
         onDelete={() => handleDeleteConfirmation(deleteItemId)}
       />
+      </div>
     </>
   );
 };

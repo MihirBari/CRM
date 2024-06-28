@@ -8,9 +8,10 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { FaEye } from "react-icons/fa";
 import ExportTable from "./ExportTable";
-import { CiExport, CiFilter } from "react-icons/ci";
+import { CiFilter } from "react-icons/ci";
 import FilterModal from "./FilterModal";
 import DeleteConfirmationDialog from "./DeleteConfirmationDialog";
+import { PiExportBold } from "react-icons/pi";
 
 const TableCustomer = () => {
   const [users, setUsers] = useState([]);
@@ -284,7 +285,7 @@ const TableCustomer = () => {
                 onChange={handleSearch}
                 className="p-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500"
             />
-          <CiExport
+          <PiExportBold
             size={40}
             style={{ marginLeft: "25px" }}
             onClick={handleExportClick}

@@ -15,7 +15,6 @@ const {   showContact,
     deleteCustomer,
     showCustomerOpportunity} = require("../controller/Contact");
 const router = express.Router();
-const { authenticateToken } = require('../utils/authenticateToken ');
 
 
 router.get("/showContact/:customer_entity" ,showContact);

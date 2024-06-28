@@ -39,7 +39,10 @@ const ExportTable = ({ data, isOpen, onClose }) => {
     if (formattedDate.getTime() === new Date("1970-01-01T00:00:00Z").getTime()) {
       return ""; // Handle case of default date (1970-01-01)
     }
-    return formattedDate.toLocaleDateString("en-GB"); // Adjust locale as per your requirement
+    const day = String(formattedDate.getDate()).padStart(2, '0');
+    const month = String(formattedDate.getMonth() + 1).padStart(2, '0');
+    const year = formattedDate.getFullYear();
+    return `${day}-${month}-${year}`;
   };
 
   const downloadPDF = () => {
@@ -65,15 +68,15 @@ const ExportTable = ({ data, isOpen, onClose }) => {
           zIndex: 9999,
         },
         content: {
-          height: "20%",
-          width: "90%%",
+          height: "30%",
+          width: "70%",
           margin: "auto",
         },
       }}
     >
       <h2>Export Options</h2>
       <label>
-        File Name:
+        File Name {" "}: {" "}
         <input
           type="text"
           style={{ border: "1px solid #000", padding: "5px", borderRadius: "5px" }}

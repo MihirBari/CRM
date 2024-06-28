@@ -3,7 +3,6 @@ import { Link, useLocation } from "react-router-dom";
 import Logout from "../Logout";
 import { AuthContext } from "../../context/AuthContext";
 import {
-  
   FaUser,
   FaChartLine,
   FaCog,
@@ -66,12 +65,15 @@ const SideNavBar = () => {
   };
 
   return (
-    <div
-      className="sidenav-container"
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
-      <div className={`sidenav ${open ? "open" : ""}`}>
+    <div className="sidenav-container">
+      <div className="hamburger" onClick={() => setOpen(!open)}>
+        &#9776;
+      </div>
+      <div
+        className={`sidenav ${open ? "open" : ""}`}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
         <img
           src={require("../../assets/control.png")}
           className={`absolute cursor-pointer -right-3 top-9 w-7 border-dark-purple
@@ -129,3 +131,4 @@ const SideNavBar = () => {
 };
 
 export default SideNavBar;
+

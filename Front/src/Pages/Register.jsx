@@ -2,7 +2,7 @@ import React, { useState, useContext } from 'react';
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { AuthContext } from "../context/AuthContext";
 import { toast } from 'react-toastify';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import img from "../assets/techsa.png"
 
 const Register = () => {
@@ -18,7 +18,7 @@ const Register = () => {
     });
     const [errors, setErrors] = useState({});
     const { register } = useContext(AuthContext);
-    const navigate = useNavigate();
+    
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -58,7 +58,7 @@ const Register = () => {
     return (
         <div className='min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8'>
             <div className="sm:mx-auto sm:w-full sm:max-w-md">
-            <img style={{height:"20%", width:"20%", marginLeft:"40%"}} src={img} alt="logo" />
+            <img style={{height:"30%", width:"30%", marginLeft:"40%"}} src={img} alt="logo" />
                 <h2 className='mt-6 text-center text-3xl font-extrabold text-gray-900'>
                     REGISTER YOUR ACCOUNT
                 </h2>

@@ -501,7 +501,6 @@ const showCustomerOpportunity = (req, res) => {
   });
 };
 
-
 module.exports = {
   showContact,
   showOneContact,

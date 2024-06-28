@@ -6,10 +6,11 @@ import API_BASE_URL from "../../config";
 import { MdDelete, MdEdit } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { CiExport, CiFilter } from "react-icons/ci";
+import {  CiFilter } from "react-icons/ci";
 import FilterModal from "./FilterModal";
 import ExportTable from "./ExportTable";
 import DeleteConfirmationDialog from "./DeleteConfirmationDialog.jsx";
+import { PiExportBold } from "react-icons/pi";
 
 const TableOpportunity = () => {
   const [users, setUsers] = useState([]);
@@ -27,7 +28,7 @@ const TableOpportunity = () => {
     value: "",
     closureTime: "",
     status: "",
-    period:"",
+    period: "",
     licenseFrom: "",
     licenseTo: "",
   });
@@ -70,8 +71,8 @@ const TableOpportunity = () => {
 
   useEffect(() => {
     const fetchOrders = async () => {
-      const controller = new AbortController(); 
-      const signal = controller.signal; 
+      const controller = new AbortController();
+      const signal = controller.signal;
       try {
         const response = await axios.get(
           `${API_BASE_URL}/api/Opportunity/showOpportunity`,
@@ -110,7 +111,9 @@ const TableOpportunity = () => {
 
   const formatDate = (date) => {
     const formattedDate = new Date(date);
-    if (formattedDate.getTime() === new Date("1970-01-01T00:00:00Z").getTime()) {
+    if (
+      formattedDate.getTime() === new Date("1970-01-01T00:00:00Z").getTime()
+    ) {
       return "";
     }
     return formattedDate.toLocaleString("en-Uk", {
@@ -134,7 +137,14 @@ const TableOpportunity = () => {
         <span
           className="view-link"
           onClick={() => handleViewClick(row.id)}
-          style={{ cursor: "pointer", width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "flex-start"}}
+          style={{
+            cursor: "pointer",
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "flex-start",
+          }}
         >
           {row.id}
         </span>
@@ -143,13 +153,19 @@ const TableOpportunity = () => {
     },
     {
       name: "Customer Entity",
-    
+
       sortable: true,
       cell: (row) => (
         <span
           className="view-link"
           onClick={() => handleViewClick(row.id)}
-          style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "flex-start"}}
+          style={{
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "flex-start",
+          }}
         >
           {row.customer_entity}
         </span>
@@ -286,7 +302,7 @@ const TableOpportunity = () => {
   const initialFilters = {
     customerEntities: "",
     type: "",
-    LicenseType:"",
+    LicenseType: "",
     value: "",
     closureTime: "",
     status: "",
@@ -300,26 +316,28 @@ const TableOpportunity = () => {
 
   const handleSearch = (e) => {
     const searchTerm = e.target.value.toLowerCase();
-    const filteredData = users.filter(user => 
-      user.customer_entity && user.customer_entity.toLowerCase().includes(searchTerm)
+    const filteredData = users.filter(
+      (user) =>
+        user.customer_entity &&
+        user.customer_entity.toLowerCase().includes(searchTerm)
     );
     setFilteredUsers(filteredData);
   };
 
   return (
     <div className="order">
-      <div className="flex items-center">  
-      <input
-                type="text"
-                placeholder="Search"
-                onChange={handleSearch}
-                className="p-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500"
-            />
-        <CiExport  
-   size={40}
-   style={{ marginLeft: "25px" }}
-   onClick={handleExportClick}
-/>
+      <div className="flex items-center">
+        <input
+          type="text"
+          placeholder="Search"
+          onChange={handleSearch}
+          className="p-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500"
+        />
+        <PiExportBold
+          size={40}
+          style={{ marginLeft: "25px" }}
+          onClick={handleExportClick}
+        />
         <ExportTable
           data={filteredUsers}
           isOpen={exportModalIsOpen}

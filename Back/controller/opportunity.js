@@ -395,6 +395,7 @@ const transporter = nodemailer.createTransport({
   host: process.env.SMPT_HOST,
   port: process.env.SMPT_PORT,
   service: process.env.SMPT_SERVICE,
+  secure: true, 
   auth: {
     user: process.env.SMPT_MAIL,
     pass: process.env.SMPT_PASSWORD,
@@ -423,30 +424,49 @@ const sendEmailAlert = (alertDetails) => {
 };
 
 const storeAlertInDatabase = (alertDetails) => {
-  
-//console.log(alertDetails)
-  const query = `
-    INSERT INTO alert (alert_entity, alert_description, license_to, alert_type, License_type, daysLeft, acknowledge, po_lost, reminder)
-    VALUES (?, ?, ?, ?, ?, ?, 'No', 'No', 'No')
-    `
+  const checkQuery = `
+    SELECT COUNT(*) AS count FROM alert 
+    WHERE alert_entity = ? AND license_to = ? AND alert_type = ?
+  `;
 
-  //console.log("Days Left:", alertDetails.daysLeft);
   pool.query(
-    query,
-    [
-      alertDetails.customer_entity,
-      alertDetails.description,
-      alertDetails.license_to,
-      alertDetails.type,
-      alertDetails.License_type,
-      alertDetails.daysLeft,
-    ],
+    checkQuery,
+    [alertDetails.customer_entity, alertDetails.license_to, alertDetails.type],
     (error, results) => {
       if (error) {
-        console.error("Error storing/updating alert in database:", error);
-      } else {
-        console.log("Alert stored/updated in database:", results.insertId);
+        console.error("Error checking for existing alert in database:", error);
+        return;
       }
+
+      const count = results[0].count;
+      if (count > 0) {
+        console.log("Alert already exists in database. Skipping insertion.");
+        return;
+      }
+
+      const insertQuery = `
+        INSERT INTO alert (alert_entity, alert_description, license_to, alert_type, License_type, daysLeft, acknowledge, po_lost, reminder)
+        VALUES (?, ?, ?, ?, ?, ?, 'No', 'No', 'No')
+      `;
+
+      pool.query(
+        insertQuery,
+        [
+          alertDetails.customer_entity,
+          alertDetails.description,
+          alertDetails.license_to,
+          alertDetails.type,
+          alertDetails.License_type,
+          alertDetails.daysLeft,
+        ],
+        (error, results) => {
+          if (error) {
+            console.error("Error storing/updating alert in database:", error);
+          } else {
+            console.log("Alert stored/updated in database:", results.insertId);
+          }
+        }
+      );
     }
   );
 };
@@ -465,39 +485,31 @@ const checkOpportunities = () => {
       return;
     }
 
-    results.forEach((opportunity) => {
-      const today = moment().tz('Asia/Kolkata').startOf('day');
-      const licenseTo = moment(opportunity.license_to).tz('Asia/Kolkata').startOf('day');
+    const today = moment().tz('Asia/Kolkata').startOf('day');
 
-      const daysBeforeAlert = [45, 30, 15];
+    results.forEach((opportunity) => {
+      const licenseTo = moment(opportunity.license_to).tz('Asia/Kolkata').startOf('day');
+      const daysLeft = licenseTo.diff(today, 'days');
       const formattedLicenseToDate = licenseTo.format('ddd MMM D YYYY');
       const formattedLicenseFromDate = moment(opportunity.license_from).tz('Asia/Kolkata').format('ddd MMM D YYYY');
 
-      daysBeforeAlert.forEach(days => {
-        const alertDate = moment(licenseTo).subtract(days, 'days');
+      if (daysLeft <= 45 && daysLeft > 0) {
+        const alertDetails = {
+          customer_entity: opportunity.customer_entity,
+          description: opportunity.description,
+          license_from: formattedLicenseFromDate,
+          license_to: formattedLicenseToDate,
+          type: opportunity.type,
+          License_type: opportunity.License_type,
+          daysLeft: daysLeft,
+          period: opportunity.period
+        };
 
-        if (alertDate.isSame(today, 'day')) {
-          const daysLeft = licenseTo.diff(today, 'days');
-
-          if (daysLeft === 45 || daysLeft === 30 || daysLeft === 15) {
-            const alertDetails = {
-              customer_entity: opportunity.customer_entity,
-              description: opportunity.description,
-              license_from: formattedLicenseFromDate,
-              license_to: formattedLicenseToDate,
-              type: opportunity.type,
-              License_type: opportunity.License_type,
-              daysLeft: daysLeft,
-              period: opportunity.period
-            };
-
-            // Store alert details in the database
-            storeAlertInDatabase(alertDetails);
-            //sendEmailAlert(alertDetails);
-            console.log(`Alert stored for opportunity ID ${opportunity.id}:`, alertDetails);
-          }
-        }
-      });
+        // Store alert details in the database
+        sendEmailAlert(alertDetails)
+        storeAlertInDatabase(alertDetails);
+        console.log(`Alert stored for opportunity ID ${opportunity.id}:`, alertDetails);
+      }
     });
 
     console.log(`Task completed`);
@@ -611,7 +623,7 @@ const sendAlert = async (req, res) => {
 };
 
 // Schedule the task to run daily at 1:10 PM IST
-cron.schedule('30 11 * * *', () => {
+cron.schedule('00 11 * * *', () => {
   console.log(`[${moment().tz('Asia/Kolkata').format()}] Scheduled task triggered`);
   checkOpportunities();
   updateDaysLeftInAlerts();
@@ -663,7 +675,6 @@ const sendPo = async (req, res) => {
     res.status(200).json({ products: results });
   });
 };
-
 
 const acknowledge = async (req, res) => {
   const { id } = req.body;

@@ -46,15 +46,15 @@ const ExportTable = ({ data, isOpen, onRequestClose }) => {
           zIndex: 9999,
         },
         content: {
-          height: "20%",
-          width: "90%%",
+          height: "30%",
+          width: "70%",
           margin: "auto",
         },
       }}
     >
       <h2>Export Options</h2>
       <label>
-        File Name:
+      File Name {" "}: {" "}
         <input
           type="text"
           style={{ border: "1px solid #000", padding: "5px", borderRadius: "5px" }}
