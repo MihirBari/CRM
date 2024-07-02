@@ -144,7 +144,7 @@ const showContact = (req, res) => {
 
 const showCustomer = (req, res) => {
   const { customerEntity, city } = req.query;
-  console.log(customerEntity)
+  //console.log(customerEntity)
   pool.getConnection((err, connection) => {
     if (err) {
       console.error("Error getting database connection:", err);

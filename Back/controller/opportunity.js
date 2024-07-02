@@ -407,7 +407,7 @@ const sendEmailAlert = (alertDetails) => {
   const mailOptions = {
     from: process.env.SMTP_MAIL,
     to: "madhu.i@techsa.net",
-    cc: ["himani.g@techsa.net", "sanjiv.s@techsa.net"],
+    cc: "himani.g@techsa.net, sanjiv.s@techsa.net",
     subject: "Opportunity Expiry Alert",
     text: `
     An opportunity has arisen for ${alertDetails.customer_entity} to acquire ${alertDetails.description} in ${alertDetails.type} for the ${alertDetails.License_type} license type. These licenses are set to expire in ${alertDetails.daysLeft} days, on ${alertDetails.license_to}.
@@ -506,7 +506,7 @@ const checkOpportunities = () => {
         };
 
         // Store alert details in the database
-        sendEmailAlert(alertDetails)
+       // sendEmailAlert(alertDetails)
         storeAlertInDatabase(alertDetails);
         console.log(`Alert stored for opportunity ID ${opportunity.id}:`, alertDetails);
       }
@@ -623,7 +623,7 @@ const sendAlert = async (req, res) => {
 };
 
 // Schedule the task to run daily at 1:10 PM IST
-cron.schedule('00 11 * * *', () => {
+cron.schedule('30 11 * * *', () => {
   console.log(`[${moment().tz('Asia/Kolkata').format()}] Scheduled task triggered`);
   checkOpportunities();
   updateDaysLeftInAlerts();

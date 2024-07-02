@@ -30,6 +30,13 @@ const AddCustomer = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     // Check if required fields are filled
+    const requiredFields = ["customer_entity", "address", "city", "state", "email"]
+    for (const field of requiredFields) {
+      if (!inputs[field]) {
+        toast.error(`Please fill in the ${field.replace(/_/g, ' ')} field.`);
+        return;
+      }
+    }
 
     try {
       // Send data to backend

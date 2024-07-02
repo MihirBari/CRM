@@ -9,6 +9,7 @@ import { Link, useParams } from "react-router-dom";
 import EditContact from "../Contact/editContact";
 import FilterModal from "../Contact/filterModalContact";
 import { CiFilter } from "react-icons/ci";
+import OpportunityDetails from "../Contact/opportunityDetails";
 
 const CustomerDetailVeiw = () => {
   const [addContactIsOpen, setAddContactIsOpen] = useState(false);
@@ -95,6 +96,7 @@ const CustomerDetailVeiw = () => {
   }, [customer_entity]);
 
   return (
+    <>
     <div className="h-screen flex-1 p-7">
       <div>
         <h1 className="text-2xl font-semibold text-center">{customer_entity}</h1>
@@ -200,7 +202,7 @@ const CustomerDetailVeiw = () => {
                 />
               </div>
             </div>
-          ))
+          ))   
         )}
       </div>
       <Link to={`/Opportunity/view/${id}`}>
@@ -217,7 +219,11 @@ const CustomerDetailVeiw = () => {
           Back
         </button>
       </Link>
+      <div>
+          <OpportunityDetails customer_entity={customer_entity} />
+        </div>
     </div>
+    </>
   );
 };
 
