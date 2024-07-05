@@ -229,9 +229,9 @@ const addApplicationLeave = (req, res) => {
           });
 
           const mailOptions = {
-            from: `"TechSa CRM" <${process.env.SMPT_MAIL}>`,
+            from: `"Techsa CRM" <${process.env.SMPT_MAIL}>`,
             to: `${process.env.SMPT_MAIL}`,
-           // cc: ["ravi.k@techsa.net", "sanjiv.s@techsa.net"],
+           cc: "ravi.k@techsa.net, sanjiv.s@techsa.net",
             //replyTo: `${rows[0].sender}`, // Setting the actual sender's email in replyTo
             subject: `Leave Application Confirmation`,
             text: `Hi Sir,
@@ -369,7 +369,7 @@ const editApplicationAdmin = (req, res) => {
         const mailOptions = {
           from: `"Techsa CRM" <${process.env.SMPT_MAIL}>`,
           to: `${process.env.SMPT_MAIL}`,
-         // cc: ["ravi.k@techsa.net", "sanjiv.s@techsa.net"],
+          cc: "ravi.k@techsa.net , sanjiv.s@techsa.net",
           subject: `Leave Application Confirmation`,
           text: `Hi Sir,
           

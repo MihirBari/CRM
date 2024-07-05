@@ -9,21 +9,24 @@ const addEmployes = async (req, res) => {
   const { contacts } = req.body; // Assuming the structure matches what React sends
 
   const insertQuery = `
-      INSERT INTO employes (id,name, surname, designation, joining_date, last_date, status, DOB, personal_email)
+      INSERT INTO employes (id, name, surname, designation, joining_date, last_date, status, DOB, personal_email)
       VALUES ?
     `;
 
   const values = contacts.map((contact) => {
     // Check and replace empty dates with null
+    const lastDate = contact.last_date === "" ? null : contact.last_date;
+    const status = lastDate ? "Inactive" : "Active";
+    
     return [
       contact.id,
       contact.name,
       contact.surname,
       contact.designation,
-      contact.joining_date || null,
-      contact.last_date || null,
-      contact.status,
-      contact.DOB || null,
+      contact.joining_date === "" ? null : contact.joining_date,
+      lastDate,
+      status,
+      contact.DOB === "" ? null : contact.DOB,
       contact.personal_email,
     ];
   });
@@ -46,6 +49,7 @@ const addEmployes = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 
 const allEmployes = async (req, res) => {
   const { name, surname } = req.query;
@@ -126,6 +130,14 @@ const allEmployes = async (req, res) => {
 };
 
 const editEmployes = async (req, res) => {
+  // Set status based on the presence of last_date
+  let status;
+  if (req.body.last_date !== "") {
+    status = "Inactive";
+  } else {
+    status = "Active";
+  }
+
   const updateDealer = `
     UPDATE employes
     SET
@@ -148,7 +160,7 @@ const editEmployes = async (req, res) => {
     req.body.designation,
     req.body.joining_date === "" ? null : req.body.joining_date,
     req.body.last_date === "" ? null : req.body.last_date,
-    req.body.status,
+    status,
     req.body.DOB === "" ? null : req.body.DOB,
     req.body.personal_email,
     req.params.id,
@@ -164,6 +176,7 @@ const editEmployes = async (req, res) => {
     res.json(results);
   });
 };
+
 
 const viewEmployes = async (req, res) => {
   const dealerQuery = `
@@ -253,31 +266,38 @@ const importExcel = async (req, res) => {
     // Convert Excel data to JSON format
     const excelData = XLSX.utils.sheet_to_json(sheet);
 
-    // Map and convert dates from dd-mm-yyyy to yyyy-mm-dd format
-    const dataToInsert = excelData.map((row) => [
-      row.id,
-      row.name,
-      row.surname,
-      row.designation,
-      formatDate(row.joining_date), // Convert date fields
-      formatDate(row.last_date),
-      row.status,
-      formatDate(row.DOB),
-      row.personal_email,
-    ]);
+    // Map and convert dates from dd-mm-yyyy to yyyy-mm-dd format and set status based on last_date
+    const dataToInsert = excelData.map((row) => {
+      const joiningDate = formatDate(row.joining_date);
+      const lastDate = formatDate(row.last_date);
+      const status = lastDate ? "Inactive" : "Active";
+      const dob = formatDate(row.DOB);
+
+      return [
+        row.id,
+        row.name,
+        row.surname,
+        row.designation,
+        joiningDate,
+        lastDate,
+        status,
+        dob,
+        row.personal_email,
+      ];
+    });
 
     // Function to format date from dd-mm-yyyy to yyyy-mm-dd
     function formatDate(dateString) {
       // Handle undefined or null gracefully
       if (!dateString) return null;
-    
+
       // Check if dateString is a number (Excel date serial number)
       if (typeof dateString === 'number' && !isNaN(dateString)) {
-        const date = new Date(Math.round((dateString - 25569)*86400*1000));
+        const date = new Date(Math.round((dateString - 25569) * 86400 * 1000));
         // Convert to yyyy-mm-dd format
-        return date.toISOString().slice(0,10);
+        return date.toISOString().slice(0, 10);
       }
-    
+
       // If dateString is already in expected format (dd-mm-yyyy), convert it
       if (typeof dateString === 'string') {
         const parts = dateString.split('-');
@@ -285,7 +305,7 @@ const importExcel = async (req, res) => {
           return `${parts[2]}-${parts[1]}-${parts[0]}`;
         }
       }
-    
+
       return null; // Handle other unexpected formats
     }
 
@@ -297,7 +317,7 @@ const importExcel = async (req, res) => {
       }
 
       connection.query(
-        "INSERT INTO employes (id,name, surname, designation, joining_date, last_date, status, DOB, personal_email) VALUES ?",
+        "INSERT INTO employes (id, name, surname, designation, joining_date, last_date, status, DOB, personal_email) VALUES ?",
         [dataToInsert],
         (err, results) => {
           connection.release(); // Release the connection back to the pool
@@ -316,6 +336,7 @@ const importExcel = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 
 module.exports = {
   addEmployes,

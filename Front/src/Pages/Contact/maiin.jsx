@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import TableExpense from "./tableExpense";
 import TableCustomer from "./tableCustomer";
 import { IoMdAddCircle } from "react-icons/io";
+import CustomerTable from "./customerTable";
 
 
 const Maiin = () => {
@@ -22,7 +23,8 @@ const Maiin = () => {
           <IoMdAddCircle size={40} onClick={handleAddClick} />
         </div>
         <div style={{ marginTop: "70px" }}>
-          <TableCustomer />
+          {/* <TableCustomer /> */}
+          <CustomerTable />
         </div>
       </div>
       

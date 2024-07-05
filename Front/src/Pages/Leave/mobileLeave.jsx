@@ -5,6 +5,8 @@ import axios from "axios";
 import API_BASE_URL from "../../config";
 import { CiFilter } from "react-icons/ci";
 import FilterModal from "./FilterModal";
+import { IoMdAddCircle } from "react-icons/io";
+import { useNavigate } from "react-router-dom";
 
 const MobileLeave = () => {
   const [applications, setApplications] = useState([]); // Initialize as an empty array
@@ -75,6 +77,10 @@ const MobileLeave = () => {
       />
     ));
   };
+  const navigate = useNavigate();
+  const handleAddClick = () => {
+    navigate("/addLeave");
+  };
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -104,6 +110,9 @@ const MobileLeave = () => {
               <h1 className="text-2xl mt-8 font-semibold text-center">
                 Leave Applications
               </h1>
+              <div style={{ float: "right" }}>
+          <IoMdAddCircle size={40} onClick={handleAddClick} />
+        </div>
             </div>
           </div>
 

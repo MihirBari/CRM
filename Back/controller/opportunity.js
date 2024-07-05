@@ -405,7 +405,7 @@ const transporter = nodemailer.createTransport({
 // Function to send email alerts
 const sendEmailAlert = (alertDetails) => {
   const mailOptions = {
-    from: process.env.SMTP_MAIL,
+    from: `${process.env.SMPT_MAIL}`,
     to: "madhu.i@techsa.net",
     cc: "himani.g@techsa.net, sanjiv.s@techsa.net",
     subject: "Opportunity Expiry Alert",
@@ -464,6 +464,8 @@ const storeAlertInDatabase = (alertDetails) => {
             console.error("Error storing/updating alert in database:", error);
           } else {
             console.log("Alert stored/updated in database:", results.insertId);
+            // Send email alert only if a new alert is stored
+            sendEmailAlert(alertDetails);
           }
         }
       );
@@ -506,7 +508,7 @@ const checkOpportunities = () => {
         };
 
         // Store alert details in the database
-       // sendEmailAlert(alertDetails)
+       //sendEmailAlert(alertDetails)
         storeAlertInDatabase(alertDetails);
         console.log(`Alert stored for opportunity ID ${opportunity.id}:`, alertDetails);
       }
@@ -595,8 +597,6 @@ const sendAlert = async (req, res) => {
 
   dealerQuery += ` ORDER BY daysLeft`;
 
-  //console.log("Final Query:", dealerQuery);  // Add logging to debug the final query
-
   pool.query(dealerQuery, (error, results) => {
     if (error) {
       console.error("Error executing query:", error);
@@ -605,7 +605,7 @@ const sendAlert = async (req, res) => {
     }
 
     results.forEach(alert => {
-      if (alert.daysLeft === 15) {
+      if (alert.daysLeft === 15 || alert.daysLeft === 30) {
         const alertDetails = {
           customer_entity: alert.alert_entity,
           description: alert.alert_description,
@@ -622,8 +622,9 @@ const sendAlert = async (req, res) => {
   });
 };
 
+
 // Schedule the task to run daily at 1:10 PM IST
-cron.schedule('30 11 * * *', () => {
+cron.schedule('00 11 * * *', () => {
   console.log(`[${moment().tz('Asia/Kolkata').format()}] Scheduled task triggered`);
   checkOpportunities();
   updateDaysLeftInAlerts();

@@ -2,6 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import TableOpportunity from "./tableOpportunity";
 import { IoMdAddCircle } from "react-icons/io";
+import OpportunityTable from "./opportunityTable";
 
 const Main = () => {
   const navigate = useNavigate();
@@ -23,8 +24,9 @@ const Main = () => {
         onClick={handleAddClick}
         />
       </div>
-      <div className="flex-1 overflow-y-auto">
-        <TableOpportunity />
+      <div className="flex-1 ">
+        {/* <TableOpportunity /> */}
+        <OpportunityTable />
       </div>
     </div>
     
