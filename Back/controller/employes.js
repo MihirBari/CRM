@@ -309,34 +309,43 @@ const importExcel = async (req, res) => {
       return null; // Handle other unexpected formats
     }
 
-    // Insert data into the database using a connection from the pool
+    // Insert or update data into the database using a connection from the pool
     pool.getConnection((err, connection) => {
       if (err) {
         console.error("Error getting MySQL connection:", err);
         return res.status(500).json({ error: "Database connection error" });
       }
 
-      connection.query(
-        "INSERT INTO employes (id, name, surname, designation, joining_date, last_date, status, DOB, personal_email) VALUES ?",
-        [dataToInsert],
-        (err, results) => {
-          connection.release(); // Release the connection back to the pool
+      const sql = `
+        INSERT INTO employes (id, name, surname, designation, joining_date, last_date, status, DOB, personal_email)
+        VALUES ?
+        ON DUPLICATE KEY UPDATE
+        name = VALUES(name),
+        surname = VALUES(surname),
+        designation = VALUES(designation),
+        joining_date = VALUES(joining_date),
+        last_date = VALUES(last_date),
+        status = VALUES(status),
+        DOB = VALUES(DOB),
+        personal_email = VALUES(personal_email)
+      `;
 
-          if (err) {
-            console.error("Error inserting data into MySQL:", err);
-            return res.status(500).json({ error: "Database insertion error" });
-          }
+      connection.query(sql, [dataToInsert], (err, results) => {
+        connection.release(); // Release the connection back to the pool
 
-          res.json({ message: "File uploaded and data inserted successfully" });
+        if (err) {
+          console.error("Error inserting data into MySQL:", err);
+          return res.status(500).json({ error: "Database insertion error" });
         }
-      );
+
+        res.json({ message: "File uploaded and data inserted/updated successfully" });
+      });
     });
   } catch (error) {
     console.error("Error uploading Excel file:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
 
 module.exports = {
   addEmployes,

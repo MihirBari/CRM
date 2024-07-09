@@ -11,8 +11,8 @@ const DeleteConfirmationDialog = ({ isOpen, onClose, onDelete }) => {
           zIndex: 9999,
         },
         content: {
-          height: "20%",
-          width: "20%", // Set the height here, e.g., 50%
+          height: "40%",
+          width: "30%", // Set the height here, e.g., 50%
           margin: "auto", // Center the modal horizontally
         },
       }}

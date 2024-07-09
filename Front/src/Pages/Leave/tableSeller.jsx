@@ -120,17 +120,44 @@ const Users = () => {
     {
       name: "Name",
       selector: (row) => row.name,
+      cell: (row) => (
+        <span
+          className="view-link"
+          onClick={() => handleViewClicked(row.id)}
+          style={{ cursor: "pointer", width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "flex-start" }}
+        >
+          {row.name}
+        </span>
+      ),
       sortable: true,
     },
     {
       name: "Surname",
       selector: (row) => row.surname,
+      cell: (row) => (
+        <span
+          className="view-link"
+          onClick={() => handleViewClicked(row.id)}
+          style={{ cursor: "pointer", width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "flex-start" }}
+        >
+          {row.surname}
+        </span>
+      ),
       sortable: true,
     },
     
     {
       name: "Status",
       selector: (row) => row.status,
+      cell: (row) => (
+        <span
+          className="view-link"
+          onClick={() => handleViewClicked(row.id)}
+          style={{ cursor: "pointer", width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "flex-start" }}
+        >
+          {row.status}
+        </span>
+      ),
       sortable: true,
       width: "150px",
     },
@@ -213,23 +240,23 @@ const Users = () => {
     //   sortable: true,
     //   width: "150px",
     // },
-    {
-      name: "Edit",
-      cell: (row) => <MdEdit onClick={() => handleEditClick(row)}>Edit</MdEdit>,
-      button: true,
-    },
-    {
-      name: "Delete",
-      cell: (row) => (
-        <MdDelete onClick={() => handleDeleteClick(row)}>Delete</MdDelete>
-      ),
-      button: true,
-    },
-    {
-      name: "View",
-      cell: (row) => <FaEye onClick={() => handleViewClick(row)} />,
-      button: true,
-    },
+    // {
+    //   name: "Edit",
+    //   cell: (row) => <MdEdit onClick={() => handleEditClick(row)}>Edit</MdEdit>,
+    //   button: true,
+    // },
+    // {
+    //   name: "Delete",
+    //   cell: (row) => (
+    //     <MdDelete onClick={() => handleDeleteClick(row)}>Delete</MdDelete>
+    //   ),
+    //   button: true,
+    // },
+    // {
+    //   name: "View",
+    //   cell: (row) => <FaEye onClick={() => handleViewClick(row)} />,
+    //   button: true,
+    // },
   ];
 
   const CustomHeader = ({ column }) => (

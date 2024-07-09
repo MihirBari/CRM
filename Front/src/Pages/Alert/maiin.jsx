@@ -97,7 +97,7 @@ const Main = () => {
   };
 
   return (
-    <div className="h-screen flex-1 p-7">
+    <div className="h-screen flex-1 p-7 bg-gray-50">
       <h1 className="text-2xl font-semibold text-center">Alerts</h1>
       <div>
         <CiFilter
@@ -119,7 +119,7 @@ const Main = () => {
         <div className="alert-container">
           {Array.isArray(alerts) &&
             filteredUsers.map((alert) => (
-              <div key={alert.id} className="alert-box">
+              <div key={alert.id} className="alert-box shadow ">
                 <h2>
                   {alert.daysLeft >= 31 && alert.daysLeft <= 45 && "Reminder"}
                   {alert.daysLeft >= 16 && alert.daysLeft <= 30 && "Warning"}

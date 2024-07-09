@@ -6,7 +6,7 @@ const Expense = () => {
   return (
     <div className="flex h-screen overflow-hidden">
     <SideNavBar />
-    <div className="flex-1 overflow-x-hidden overflow-y-auto">
+    <div className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50">
       <Maiin />
     </div>
   </div>

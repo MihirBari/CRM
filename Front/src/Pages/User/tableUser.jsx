@@ -145,7 +145,7 @@ const Users = () => {
                 className='dataTable'
                 columns={columns}
                 data={filteredUsers}
-                fixedHeader
+                
                 fixedHeaderScrollHeight='450px'
                 striped
                 pagination

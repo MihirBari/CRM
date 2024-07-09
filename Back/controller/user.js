@@ -6,39 +6,52 @@ const nodemailer = require('nodemailer');
 const cron = require("node-cron");
 
 const login = (req, res) => {
-  // Create the SQL query
-  const sql = 'SELECT id, name,surname, email, password, role FROM user WHERE email = ?';
+  const sqlUserQuery = 'SELECT id, name, surname, email, password, role FROM user WHERE email = ?';
   
-  pool.query(sql, [req.body.email], (err, data) => {
+  pool.query(sqlUserQuery, [req.body.email], (err, data) => {
     if (err) {
       console.log(err);
       return res.status(500).json({ error: 'Internal Server Error' });
     }
 
     if (data.length > 0) {
-      bcrypt.compare(req.body.password.toString(), data[0].password, (err, response) => {
+      const user = data[0];
+      const sqlEmployeeQuery = 'SELECT * FROM employes WHERE name = ? AND surname = ? AND status = "Active"';
+      
+      pool.query(sqlEmployeeQuery, [user.name, user.surname], (err, empData) => {
         if (err) {
           console.log(err);
           return res.status(500).json({ error: 'Internal Server Error' });
         }
 
-        if (response) {
-          const user = {
-            id: data[0].id,
-            name: data[0].name,
-            surname: data[0].surname,
-            email: data[0].email,
-            role: data[0].role
-          };
-          
-          const accessToken = jwt.sign(user, 'jwt-secret-key', { expiresIn: '30d' });
-   
-          return res.status(200).json({
-            accessToken: accessToken,
-            user: user
+        if (empData.length > 0) {
+          bcrypt.compare(req.body.password.toString(), user.password, (err, response) => {
+            if (err) {
+              console.log(err);
+              return res.status(500).json({ error: 'Internal Server Error' });
+            }
+
+            if (response) {
+              const userInfo = {
+                id: user.id,
+                name: user.name,
+                surname: user.surname,
+                email: user.email,
+                role: user.role
+              };
+              
+              const accessToken = jwt.sign(userInfo, 'jwt-secret-key', { expiresIn: '30d' });
+    
+              return res.status(200).json({
+                accessToken: accessToken,
+                user: userInfo
+              });
+            } else {
+              return res.status(401).json({ error: 'Invalid credentials' });
+            }
           });
         } else {
-          return res.status(401).json({ error: 'Invalid credentials' });
+          return res.status(401).json({ error: 'User not found or not active in employes' });
         }
       });
     } else {
@@ -46,6 +59,7 @@ const login = (req, res) => {
     }
   });
 };
+
 
 const getUserData = (req, res) => {
   const getAllUsersQuery = 'SELECT id, name, surname, email, role, holidays_taken, created_at FROM user';

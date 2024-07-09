@@ -24,9 +24,9 @@ const Main = () => {
         onClick={handleAddClick}
         />
       </div>
-      <div className="flex-1 ">
-        {/* <TableOpportunity /> */}
-        <OpportunityTable />
+      <div className="flex-1 overflow-y-auto">
+        <TableOpportunity />
+        {/* <OpportunityTable /> */}
       </div>
     </div>
     

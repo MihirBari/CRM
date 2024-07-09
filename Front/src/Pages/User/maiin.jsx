@@ -13,17 +13,17 @@ const Maiin = () => {
 
   return (
     <>
-      <div className="h-screen flex-1 p-7">
-        <div>
+      <div className="flex flex-col h-screen p-7">
+        <div className="mb-4">
           <h1 className="text-2xl font-semibold text-center">Users</h1>
         </div>
-        <div style={{ float: "right" }}>
+        <div className="flex justify-end mb-4">
         <IoMdAddCircle
         size={40}
         onClick={handleAddClick}
         />
         </div>
-        <div style={{ marginTop: "70px" }}>
+        <div className="flex-1 overflow-y-auto">
           <Table />
         </div>
       </div>

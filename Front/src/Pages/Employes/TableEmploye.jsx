@@ -292,6 +292,14 @@ const TableEmploye = () => {
     header: <CustomHeader column={col} />,
   }));
 
+  const handleSearch = (e) => {
+    const searchTerm = e.target.value.toLowerCase();
+    const filteredData = users.filter(user => 
+        user.name.toLowerCase().includes(searchTerm) || user.surname.toLowerCase().includes(searchTerm)
+    );
+    setFilteredUsers(filteredData);
+};
+
   return (
     <>
     <div>
@@ -316,6 +324,12 @@ const TableEmploye = () => {
         <PiExportBold
           size={40}
           onClick={handleExportButtonClick}
+        />
+        <input
+          type="text"
+          placeholder="Search"
+          onChange={handleSearch}
+          className="p-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500"
         />
       </div>
       <DataTable 
