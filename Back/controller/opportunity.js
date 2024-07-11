@@ -604,36 +604,33 @@ const sendAlert = async (req, res) => {
       return;
     }
 
-    const alertGroups = new Map();
-
+    const alertEntities = new Set();
     results.forEach(alert => {
       if (alert.daysLeft === 15 || alert.daysLeft === 30) {
-        if (!alertGroups.has(alert.alert_entity)) {
-          alertGroups.set(alert.alert_entity, []);
-        }
-        alertGroups.get(alert.alert_entity).push(alert);
+        alertEntities.add(alert.alert_entity);
       }
     });
 
-    alertGroups.forEach((alerts, alert_entity) => {
-      const alert = alerts[0];
-      const alertDetails = {
-        customer_entity: alert.alert_entity,
-        description: alert.alert_description,
-        license_to: alert.license_to,
-        type: alert.alert_type,
-        License_type: alert.License_type,
-        daysLeft: alert.daysLeft
-      };
-      sendEmailAlert(alertDetails);
+    alertEntities.forEach(alert_entity => {
+      const alert = results.find(a => a.alert_entity === alert_entity && (a.daysLeft === 15 || a.daysLeft === 30));
+      if (alert) {
+        const alertDetails = {
+          customer_entity: alert.alert_entity,
+          description: alert.alert_description,
+          license_to: alert.license_to,
+          type: alert.alert_type,
+          License_type: alert.License_type,
+          daysLeft: alert.daysLeft
+        };
+        sendEmailAlert(alertDetails);
+      }
     });
 
     res.status(200).json({ products: results });
   });
 };
 
-
-// Schedule the task to run daily at 1:10 PM IST
+// Schedule the task to run daily at 11:00 AM IST
 cron.schedule('00 11 * * *', () => {
   console.log(`[${moment().tz('Asia/Kolkata').format()}] Scheduled task triggered`);
   checkOpportunities();
