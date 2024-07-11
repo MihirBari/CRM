@@ -604,18 +604,28 @@ const sendAlert = async (req, res) => {
       return;
     }
 
+    const alertGroups = new Map();
+
     results.forEach(alert => {
       if (alert.daysLeft === 15 || alert.daysLeft === 30) {
-        const alertDetails = {
-          customer_entity: alert.alert_entity,
-          description: alert.alert_description,
-          license_to: alert.license_to,
-          type: alert.alert_type,
-          License_type: alert.License_type,
-          daysLeft: alert.daysLeft
-        };
-        sendEmailAlert(alertDetails);
+        if (!alertGroups.has(alert.alert_entity)) {
+          alertGroups.set(alert.alert_entity, []);
+        }
+        alertGroups.get(alert.alert_entity).push(alert);
       }
+    });
+
+    alertGroups.forEach((alerts, alert_entity) => {
+      const alert = alerts[0];
+      const alertDetails = {
+        customer_entity: alert.alert_entity,
+        description: alert.alert_description,
+        license_to: alert.license_to,
+        type: alert.alert_type,
+        License_type: alert.License_type,
+        daysLeft: alert.daysLeft
+      };
+      sendEmailAlert(alertDetails);
     });
 
     res.status(200).json({ products: results });
