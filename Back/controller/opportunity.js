@@ -522,9 +522,9 @@ const updateDaysLeftInAlerts = () => {
   console.log('Updating daysLeft for all alerts...');
 
   const selectQuery = `
-    SELECT id, license_to
+    SELECT id, license_to, customer_entity, description, type, License_type
     FROM alert
-    where daysLeft != 0
+    WHERE daysLeft != 0
   `;
 
   pool.query(selectQuery, (error, results) => {
@@ -555,6 +555,17 @@ const updateDaysLeftInAlerts = () => {
           console.error(`Error updating daysLeft for alert id ${alert.id}:`, updateError);
         } else {
           console.log(`Updated daysLeft for alert id ${alert.id}`);
+
+          if (daysLeft === 15 || daysLeft === 30) {
+            sendEmailAlert({
+              customer_entity: alert.customer_entity,
+              description: alert.description,
+              type: alert.type,
+              License_type: alert.License_type,
+              daysLeft: daysLeft,
+              license_to: alert.license_to
+            });
+          }
         }
       });
     });
@@ -604,27 +615,6 @@ const sendAlert = async (req, res) => {
       return;
     }
 
-    const alertEntities = new Set();
-    results.forEach(alert => {
-      if (alert.daysLeft === 15 || alert.daysLeft === 30) {
-        alertEntities.add(alert.alert_entity);
-      }
-    });
-
-    alertEntities.forEach(alert_entity => {
-      const alert = results.find(a => a.alert_entity === alert_entity && (a.daysLeft === 15 || a.daysLeft === 30));
-      if (alert) {
-        const alertDetails = {
-          customer_entity: alert.alert_entity,
-          description: alert.alert_description,
-          license_to: alert.license_to,
-          type: alert.alert_type,
-          License_type: alert.License_type,
-          daysLeft: alert.daysLeft
-        };
-        sendEmailAlert(alertDetails);
-      }
-    });
 
     res.status(200).json({ products: results });
   });

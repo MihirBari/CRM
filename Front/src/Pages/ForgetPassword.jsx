@@ -3,10 +3,11 @@ import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import API_BASE_URL from '../config';
-import img from "../assets/techsa.png"
+import img from "../assets/techsa.png";
 
 const ForgetPassword = () => {
     const [email, setEmail] = useState('');
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
     const handleChange = (e) => {
@@ -15,19 +16,22 @@ const ForgetPassword = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true);
         try {
             await axios.post(`${API_BASE_URL}/api/user/requestResetPassword`, { email });
             toast.success('Password reset link sent to your email');
             navigate('/');
         } catch (error) {
             toast.error('Error sending password reset link');
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
         <div className='min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8'>
             <div className="sm:mx-auto sm:w-full sm:max-w-md">
-            <img style={{height:"20%", width:"20%", marginLeft:"40%"}} src={img} alt="logo" />
+                <img style={{ height: "20%", width: "20%", marginLeft: "40%" }} src={img} alt="logo" />
                 <h2 className='mt-6 text-center text-3xl font-extrabold text-gray-900'>
                     FORGOT PASSWORD
                 </h2>
@@ -58,8 +62,9 @@ const ForgetPassword = () => {
                             <button
                                 type="submit"
                                 className="group relative w-full h-[40px] flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+                                disabled={loading}
                             >
-                                Send reset link
+                                {loading ? 'Sending...' : 'Send reset link'}
                             </button>
                         </div>
                     </form>
