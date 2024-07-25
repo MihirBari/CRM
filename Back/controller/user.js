@@ -6,7 +6,7 @@ const nodemailer = require('nodemailer');
 const cron = require("node-cron");
 
 const login = (req, res) => {
-  const sqlUserQuery = 'SELECT id, name, surname, email, password, role FROM user WHERE email = ?';
+  const sqlUserQuery = 'SELECT id, name, surname, email, password, role, login_attempts, lockout_time FROM user WHERE email = ?';
   
   pool.query(sqlUserQuery, [req.body.email], (err, data) => {
     if (err) {
@@ -16,6 +16,12 @@ const login = (req, res) => {
 
     if (data.length > 0) {
       const user = data[0];
+      const currentTime = new Date();
+
+      if (user.lockout_time && new Date(user.lockout_time) > currentTime) {
+        return res.status(403).json({ error: 'Account is locked. Please try again later.' });
+      }
+
       const sqlEmployeeQuery = 'SELECT * FROM employes WHERE name = ? AND surname = ? AND status = "Active"';
       
       pool.query(sqlEmployeeQuery, [user.name, user.surname], (err, empData) => {
@@ -41,12 +47,35 @@ const login = (req, res) => {
               };
               
               const accessToken = jwt.sign(userInfo, 'jwt-secret-key', { expiresIn: '30d' });
-    
+
+              // Reset login attempts on successful login
+              pool.query('UPDATE user SET login_attempts = 0, lockout_time = NULL WHERE id = ?', [user.id], (err) => {
+                if (err) {
+                  console.log(err);
+                  return res.status(500).json({ error: 'Internal Server Error' });
+                }
+              });
+
               return res.status(200).json({
                 accessToken: accessToken,
                 user: userInfo
               });
             } else {
+              // Increment login attempts
+              user.login_attempts += 1;
+              let lockout_time = null;
+
+              if (user.login_attempts >= 5) {
+                lockout_time = new Date(currentTime.getTime() + 30 * 60000); // 30 minutes lockout
+              }
+
+              pool.query('UPDATE user SET login_attempts = ?, lockout_time = ? WHERE id = ?', [user.login_attempts, lockout_time, user.id], (err) => {
+                if (err) {
+                  console.log(err);
+                  return res.status(500).json({ error: 'Internal Server Error' });
+                }
+              });
+
               return res.status(401).json({ error: 'Invalid credentials' });
             }
           });

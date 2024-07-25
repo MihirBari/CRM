@@ -1,6 +1,6 @@
 import React from 'react';
 import SideNavBar from '../Sidebar/Navbar';
-import Maiin from './maiin';  
+import Main from './main';  
 
 const Alert = () => {
   return (
@@ -8,7 +8,7 @@ const Alert = () => {
     <div className="flex h-screen overflow-hidden">
     <SideNavBar />
     <div className="flex-1 overflow-x-hidden overflow-y-auto">
-      <Maiin />
+      <Main />
     </div>
   </div>
   

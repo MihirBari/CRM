@@ -39,8 +39,9 @@ const Login = () => {
       }
     } catch (error) {
       console.log(error);
+      const errorMessage = error.response?.data?.error || "An unexpected error occurred";
       setError(error.response);
-      toast.error("Email or Password wrong");
+      toast.error(errorMessage);
     }
   };
 

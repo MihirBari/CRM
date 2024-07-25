@@ -522,7 +522,7 @@ const updateDaysLeftInAlerts = () => {
   console.log('Updating daysLeft for all alerts...');
 
   const selectQuery = `
-    SELECT id, license_to, customer_entity, description, type, License_type
+    SELECT id, license_to, alert_entity, alert_description, alert_type, License_type
     FROM alert
     WHERE daysLeft != 0
   `;
@@ -558,9 +558,9 @@ const updateDaysLeftInAlerts = () => {
 
           if (daysLeft === 15 || daysLeft === 30) {
             sendEmailAlert({
-              customer_entity: alert.customer_entity,
-              description: alert.description,
-              type: alert.type,
+              customer_entity: alert.alert_entity,
+              description: alert.alert_description,
+              type: alert.alert_type,
               License_type: alert.License_type,
               daysLeft: daysLeft,
               license_to: alert.license_to
@@ -606,7 +606,7 @@ const sendAlert = async (req, res) => {
     dealerQuery += ` AND (${filterConditions.join(" AND ")})`;
   }
 
-  dealerQuery += ` ORDER BY daysLeft`;
+  dealerQuery += ` ORDER BY id desc`;
 
   pool.query(dealerQuery, (error, results) => {
     if (error) {

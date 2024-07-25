@@ -48,10 +48,11 @@ export const AuthContextProvider = ({ children }) => {
       toast.success("Login successful");
     } catch (error) {
       console.error("Login error:", error);
+      const errorMessage = error.response?.data?.error || "An unexpected error occurred";
       if (error.response && error.response.status === 401) {
-        toast.error("Invalid email or password");
+        toast.error(errorMessage);
       } else {
-        toast.error("Login failed. Please try again later.");
+        toast.error(errorMessage);
       }
     }
   };
