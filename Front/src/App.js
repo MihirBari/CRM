@@ -73,7 +73,6 @@ function App() {
     </ProtectedRoute>
   }
 />
-      <Route path="*" element={<Navigate to="/Leave" />} />
         <Route path='/Alert' element={<ProtectedRoute adminOnly ><Alert /></ProtectedRoute>} />
         <Route path='/Opportunity' element={<ProtectedRoute adminOnly><Opportunity /></ProtectedRoute>} />
         <Route path='/PO' element={<ProtectedRoute adminOnly><PO /></ProtectedRoute>} />

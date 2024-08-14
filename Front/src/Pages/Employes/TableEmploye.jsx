@@ -10,6 +10,7 @@ import FilterModal from "./FilterModal";
 import ExportTable from "./ExportTable";
 import DeleteConfirmationDialog from "./DeleteConfirmationDialog.jsx";
 import { PiExportBold } from "react-icons/pi";
+import { CiFilter } from "react-icons/ci";
 
 const TableEmploye = () => {
   const [users, setUsers] = useState([]);
@@ -331,6 +332,11 @@ const TableEmploye = () => {
           onChange={handleSearch}
           className="p-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500"
         />
+         <CiFilter
+            size={40}
+            style={{ marginLeft: "25px" }}
+            onClick={handleCiFilterClick}
+          />
       </div>
       <DataTable 
        className="dataTable"

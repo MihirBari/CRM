@@ -65,11 +65,12 @@ const getHolidays = (req, res) => {
       return;
     }
     res.json(results);
+    //console.log(results)
   });
 };
 
 const birthday = (req, res) => {
-  pool.query('SELECT DOB, name, surname FROM employes', (err, results) => {
+  pool.query('SELECT DOB, name, surname FROM employes where dob is not null', (err, results) => {
     if (err) {
       console.error('Error fetching birthdays:', err);
       res.status(500).send('Internal server error.');

@@ -46,6 +46,7 @@ const Main = () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/api/Holiday/holidays`);
       setHolidays(response.data);
+      console.log(response.data)
     } catch (error) {
       console.error('Error fetching holidays:', error);
     }
@@ -149,14 +150,16 @@ const Main = () => {
         tileClassName={tileClassName}
         tileContent={tileContent} // Add the tileContent prop
       />
-      {selectedEvents.length > 0 && (
-        <div className="event-details">
-          {selectedEvents.map((event, index) => (
-            <div key={index}>
-              <h2>{`${event.name} ${event.surname ? event.surname : ''} ${event.DOB ? 'Birthday' : ''}`}</h2>
-              {/* <p>{new Date(event.date || event.DOB).toDateString()}</p> */}
-            </div>
-          ))}
+          {selectedEvents.length > 0 && (
+      <div className="event-details">
+        {selectedEvents.map((event, index) => (
+          <div key={index}>
+            <h2>
+              {`${event.name} ${event.surname ? event.surname : ''} ${event.DOB ? 'Birthday' : ''}`}
+            </h2>
+            <p>{event.DOB ? new Date(event.DOB).toDateString() : " "}</p>
+          </div>
+        ))}
         </div>
       )}
     </div>

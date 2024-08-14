@@ -3,8 +3,9 @@ const nodemailer = require("nodemailer");
 
 const showApplicationLeave = (req, res) => {
   const { fromDate, status, toDate, dateFilterType } = req.query;
-  const { id, role } = req.user;
-  //console.log(req.user);
+  const { id, role } = req.body;
+  // console.log(id);
+  // console.log(role);
   let query = `
         SELECT la.id, la.name,la.surname,la.status, la.fromDate, la.toDate, la.duration, 
         la.days, la.description, la.history,
@@ -27,10 +28,6 @@ const showApplicationLeave = (req, res) => {
 
   let filterConditions = [];
 
-  // if (status) {
-  //   filterConditions.push(`status LIKE '%${status}%'`);
-  // }
-
   if (status && Array.isArray(status)) {
     const statusConditions = 	status.map(status => `status LIKE '%${status}%'`);
     if (statusConditions.length > 0) {
@@ -39,15 +36,6 @@ const showApplicationLeave = (req, res) => {
   } else if (status) {
     filterConditions.push(`status LIKE '${status}'`);
   }
-
-  // if (type && Array.isArray(type)) {
-  //   const TypeConditions = type.map(type => `type LIKE '%${type}%'`);
-  //   if (TypeConditions.length > 0) {
-  //     filterConditions.push(`(${TypeConditions.join(" OR ")})`);
-  //   }
-  // } else if (type) {
-  //   filterConditions.push(`type LIKE '${type}'`);
-  // }
 
   if (dateFilterType && fromDate && toDate) {
     if (dateFilterType === "equal") {
@@ -71,7 +59,7 @@ const showApplicationLeave = (req, res) => {
     query += ` AND ${filterConditions.join(" AND ")}`;
   }
 
-  query += `ORDER BY status DESC`;
+  query += `ORDER BY status DESC,id DESC`;
 
   // Start a transaction
   pool.getConnection((err, connection) => {
@@ -138,146 +126,180 @@ const showOneApplicationLeave = async (req, res) => {
 };
 
 const addApplicationLeave = (req, res) => {
-  // Begin a SQL transaction
   pool.getConnection((err, connection) => {
     if (err) {
-      console.error("Error connecting to database:", err);
       return res.status(500).json({ error: "Internal Server Error" });
     }
 
-    connection.beginTransaction((err) => {
+    connection.beginTransaction(async (err) => {
       if (err) {
-        console.error("Error beginning transaction:", err);
         connection.release();
         return res.status(500).json({ error: "Internal Server Error" });
       }
 
-      const addDealer = `
-        INSERT INTO leaveapplication
-        (name, surname, status, fromDate, toDate, duration, days, description,
-        history, createdBy, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
-      `;
+      const { name, surname, fromDate, toDate, days } = req.body;
 
-      // Prepare values for the insert query
-      let values = [
-        req.body.name,
-        req.body.surname,
-        req.body.status,
-        req.body.fromDate || null, // Using null if fromDate is null or empty string
-        req.body.toDate || null,  
-        req.body.duration,
-        req.body.days,
-        req.body.description,
-        req.body.history,
-        req.body.name,
-      ];
+      try {
+        const userResult = await new Promise((resolve, reject) => {
+          connection.query(
+            "SELECT holidays_taken FROM user WHERE name = ? AND surname = ?",
+            [name, surname],
+            (error, results) => {
+              if (error) return reject(error);
+              resolve(results);
+            }
+          );
+        });
 
-      // Execute the insert query
-      connection.query(addDealer, values, (error, results) => {
-        if (error) {
-          console.error("Error executing query:", error);
-          return connection.rollback(() => {
-            connection.release();
-            res.status(500).json({ error: "Internal Server Error" });
+        if (userResult.length === 0) {
+          connection.release();
+          return res.status(400).json({
+            error: "User not found.",
           });
         }
 
-        //console.log("Leave application added successfully:");
-
-        const addDealer2 = `
-          SELECT la.*, uu.email as sender
-          FROM leaveapplication la
-          JOIN user AS uu ON uu.name = la.name
-          WHERE la.id = ?
-        `;
-
-        // Execute the second query to fetch inserted data
-        connection.query(addDealer2, [results.insertId], (error, rows) => {
-          if (error) {
-            console.error("Error executing second query:", error);
-            return connection.rollback(() => {
-              connection.release();
-              res.status(500).json({ error: "Internal Server Error" });
-            });
-          }
-
-          // Check if rows array is empty
-          if (!rows || rows.length === 0) {
-            console.error("No rows returned from second query");
-            return connection.rollback(() => {
-              connection.release();
-              res.status(500).json({ error: "Internal Server Error" });
-            });
-          }
-
-          //console.log("Fetched user email:", rows[0].sender);
-
-          // Format the dates if they exist
-          const fromDate = rows[0].fromDate ? new Date(rows[0].fromDate).toLocaleDateString("en-GB") : null;
-          const toDate = rows[0].toDate ? new Date(rows[0].toDate).toLocaleDateString("en-GB") : null;
-
-          // Nodemailer configuration
-          const transporter = nodemailer.createTransport({
-            host: process.env.SMPT_HOST,
-            port: process.env.SMPT_PORT,
-            secure: true, // Use true for 465, false for other ports
-            auth: {
-              user: process.env.SMPT_MAIL,
-              pass: process.env.SMPT_PASSWORD,
-            },
+        if (parseInt(userResult[0].holidays_taken) + days > 12) {
+          connection.release();
+          return res.status(400).json({
+            error: "You cannot exceed the maximum number of holidays (12).",
           });
+        }
 
-          const mailOptions = {
-            from: `"Techsa CRM" <${process.env.SMPT_MAIL}>`,
-            to: `${process.env.SMPT_MAIL}`,
-           cc: "ravi.k@techsa.net, sanjiv.s@techsa.net",
-            //replyTo: `${rows[0].sender}`, // Setting the actual sender's email in replyTo
-            subject: `Leave Application Confirmation`,
-            text: `Hi Sir,
-
-        I ${rows[0].name} ${rows[0].surname}, am writing to request a leave from 
-         Start Date : ${fromDate || 'N/A'} 
-         End Date   : ${toDate || 'N/A'} for 
-         Total Number of days : ${rows[0].days}.
-         Leave Type :  ${rows[0].duration}
-         Reason for Leave : ${rows[0].description}
-
-Regards,
-${rows[0].name} ${rows[0].surname}
-            `,
-          };
-
-          // Sending email
-          transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-              console.error("Error sending email:", error);
-              return connection.rollback(() => {
-                connection.release();
-                res.status(500).json({ error: "Internal Server Error" });
-              });
+        const overlapResult = await new Promise((resolve, reject) => {
+          connection.query(
+            `SELECT * FROM leaveapplication
+             WHERE name = ? AND surname = ?
+             AND ((fromDate <= ? AND toDate >= ?) OR (fromDate <= ? AND toDate >= ?))`,
+            [name, surname, fromDate, fromDate, toDate, toDate],
+            (error, results) => {
+              if (error) return reject(error);
+              resolve(results);
             }
-            console.log("Email sent:", info.response);
+          );
+        });
 
-            // Commit the transaction if everything is successful
-            connection.commit((err) => {
-              if (err) {
-                console.error("Error committing transaction:", err);
-                return connection.rollback(() => {
-                  connection.release();
-                  res.status(500).json({ error: "Internal Server Error" });
-                });
-              }
+        if (overlapResult.length > 0) {
+          connection.release();
+          return res.status(400).json({
+            error: "You have already applied for leave on these dates.",
+          });
+        }
 
-              // Release the connection
-              connection.release();
-              res.json(results);
-            });
+        const result = await new Promise((resolve, reject) => {
+          const addDealer = `
+            INSERT INTO leaveapplication
+            (name, surname, status, fromDate, toDate, duration, days, description,
+            history, createdBy, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+          `;
+          const values = [
+            name,
+            surname,
+            req.body.status,
+            fromDate || null,
+            toDate || null,
+            req.body.duration,
+            days,
+            req.body.description,
+            req.body.history,
+            name,
+          ];
+          connection.query(addDealer, values, (error, results) => {
+            if (error) return reject(error);
+            resolve(results);
           });
         });
-      });
+
+        connection.commit((err) => {
+          if (err) {
+            return connection.rollback(() => {
+              connection.release();
+              return res.status(500).json({ error: "Internal Server Error" });
+            });
+          }
+
+          // Email sending is done outside of the transaction block
+          sendEmail(result.insertId, name, surname, fromDate, toDate, days);
+          connection.release();
+          res.json(result);
+        });
+      } catch (error) {
+        connection.rollback(() => {
+          connection.release();
+          res.status(500).json({ error: "Internal Server Error" });
+        });
+      }
     });
   });
+};
+
+const sendEmail = async (leaveId, name, surname, fromDate, toDate, days) => {
+  try {
+    const connection = await new Promise((resolve, reject) => {
+      pool.getConnection((err, connection) => {
+        if (err) return reject(err);
+        resolve(connection);
+      });
+    });
+
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMPT_HOST,
+      port: process.env.SMPT_PORT,
+      secure: true,
+      auth: {
+        user: process.env.SMPT_MAIL,
+        pass: process.env.SMPT_PASSWORD,
+      },
+    });
+
+    const rows = await new Promise((resolve, reject) => {
+      const query = `
+        SELECT la.*, uu.email as sender
+        FROM leaveapplication la
+        JOIN user AS uu ON uu.name = la.name
+        WHERE la.id = ?
+      `;
+      connection.query(query, [leaveId], (error, results) => {
+        connection.release();  // Release connection after query execution
+        if (error) return reject(error);
+        resolve(results);
+      });
+    });
+
+    if (!rows || rows.length === 0) {
+      return;
+    }
+
+    const fromDateFormatted = rows[0].fromDate
+      ? new Date(rows[0].fromDate).toLocaleDateString("en-GB")
+      : null;
+    const toDateFormatted = rows[0].toDate
+      ? new Date(rows[0].toDate).toLocaleDateString("en-GB")
+      : null;
+
+    const mailOptions = {
+      from: `"Techsa CRM" <${process.env.SMPT_MAIL}>`,
+      to: "ravi.k@techsa.net, sanjiv.s@techsa.net",
+      subject: `Leave Application Confirmation`,
+      text: `Hi Sir,
+
+        I ${rows[0].name} ${rows[0].surname}, am writing to request a leave from 
+        Start Date : ${fromDateFormatted || 'N/A'} 
+        End Date   : ${toDateFormatted || 'N/A'} for 
+        Total Number of days : ${rows[0].days}.
+        Leave Type :  ${rows[0].duration}
+        Reason for Leave : ${rows[0].description}
+
+        Regards,
+        ${rows[0].name} ${rows[0].surname}
+        `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log("Email sent successfully");
+  } catch (error) {
+    console.error("Error sending email:", error);
+  }
 };
 
 const editApplicationAdmin = (req, res) => {
@@ -294,7 +316,7 @@ const editApplicationAdmin = (req, res) => {
       return res.status(500).json({ error: "Internal Server Error" });
     }
 
-    connection.query(checkStatusQuery, [req.params.id], (error, rows) => {
+    connection.query(checkStatusQuery, [req.params.id], async (error, rows) => {
       if (error) {
         console.error("Error executing query:", error);
         connection.release();
@@ -311,132 +333,318 @@ const editApplicationAdmin = (req, res) => {
       const userEmail = rows[0].email;
       const userName = rows[0].name;
       const userSurname = rows[0].surname;
+      const currentDays = rows[0].days;
+      const currentFromDate = rows[0].fromDate;
+      const currentToDate = rows[0].toDate;
       let comment = rows[0].history;
 
-      const fromDateChanged = req.body.fromDate !== rows[0].fromDate;
-      const toDateChanged = req.body.toDate !== rows[0].toDate;
+      const fromDateChanged = req.body.fromDate !== currentFromDate;
+      const toDateChanged = req.body.toDate !== currentToDate;
 
       if (fromDateChanged || toDateChanged) {
         comment = `${comment || ''}`;
       }
 
-      const updateDatabase = () => {
-        const updateDealer = `
-          UPDATE leaveapplication 
-          SET
-          name = ?,
-          surname = ?,
-          status = ?,
-          fromDate = ?,
-          toDate = ?, 
-          duration = ?,
-          days = ?,
-          description = ?,
-          history = ?,  
-          update_at = NOW()
-          WHERE id = ?;
-        `;
+      try {
+        // Fetch current user holidays_taken
+        const [userResult] = await new Promise((resolve, reject) => {
+          connection.query(
+            "SELECT holidays_taken FROM user WHERE name = ? AND surname = ?",
+            [userName, userSurname],
+            (error, results) => {
+              if (error) return reject(error);
+              resolve(results);
+            }
+          );
+        });
 
-        const values = [
-          req.body.name,
-          req.body.surname,
-          req.body.status,
-          req.body.fromDate || null, // Set to null if undefined or empty
-          req.body.toDate || null,  
-          req.body.duration,
-          req.body.days,
-          req.body.description,
-          req.body.history,
-          req.params.id,
-        ];
-
-        connection.query(updateDealer, values, (error, results) => {
-          if (error) {
-            console.error("Error executing update query:", error);
-            connection.release();
-            return res.status(500).json({ error: "Internal Server Error" });
-          }
-
-          //console.log("Updated leave application:", results);
+        if (!userResult || userResult.length === 0) {
+          console.error("User not found or empty result");
           connection.release();
-          res.json(results);
+          return res.status(404).json({ error: "User not found." });
+        }
+
+        const { days } = req.body;
+
+        if (parseInt(userResult.holidays_taken) + days > 12) {
+          connection.release();
+          return res.status(400).json({
+            error: "You cannot exceed the maximum number of holidays (12).",
+          });
+        }
+
+        // Check for overlapping leave applications
+        const [overlapResult] = await new Promise((resolve, reject) => {
+          connection.query(
+            `SELECT * FROM leaveapplication
+             WHERE name = ? AND surname = ?
+             AND id <> ?
+             AND ((fromDate <= ? AND toDate >= ?) OR (fromDate <= ? AND toDate >= ?))`,
+            [userName, userSurname, req.params.id, req.body.fromDate, req.body.fromDate, req.body.toDate, req.body.toDate],
+            (error, results) => {
+              if (error) return reject(error);
+              resolve(results);
+            }
+          );
         });
-      };
 
-      if ((currentStatus === 'approved' || currentStatus === 'rejected') && (fromDateChanged || toDateChanged)) {
-        req.body.status = 'request';
+        if (overlapResult && overlapResult.length > 0) {
+          connection.release();
+          return res.status(400).json({
+            error: "You have already applied for leave on these dates.",
+          });
+        }
 
-        const mailOptions = {
-          from: `"Techsa CRM" <${process.env.SMPT_MAIL}>`,
-          to: `${process.env.SMPT_MAIL}`,
-          cc: "ravi.k@techsa.net , sanjiv.s@techsa.net",
-          subject: `Leave Application Confirmation`,
-          text: `Hi Sir,
-          
-          I ${rows[0].name} ${rows[0].surname}, am writing to request a leave from 
-         Start Date : ${fromDate || 'N/A'} 
-         End Date   : ${toDate || 'N/A'} for 
-         Total Number of days : ${rows[0].days}.
-         Reason for Leave : ${rows[0].description}
+        const updateDatabase = () => {
+          const updateDealer = `
+            UPDATE leaveapplication 
+            SET
+            name = ?,
+            surname = ?,
+            status = ?,
+            fromDate = ?,
+            toDate = ?, 
+            duration = ?,
+            days = ?,
+            description = ?,
+            history = ?,  
+            update_at = NOW()
+            WHERE id = ?;
+          `;
 
-Regards,
-${userName} ${userSurname}`,
+          const values = [
+            req.body.name,
+            req.body.surname,
+            req.body.status,
+            req.body.fromDate || null, // Set to null if undefined or empty
+            req.body.toDate || null,  
+            req.body.duration,
+            req.body.days,
+            req.body.description,
+            req.body.history,
+            req.params.id,
+          ];
+
+          connection.query(updateDealer, values, (error, results) => {
+            if (error) {
+              console.error("Error executing update query:", error);
+              connection.release();
+              return res.status(500).json({ error: "Internal Server Error" });
+            }
+
+            // Send email if needed
+            if ((currentStatus === 'approved' || currentStatus === 'rejected') && (fromDateChanged || toDateChanged)) {
+              req.body.status = 'request';
+
+              const mailOptions = {
+                from: `"Techsa CRM" <${process.env.SMPT_MAIL}>`,
+                to: "ravi.k@techsa.net, sanjiv.s@techsa.net",
+                subject: `Leave Application Confirmation(Update)`,
+                text: `Hi Sir,
+                  
+                I ${rows[0].name} ${rows[0].surname}, am writing to request a leave from 
+               Start Date : ${req.body.fromDate || 'N/A'} 
+               End Date   : ${req.body.toDate || 'N/A'} for 
+               Total Number of days : ${req.body.days}.
+               Reason for Leave : ${req.body.description}
+
+              Regards,
+              ${userName} ${userSurname}`,
+              };
+
+              const transporter = nodemailer.createTransport({
+                host: process.env.SMPT_HOST,
+                port: process.env.SMPT_PORT,
+                secure: true, // Use true for 465, false for other ports
+                auth: {
+                  user: process.env.SMPT_MAIL,
+                  pass: process.env.SMPT_PASSWORD,
+                },
+              });
+
+              transporter.sendMail(mailOptions, (error, info) => {
+                if (error) {
+                  console.error("Error sending email:", error);
+                  connection.release();
+                  return res.status(500).json({ error: "Internal Server Error" });
+                }
+
+                console.log("Email sent:", info.response);
+                connection.release();
+                res.json(results);
+              });
+            } else if (req.body.status === "approved" || req.body.status === "rejected") {
+              const mailOptions = {
+                from: `<${process.env.SMPT_MAIL}>`,
+                to: userEmail,
+                subject: "Leave Application Status Update",
+                text: `Hi ${userName} ${userSurname},\n\nYour leave application has been ${req.body.status}.
+                ${comment}
+
+                \n\nRegards,\nTechsa CRM`,
+              };
+
+              const transporter = nodemailer.createTransport({
+                host: process.env.SMPT_HOST,
+                port: process.env.SMPT_PORT,
+                secure: true, // Use true for 465, false for other ports
+                auth: {
+                  user: process.env.SMPT_MAIL,
+                  pass: process.env.SMPT_PASSWORD,
+                },
+              });
+
+              transporter.sendMail(mailOptions, (error, info) => {
+                if (error) {
+                  console.error("Error sending email:", error);
+                  connection.release();
+                  return res.status(500).json({ error: "Internal Server Error" });
+                }
+
+                console.log("Email sent:", info.response);
+                connection.release();
+                res.json(results);
+              });
+            } else {
+              connection.release();
+              res.json(results);
+            }
+          });
         };
 
-        const transporter = nodemailer.createTransport({
-          host: process.env.SMPT_HOST,
-          port: process.env.SMPT_PORT,
-          secure: true, // Use true for 465, false for other ports
-          auth: {
-            user: process.env.SMPT_MAIL,
-            pass: process.env.SMPT_PASSWORD,
-          },
-        });
-
-        transporter.sendMail(mailOptions, (error, info) => {
-          if (error) {
-            console.error("Error sending email:", error);
-            connection.release();
-            return res.status(500).json({ error: "Internal Server Error" });
-          }
-
-          console.log("Email sent:", info.response);
+        if ((currentStatus === 'approved' || currentStatus === 'rejected') && (fromDateChanged || toDateChanged)) {
+          req.body.status = 'request';
+          // Email will be sent in updateDatabase() if needed
           updateDatabase();
-        });
-      } else if (req.body.status === "approved" || req.body.status === "rejected") {
-        const mailOptions = {
-          from: `<${process.env.SMPT_MAIL}>`,
-          to: userEmail,
-          subject: "Leave Application Status Update",
-          text: `Hi ${userName} ${userSurname},\n\nYour leave application has been ${req.body.status}.
-          ${comment}
-
-          \n\nRegards,\nTechsa CRM`,
-        };
-
-        const transporter = nodemailer.createTransport({
-          host: process.env.SMPT_HOST,
-          port: process.env.SMPT_PORT,
-          secure: true, // Use true for 465, false for other ports
-          auth: {
-            user: process.env.SMPT_MAIL,
-            pass: process.env.SMPT_PASSWORD,
-          },
-        });
-
-        transporter.sendMail(mailOptions, (error, info) => {
-          if (error) {
-            console.error("Error sending email:", error);
-            connection.release();
-            return res.status(500).json({ error: "Internal Server Error" });
-          }
-
-          console.log("Email sent:", info.response);
+        } else {
           updateDatabase();
-        });
-      } else {
-        updateDatabase();
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        connection.release();
+        res.status(500).json({ error: "Internal Server Error" });
       }
+    });
+  });
+};
+
+const leaveConfirm = (req, res) => {
+  const dealerQuery = `
+    UPDATE leaveapplication
+    SET status = ?, history = ?
+    WHERE id = ?
+  `;
+
+  const values = [
+    req.body.status,
+    req.body.history,
+    req.params.id,
+  ];
+
+  // Query to get user details for sending email
+  const userQuery = 'SELECT email FROM user WHERE name = ? and surname = ?';
+
+  // Start a transaction
+  pool.getConnection((err, connection) => {
+    if (err) {
+      console.error("Error getting connection:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+
+    connection.beginTransaction((transactionError) => {
+      if (transactionError) {
+        console.error("Error starting transaction:", transactionError);
+        res.status(500).json({ error: "Internal Server Error" });
+        return;
+      }
+
+      connection.query(dealerQuery, values, (queryError, results) => {
+        if (queryError) {
+          return connection.rollback(() => {
+            console.error("Error executing query:", queryError);
+            res.status(500).json({ error: "Internal Server Error" });
+            connection.release();
+          });
+        }
+
+        // Fetch user details
+        connection.query(userQuery, [req.body.name, req.body.surname ], (userError, userResults) => {
+          if (userError) {
+            return connection.rollback(() => {
+              console.error("Error fetching user details:", userError);
+              res.status(500).json({ error: "Internal Server Error" });
+              connection.release();
+            });
+          }
+
+          const user = userResults[0];
+          const userEmail = user.email;
+          const userName = req.body.name;
+          const userSurname = req.body.surname;
+
+          // Email sending logic
+          if (req.body.status === "approved" || req.body.status === "rejected") {
+            const mailOptions = {
+              from: `<${process.env.SMPT_MAIL}>`,
+              to: userEmail,
+              subject: "Leave Application Status Update",
+              text: `Hi ${userName} ${userSurname},\n\nYour leave application has been ${req.body.status}.
+                ${req.body.comment || ""}
+                \n\nRegards,\nTechsa CRM`,
+            };
+
+            const transporter = nodemailer.createTransport({
+              host: process.env.SMPT_HOST,
+              port: process.env.SMPT_PORT,
+              secure: true, // Use true for 465, false for other ports
+              auth: {
+                user: process.env.SMPT_MAIL,
+                pass: process.env.SMPT_PASSWORD,
+              },
+            });
+
+            transporter.sendMail(mailOptions, (mailError, info) => {
+              if (mailError) {
+                return connection.rollback(() => {
+                  console.error("Error sending email:", mailError);
+                  res.status(500).json({ error: "Internal Server Error" });
+                  connection.release();
+                });
+              }
+
+              // Commit the transaction
+              connection.commit((commitError) => {
+                if (commitError) {
+                  return connection.rollback(() => {
+                    console.error("Error committing transaction:", commitError);
+                    res.status(500).json({ error: "Internal Server Error" });
+                    connection.release();
+                  });
+                }
+
+                console.log("Leave status updated and email sent:", info.response);
+                res.status(200).json({ message: "Leave status updated and email sent" });
+                connection.release();
+              });
+            });
+          } else {
+            // Commit the transaction if no email needs to be sent
+            connection.commit((commitError) => {
+              if (commitError) {
+                return connection.rollback(() => {
+                  console.error("Error committing transaction:", commitError);
+                  res.status(500).json({ error: "Internal Server Error" });
+                  connection.release();
+                });
+              }
+
+              res.status(200).json({ message: "Leave status updated" });
+              connection.release();
+            });
+          }
+        });
+      });
     });
   });
 };
@@ -462,5 +670,6 @@ module.exports = {
   addApplicationLeave,
   editApplicationAdmin,
   showOneApplicationLeave,
-  deleteApplication
+  deleteApplication,
+  leaveConfirm
 };

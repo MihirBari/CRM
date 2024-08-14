@@ -51,7 +51,7 @@ const SideNavBar = () => {
     filteredMenus = Menus.filter(
       (menu) =>
         menu.title === "Leave" ||
-        menu.title === "Calendar" ||
+        menu.title === "Holiday Calendar" ||
         menu.title === "Profile"
     );
   }

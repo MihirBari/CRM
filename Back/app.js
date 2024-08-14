@@ -15,9 +15,11 @@ const ErrorHandler = require("./middleware/error");
 const app = express();
 
 app.use(express.json());
+
 app.use(cors({
   origin: [process.env.Frontend_url],
-  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Authorization', 'Content-Type']
 }));
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));

@@ -23,44 +23,52 @@ export const EditLeaveModal = ({ isOpen, onClose, id }) => {
   const [err, setError] = useState(null);
   const { currentUser } = useContext(AuthContext); // Assuming you have currentUser from context
 
+  const [holidays, setHolidays] = useState([]); // State to store the list of holidays
+
+  useEffect(() => {
+    // Fetch holidays from the backend
+    const fetchHolidays = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/api/Holiday/holidays`);
+        const formattedHolidays = response.data.map((holiday) => holiday.date.split("T")[0]);
+        setHolidays(formattedHolidays);
+        console.log("Holidays:", formattedHolidays);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchHolidays();
+  }, []);
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setInputs((prev) => ({
-      ...prev,
+    let newInputs = {
+      ...inputs,
       [name]: type === "checkbox" ? checked : value,
-    }));
+    };
 
-    // Reset toDate if duration is changed to "Half Day"
-    if (name === "duration" && value === "Half Day") {
-      setInputs((prev) => ({
-        ...prev,
-        toDate: "",
-      }));
-    }
+    // Calculate number of days if both fromDate and toDate are available
+    if (newInputs.fromDate && newInputs.toDate) {
+      const fromDate = new Date(newInputs.fromDate);
+      const toDate = new Date(newInputs.toDate);
+      let daysDifference = 0;
 
-    // Calculate days difference if both fromDate and toDate are set
-    if (name === "fromDate" || name === "toDate") {
-      const fromDate = name === "fromDate" ? value : inputs.fromDate;
-      const toDate = name === "toDate" ? value : inputs.toDate;
-      if (fromDate && toDate) {
-        const from = new Date(fromDate);
-        const to = new Date(toDate);
-        const timeDifference = to.getTime() - from.getTime();
-        const daysDifference =
-          Math.ceil(timeDifference / (1000 * 3600 * 24)) + 1;
-        setInputs((prev) => ({
-          ...prev,
-          days: daysDifference,
-        }));
-      } else {
-        setInputs((prev) => ({
-          ...prev,
-          days: 0,
-        }));
+      for (let d = new Date(fromDate); d <= toDate; d.setDate(d.getDate() + 1)) {
+        const day = d.getDay();
+        const formattedDate = d.toISOString().split("T")[0];
+
+        if (day !== 0 && day !== 6 && !holidays.includes(formattedDate)) {
+          daysDifference++;
+        }
       }
-    }
-  };
 
+      newInputs = { ...newInputs, days: daysDifference };
+    }
+
+    setInputs(newInputs);
+  };
+  
   useEffect(() => {
     const fetchSeller = async () => {
       try {

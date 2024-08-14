@@ -3,12 +3,15 @@ import React, { useEffect, useState } from "react";
 import Modal from "react-modal";
 import Select from "react-select";
 import API_BASE_URL from "../../config";
+
 Modal.setAppElement("#root");
+
 const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
   const [names, setNames] = useState([]);
   const [surnames, setSurnames] = useState([]);
   const [selectedNames, setSelectedNames] = useState([]);
   const [selectedSurnames, setSelectedSurnames] = useState([]);
+  const [status, setStatus] = useState("Active"); // Initialize status as an empty string
 
   useEffect(() => {
     const controller = new AbortController();
@@ -52,6 +55,7 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
     const filters = {
       name: selectedNames.map((name) => name.value),
       surname: selectedSurnames.map((surname) => surname.value),
+      status: status, // Include the status in the filters
     };
     onApplyFilters(filters);
     onClose();
@@ -60,6 +64,7 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
   const handleResetFilters = () => {
     setSelectedNames([]);
     setSelectedSurnames([]);
+    setStatus(""); // Reset status to an empty string
     resetFilters();
   };
 
@@ -82,7 +87,7 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
     >
       <div className="filter-modal">
         <div className="flex flex-wrap">
-          <Select
+          {/* <Select
             isMulti
             options={nameOptions}
             value={selectedNames}
@@ -97,7 +102,16 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
             onChange={setSelectedSurnames}
             placeholder="Select Surnames"
             className="p-2 w-full md:w-1/2 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2 m-2"
-          />
+          /> */}
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            className="p-2 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2"
+          >
+            <option value="">Status</option>
+            <option value="Active">Active</option>
+            <option value="InActive">InActive</option>
+          </select>
         </div>
 
         <div className="mt-2">

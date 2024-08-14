@@ -46,7 +46,7 @@ const login = (req, res) => {
                 role: user.role
               };
               
-              const accessToken = jwt.sign(userInfo, 'jwt-secret-key', { expiresIn: '30d' });
+              const accessToken = jwt.sign(userInfo, 'jwt-secret-key', { expiresIn: '5d' });
 
               // Reset login attempts on successful login
               pool.query('UPDATE user SET login_attempts = 0, lockout_time = NULL WHERE id = ?', [user.id], (err) => {

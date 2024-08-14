@@ -52,7 +52,7 @@ const addEmployes = async (req, res) => {
 
 
 const allEmployes = async (req, res) => {
-  const { name, surname } = req.query;
+  const { name, surname, status} = req.query;
 
   pool.getConnection((err, connection) => {
     if (err) {
@@ -95,6 +95,12 @@ const allEmployes = async (req, res) => {
       } else if (surname) {
         filterConditions.push(
           `surname LIKE ${connection.escape(`%${surname}%`)}`
+        );
+      }
+
+      if (status) {
+        filterConditions.push(
+          `status LIKE ${connection.escape(`${status}`)}`
         );
       }
 

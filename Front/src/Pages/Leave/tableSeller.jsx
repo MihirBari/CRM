@@ -1,17 +1,15 @@
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import "./orders.css";
 import DataTable, { createTheme } from "react-data-table-component";
 import API_BASE_URL from "../../config";
-import { MdEdit, MdDelete } from "react-icons/md";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import { FaEye } from "react-icons/fa";
 import ExportTable from "./ExportTable";
 import FilterModal from "./FilterModal";
 import { CiFilter } from "react-icons/ci";
 import DeleteConfirmationDialog from "./DeleteConfirmationDialog";
-
+import { AuthContext } from "../../context/AuthContext";
 
 const Users = () => {
   const [users, setUsers] = useState([]);
@@ -34,28 +32,29 @@ const Users = () => {
     assignedTo:""
   });
 
+  const { currentUser } = useContext(AuthContext);
+
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await axios.get(
-          `${API_BASE_URL}/api/Leave/showApplicationLeave`
+        const response = await axios.post(
+          `${API_BASE_URL}/api/Leave/showApplicationLeave`,
+          {
+            role: currentUser.role,
+            id: currentUser.id,
+          }
         );
-        //console.log(response.data)
         setUsers(response.data.dealers);
         setFilteredUsers(response.data.dealers);
-      
       } catch (err) {
         console.error("Error fetching orders:", err);
       }
     };
-
+  
     fetchOrders();
-  }, []);
+  }, [currentUser]);
 
 
-  const handleEditClick = (userId) => {
-    navigate(`edit/${userId.id}`);
-  };
 
   const handleDeleteConfirmation = (itemId) => {
     axios
@@ -76,23 +75,10 @@ const Users = () => {
     setShowDeleteConfirmation(false);
   };
 
-  // Function to handle delete operation
-  const handleDeleteClick = (row) => {
-    setDeleteItemId(row.id);
-    setShowDeleteConfirmation(true);
-  };
-
-  const handleViewClick = (row) => {
-    navigate(`view/${row.id}`);
-  };
 
   const handleViewClicked = (id) => {
     //console.log("Viewing order with ID:", id);
     navigate(`view/${id}`);
-  };
-
-  const handleExportClick = () => {
-    setExportModalIsOpen(true);
   };
 
   const columns = [
@@ -164,8 +150,9 @@ const Users = () => {
     {
       name: "From Date",
       selector: (row) => {
+        if (!row.fromDate) return " ";
         const date = new Date(row.fromDate);
-        return date.toLocaleString("en-Uk", {
+        return isNaN(date) ? " " : date.toLocaleString("en-UK", {
           year: "numeric",
           month: "2-digit",
           day: "2-digit",
@@ -178,8 +165,9 @@ const Users = () => {
     {
       name: "To Date",
       selector: (row) => {
+        if (!row.toDate) return " ";
         const date = new Date(row.toDate);
-        return date.toLocaleString("en-Uk", {
+        return isNaN(date) ? " " : date.toLocaleString("en-UK", {
           year: "numeric",
           month: "2-digit",
           day: "2-digit",
@@ -200,63 +188,6 @@ const Users = () => {
       sortable: true,
       width: "140px",
     },
-    // {
-    //   name: "Description",
-    //   selector: (row) => row.description,
-    //   sortable: true,
-    //   width: "140px",
-    // },
-    // {
-    //   name: "Comment",
-    //   selector: (row) => row.history,
-    //   sortable: true,
-    //   width: "140px",
-    // },
-    // {
-    //   name: "Created at",
-    //   selector: (row) => {
-    //     const date = new Date(row.created_at);
-    //     return date.toLocaleString("en-Uk", {
-    //       year: "numeric",
-    //       month: "2-digit",
-    //       day: "2-digit",
-    //       timeZone: "IST",
-    //     });
-    //   },
-    //   sortable: true,
-    //   width: "150px",
-    // },
-    // {
-    //   name: "Updated at",
-    //   selector: (row) => {
-    //     const date = new Date(row.update_at);
-    //     return date.toLocaleString("en-Uk", {
-    //       year: "numeric",
-    //       month: "2-digit",
-    //       day: "2-digit",
-    //       timeZone: "IST",
-    //     });
-    //   },
-    //   sortable: true,
-    //   width: "150px",
-    // },
-    // {
-    //   name: "Edit",
-    //   cell: (row) => <MdEdit onClick={() => handleEditClick(row)}>Edit</MdEdit>,
-    //   button: true,
-    // },
-    // {
-    //   name: "Delete",
-    //   cell: (row) => (
-    //     <MdDelete onClick={() => handleDeleteClick(row)}>Delete</MdDelete>
-    //   ),
-    //   button: true,
-    // },
-    // {
-    //   name: "View",
-    //   cell: (row) => <FaEye onClick={() => handleViewClick(row)} />,
-    //   button: true,
-    // },
   ];
 
   const CustomHeader = ({ column }) => (

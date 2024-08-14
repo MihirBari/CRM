@@ -20,7 +20,7 @@ const upload = multer({
 
   const { authenticateToken } = require('../utils/authenticateToken ');
 
-router.get("/showOpportunity",authenticateToken,showOpportunity);
+router.get("/showOpportunity",showOpportunity);
 router.get("/showOneOpportunity/:id", showOneOpportunity);
 router.post("/addOpportunity",upload.single('file'), addOpportunity);
 router.put("/editOpportunity/:id", upload.single('file'),  editOpportunity);
