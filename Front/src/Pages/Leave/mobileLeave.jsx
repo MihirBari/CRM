@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import SideNavBar from "../Sidebar/Navbar";
 import MobileDetail from "./MobileDetail";
 import axios from "axios";
@@ -7,6 +7,7 @@ import { CiFilter } from "react-icons/ci";
 import FilterModal from "./FilterModal";
 import { IoMdAddCircle } from "react-icons/io";
 import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../../context/AuthContext";
 
 const MobileLeave = () => {
   const [applications, setApplications] = useState([]); // Initialize as an empty array
@@ -26,21 +27,29 @@ const MobileLeave = () => {
     assignedTo: "",
   });
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  const { currentUser } = useContext(AuthContext);
 
-  const fetchData = async () => {
-    try {
-      const response = await axios.get(
-        `${API_BASE_URL}/api/Leave/showApplicationLeave`
-      );
-     // console.log("API Response:", response.data);
-      setApplications(response.data.dealers);
-    } catch (error) {
-      console.error("Error fetching product data:", error);
-    }
-  };
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.post(
+          `${API_BASE_URL}/api/Leave/showApplicationLeave`,
+          {
+            role: currentUser.role,
+            id: currentUser.id,
+          }
+        );
+       // console.log("API Response:", response.data);
+        setApplications(response.data.dealers);
+      } catch (error) {
+        console.error("Error fetching product data:", error);
+      }
+    };
+    fetchData();
+  }, [currentUser]);
+
+
+  
 
   const handleCiFilterClick = () => {
     setFilterModalIsOpen(true);

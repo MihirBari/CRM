@@ -88,7 +88,7 @@ const LeaveDetail = ({ product }) => {
   };
 
   const isApproved = status.toLowerCase() === "approved";
-  const isRejected = status.toLowerCase() === "rejected";
+  //const isRejected = status.toLowerCase() === "rejected";
   const currentDate = new Date();
   const fromDateObj = new Date(fromDate);
   const isOneDayAfterFromDate = currentDate > new Date(fromDateObj.setDate(fromDateObj.getDate() + 1));

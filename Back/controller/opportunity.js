@@ -242,8 +242,6 @@ const addOpportunity = async (req, res) => {
     pdf
   } = req.body;
 
-
-
   // Set default values for license_from and license_to if they are not provided
   const licenseFrom = license_from || null;
   const licenseTo = license_to || null;

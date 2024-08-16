@@ -14,7 +14,7 @@ export const EditLeaveModal = ({ isOpen, onClose, id }) => {
     fromDate: "",
     toDate: "",
     duration: "",
-    days: 0,
+    days: 1,
     description: "",
     history: "",
   };
@@ -47,27 +47,31 @@ export const EditLeaveModal = ({ isOpen, onClose, id }) => {
       ...inputs,
       [name]: type === "checkbox" ? checked : value,
     };
-
-    // Calculate number of days if both fromDate and toDate are available
-    if (newInputs.fromDate && newInputs.toDate) {
+  
+    // Check if duration is "Half Day" and set days to 1
+    if (newInputs.duration === "Half Day") {
+      newInputs.days = 1;
+    } else if (newInputs.fromDate && newInputs.toDate) {
+      // Calculate the number of days if duration is not "Half Day"
       const fromDate = new Date(newInputs.fromDate);
       const toDate = new Date(newInputs.toDate);
       let daysDifference = 0;
-
+  
       for (let d = new Date(fromDate); d <= toDate; d.setDate(d.getDate() + 1)) {
         const day = d.getDay();
         const formattedDate = d.toISOString().split("T")[0];
-
+  
         if (day !== 0 && day !== 6 && !holidays.includes(formattedDate)) {
           daysDifference++;
         }
       }
-
-      newInputs = { ...newInputs, days: daysDifference };
+  
+      newInputs.days = daysDifference;
     }
-
+  
     setInputs(newInputs);
   };
+  
   
   useEffect(() => {
     const fetchSeller = async () => {

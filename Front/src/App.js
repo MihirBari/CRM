@@ -63,8 +63,8 @@ function App() {
         <Route path='/user' element={<ProtectedRoute adminOnly><User /></ProtectedRoute>} />
         <Route path='/user/edit/:id' element={<ProtectedRoute adminOnly><EditUser /></ProtectedRoute>} />
         <Route path='/adduser' element={<ProtectedRoute adminOnly><AddUser /></ProtectedRoute>} />
-        <Route path='/Customer' element={<ProtectedRoute adminOnly><Expense /></ProtectedRoute>} />
-        <Route path='/Summary' element={<ProtectedRoute adminOnly ><Summary /></ProtectedRoute>} />
+        <Route path='/Customer' element={<ProtectedRoute adminMod><Expense /></ProtectedRoute>} />
+        <Route path='/Summary' element={<ProtectedRoute adminMod ><Summary /></ProtectedRoute>} />
         <Route
   path='/Leave'
   element={
@@ -73,25 +73,25 @@ function App() {
     </ProtectedRoute>
   }
 />
-        <Route path='/Alert' element={<ProtectedRoute adminOnly ><Alert /></ProtectedRoute>} />
-        <Route path='/Opportunity' element={<ProtectedRoute adminOnly><Opportunity /></ProtectedRoute>} />
-        <Route path='/PO' element={<ProtectedRoute adminOnly><PO /></ProtectedRoute>} />
-        <Route path='/addExpense' element={<ProtectedRoute adminOnly><AddContact /></ProtectedRoute>} />
-        <Route path='/addCustomer' element={<ProtectedRoute adminOnly><AddCustomer /></ProtectedRoute>} />
+        <Route path='/Alert' element={<ProtectedRoute adminMod ><Alert /></ProtectedRoute>} />
+        <Route path='/Opportunity' element={<ProtectedRoute adminMod><Opportunity /></ProtectedRoute>} />
+        <Route path='/PO' element={<ProtectedRoute adminMod><PO /></ProtectedRoute>} />
+        <Route path='/addExpense' element={<ProtectedRoute adminMod><AddContact /></ProtectedRoute>} />
+        <Route path='/addCustomer' element={<ProtectedRoute adminMod><AddCustomer /></ProtectedRoute>} />
         <Route path='/addLeave' element={<ProtectedRoute><AddSeller /></ProtectedRoute>} />
-        <Route path='/addOpportunity' element={<ProtectedRoute adminOnly ><AddOpportunity /></ProtectedRoute>} />
-        <Route path='/Expense/edit/:id' element={<ProtectedRoute adminOnly><EditContact /></ProtectedRoute>} />
-        <Route path='/Opportunity/view/:id' element={<ProtectedRoute adminOnly><ViewOpportunity /></ProtectedRoute>} />
-        <Route path='/Customer/edit/:id' element={<ProtectedRoute adminOnly><EditCustomer /></ProtectedRoute>} />
+        <Route path='/addOpportunity' element={<ProtectedRoute adminMod ><AddOpportunity /></ProtectedRoute>} />
+        <Route path='/Expense/edit/:id' element={<ProtectedRoute adminMod><EditContact /></ProtectedRoute>} />
+        <Route path='/Opportunity/view/:id' element={<ProtectedRoute adminMod><ViewOpportunity /></ProtectedRoute>} />
+        <Route path='/Customer/edit/:id' element={<ProtectedRoute adminMod><EditCustomer /></ProtectedRoute>} />
         <Route path='/Leave/edit/:id' element={<ProtectedRoute><EditSeller /></ProtectedRoute>} />
         <Route path='/Leave/view/:id' element={<ProtectedRoute><ViewLeave /></ProtectedRoute>} />
-        <Route path='/Opportunity/edit/:id' element={<ProtectedRoute adminOnly ><EditOpportunity /></ProtectedRoute>} />
-        <Route path='/Customer/view/:customer_entity/:id' element={<ProtectedRoute adminOnly><CustomerDetailVeiw /></ProtectedRoute>} />
-        <Route path='/Customer/:customer_entity' element={<ProtectedRoute adminOnly><CustomerDetail /></ProtectedRoute>} />
+        <Route path='/Opportunity/edit/:id' element={<ProtectedRoute adminMod ><EditOpportunity /></ProtectedRoute>} />
+        <Route path='/Customer/view/:customer_entity/:id' element={<ProtectedRoute adminMod><CustomerDetailVeiw /></ProtectedRoute>} />
+        <Route path='/Customer/:customer_entity' element={<ProtectedRoute adminMod><CustomerDetail /></ProtectedRoute>} />
         <Route path='/Calendar' element={<ProtectedRoute ><Calender /></ProtectedRoute>} />
-        <Route path='/Employees' element={<ProtectedRoute ><Employes /></ProtectedRoute>} />
-        <Route path='/Employees/edit/:id' element={<ProtectedRoute ><EditEmployes /></ProtectedRoute>} />
-        <Route path='/addEmployees' element={<ProtectedRoute ><AddEmployes /></ProtectedRoute>} />
+        <Route path='/Employees' element={<ProtectedRoute adminOnly><Employes /></ProtectedRoute>} />
+        <Route path='/Employees/edit/:id' element={<ProtectedRoute adminOnly><EditEmployes /></ProtectedRoute>} />
+        <Route path='/addEmployees' element={<ProtectedRoute adminOnly><AddEmployes /></ProtectedRoute>} />
         <Route path='/unauthorized' element={<Unauthorized />} />
         <Route path='/register' element={<Register />} />
         <Route path='/forgetPassword' element={<ForgetPassword />} />

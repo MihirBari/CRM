@@ -207,6 +207,7 @@ const addApplicationLeave = (req, res) => {
           connection.query(addDealer, values, (error, results) => {
             if (error) return reject(error);
             resolve(results);
+            console.log(name + " " + surname + " "+"Added The leave Application")
           });
         });
 
@@ -283,12 +284,13 @@ const sendEmail = async (leaveId, name, surname, fromDate, toDate, days) => {
       subject: `Leave Application Confirmation`,
       text: `Hi Sir,
 
-        I ${rows[0].name} ${rows[0].surname}, am writing to request a leave from 
+        I, ${rows[0].name} ${rows[0].surname}, am writing to request a leave from 
         Start Date : ${fromDateFormatted || 'N/A'} 
         End Date   : ${toDateFormatted || 'N/A'} for 
-        Total Number of days : ${rows[0].days}.
+        Total Number of days : ${rows[0].days}
         Leave Type :  ${rows[0].duration}
         Reason for Leave : ${rows[0].description}
+        ${process.env.Frontend_url}/leave
 
         Regards,
         ${rows[0].name} ${rows[0].surname}
@@ -345,8 +347,9 @@ const editApplicationAdmin = (req, res) => {
         comment = `${comment || ''}`;
       }
 
+      console.log("comment :", comment)
+
       try {
-        // Fetch current user holidays_taken
         const [userResult] = await new Promise((resolve, reject) => {
           connection.query(
             "SELECT holidays_taken FROM user WHERE name = ? AND surname = ?",
@@ -373,7 +376,6 @@ const editApplicationAdmin = (req, res) => {
           });
         }
 
-        // Check for overlapping leave applications
         const [overlapResult] = await new Promise((resolve, reject) => {
           connection.query(
             `SELECT * FROM leaveapplication
@@ -416,8 +418,8 @@ const editApplicationAdmin = (req, res) => {
             req.body.name,
             req.body.surname,
             req.body.status,
-            req.body.fromDate || null, // Set to null if undefined or empty
-            req.body.toDate || null,  
+            req.body.fromDate || null,
+            req.body.toDate || null,
             req.body.duration,
             req.body.days,
             req.body.description,
@@ -432,90 +434,25 @@ const editApplicationAdmin = (req, res) => {
               return res.status(500).json({ error: "Internal Server Error" });
             }
 
-            // Send email if needed
+            // Sending emails asynchronously to avoid slowing down the transaction
             if ((currentStatus === 'approved' || currentStatus === 'rejected') && (fromDateChanged || toDateChanged)) {
               req.body.status = 'request';
-
-              const mailOptions = {
-                from: `"Techsa CRM" <${process.env.SMPT_MAIL}>`,
-                to: "ravi.k@techsa.net, sanjiv.s@techsa.net",
-                subject: `Leave Application Confirmation(Update)`,
-                text: `Hi Sir,
-                  
-                I ${rows[0].name} ${rows[0].surname}, am writing to request a leave from 
-               Start Date : ${req.body.fromDate || 'N/A'} 
-               End Date   : ${req.body.toDate || 'N/A'} for 
-               Total Number of days : ${req.body.days}.
-               Reason for Leave : ${req.body.description}
-
-              Regards,
-              ${userName} ${userSurname}`,
-              };
-
-              const transporter = nodemailer.createTransport({
-                host: process.env.SMPT_HOST,
-                port: process.env.SMPT_PORT,
-                secure: true, // Use true for 465, false for other ports
-                auth: {
-                  user: process.env.SMPT_MAIL,
-                  pass: process.env.SMPT_PASSWORD,
-                },
-              });
-
-              transporter.sendMail(mailOptions, (error, info) => {
-                if (error) {
-                  console.error("Error sending email:", error);
-                  connection.release();
-                  return res.status(500).json({ error: "Internal Server Error" });
-                }
-
-                console.log("Email sent:", info.response);
-                connection.release();
-                res.json(results);
-              });
+              sendEmail(req.params.id, req.body.name, req.body.surname, req.body.fromDate, req.body.toDate, req.body.days);
             } else if (req.body.status === "approved" || req.body.status === "rejected") {
-              const mailOptions = {
-                from: `<${process.env.SMPT_MAIL}>`,
-                to: userEmail,
-                subject: "Leave Application Status Update",
-                text: `Hi ${userName} ${userSurname},\n\nYour leave application has been ${req.body.status}.
-                ${comment}
-
-                \n\nRegards,\nTechsa CRM`,
-              };
-
-              const transporter = nodemailer.createTransport({
-                host: process.env.SMPT_HOST,
-                port: process.env.SMPT_PORT,
-                secure: true, // Use true for 465, false for other ports
-                auth: {
-                  user: process.env.SMPT_MAIL,
-                  pass: process.env.SMPT_PASSWORD,
-                },
-              });
-
-              transporter.sendMail(mailOptions, (error, info) => {
-                if (error) {
-                  console.error("Error sending email:", error);
-                  connection.release();
-                  return res.status(500).json({ error: "Internal Server Error" });
-                }
-
-                console.log("Email sent:", info.response);
-                connection.release();
-                res.json(results);
-              });
-            } else {
-              connection.release();
-              res.json(results);
+              
+              sendStatusEmail(userEmail, userName, userSurname, req.body.status, comment);
             }
+
+            connection.release();
+            console.log(req.body.name + " " + req.body.surname + " "+" edited The leave Application")
+            res.json(results);
           });
         };
 
         if ((currentStatus === 'approved' || currentStatus === 'rejected') && (fromDateChanged || toDateChanged)) {
           req.body.status = 'request';
-          // Email will be sent in updateDatabase() if needed
           updateDatabase();
+          
         } else {
           updateDatabase();
         }
@@ -525,6 +462,35 @@ const editApplicationAdmin = (req, res) => {
         res.status(500).json({ error: "Internal Server Error" });
       }
     });
+  });
+};
+
+const sendStatusEmail = (userEmail, userName, userSurname, status, comment) => {
+  const mailOptions = {
+    from: `<${process.env.SMPT_MAIL}>`,
+    to: userEmail,
+    subject: "Leave Application Status Update",
+    text: `Hi ${userName} ${userSurname},\n\nYour leave application has been ${status}.\n${comment}\n${process.env.Frontend_url}/leave
+    
+    \n\nRegards,\nTechsa CRM`,
+  };
+
+  const transporter = nodemailer.createTransport({
+    host: process.env.SMPT_HOST,
+    port: process.env.SMPT_PORT,
+    secure: true,
+    auth: {
+      user: process.env.SMPT_MAIL,
+      pass: process.env.SMPT_PASSWORD,
+    },
+  });
+
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.error("Error sending status email:", error);
+    } else {
+      console.log("Status email sent:", info.response);
+    }
   });
 };
 
@@ -541,10 +507,8 @@ const leaveConfirm = (req, res) => {
     req.params.id,
   ];
 
-  // Query to get user details for sending email
-  const userQuery = 'SELECT email FROM user WHERE name = ? and surname = ?';
+  const userQuery = 'SELECT email FROM user WHERE name = ? AND surname = ?';
 
-  // Start a transaction
   pool.getConnection((err, connection) => {
     if (err) {
       console.error("Error getting connection:", err);
@@ -569,7 +533,7 @@ const leaveConfirm = (req, res) => {
         }
 
         // Fetch user details
-        connection.query(userQuery, [req.body.name, req.body.surname ], (userError, userResults) => {
+        connection.query(userQuery, [req.body.name, req.body.surname], (userError, userResults) => {
           if (userError) {
             return connection.rollback(() => {
               console.error("Error fetching user details:", userError);
@@ -583,66 +547,26 @@ const leaveConfirm = (req, res) => {
           const userName = req.body.name;
           const userSurname = req.body.surname;
 
-          // Email sending logic
-          if (req.body.status === "approved" || req.body.status === "rejected") {
-            const mailOptions = {
-              from: `<${process.env.SMPT_MAIL}>`,
-              to: userEmail,
-              subject: "Leave Application Status Update",
-              text: `Hi ${userName} ${userSurname},\n\nYour leave application has been ${req.body.status}.
-                ${req.body.comment || ""}
-                \n\nRegards,\nTechsa CRM`,
-            };
-
-            const transporter = nodemailer.createTransport({
-              host: process.env.SMPT_HOST,
-              port: process.env.SMPT_PORT,
-              secure: true, // Use true for 465, false for other ports
-              auth: {
-                user: process.env.SMPT_MAIL,
-                pass: process.env.SMPT_PASSWORD,
-              },
-            });
-
-            transporter.sendMail(mailOptions, (mailError, info) => {
-              if (mailError) {
-                return connection.rollback(() => {
-                  console.error("Error sending email:", mailError);
-                  res.status(500).json({ error: "Internal Server Error" });
-                  connection.release();
-                });
-              }
-
-              // Commit the transaction
-              connection.commit((commitError) => {
-                if (commitError) {
-                  return connection.rollback(() => {
-                    console.error("Error committing transaction:", commitError);
-                    res.status(500).json({ error: "Internal Server Error" });
-                    connection.release();
-                  });
-                }
-
-                console.log("Leave status updated and email sent:", info.response);
-                res.status(200).json({ message: "Leave status updated and email sent" });
+          // Commit the transaction
+          connection.commit((commitError) => {
+            if (commitError) {
+              return connection.rollback(() => {
+                console.error("Error committing transaction:", commitError);
+                res.status(500).json({ error: "Internal Server Error" });
                 connection.release();
               });
-            });
-          } else {
-            // Commit the transaction if no email needs to be sent
-            connection.commit((commitError) => {
-              if (commitError) {
-                return connection.rollback(() => {
-                  console.error("Error committing transaction:", commitError);
-                  res.status(500).json({ error: "Internal Server Error" });
-                  connection.release();
-                });
-              }
+            }
 
-              res.status(200).json({ message: "Leave status updated" });
-              connection.release();
-            });
-          }
+            console.log("Leave status updated successfully");
+
+            // After transaction commit, send the email
+            if (req.body.status === "approved" || req.body.status === "rejected") {
+              sendStatusEmail(userEmail, userName, userSurname, req.body.status, req.body.history || "");
+            }
+
+            res.status(200).json({ message: "Leave status updated and email sent (if applicable)" });
+            connection.release();
+          });
         });
       });
     });

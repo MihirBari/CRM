@@ -1,6 +1,5 @@
 const { pool } = require("../database");
 const XLSX = require("xlsx");
-
 const multer = require("multer");
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -49,7 +48,6 @@ const addEmployes = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
 
 const allEmployes = async (req, res) => {
   const { name, surname, status} = req.query;
@@ -182,7 +180,6 @@ const editEmployes = async (req, res) => {
     res.json(results);
   });
 };
-
 
 const viewEmployes = async (req, res) => {
   const dealerQuery = `
