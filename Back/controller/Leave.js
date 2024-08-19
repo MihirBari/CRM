@@ -211,13 +211,20 @@ const addApplicationLeave = (req, res) => {
           });
         });
 
-        connection.commit((err) => {
+        connection.commit(async(err) => {
           if (err) {
             return connection.rollback(() => {
               connection.release();
               return res.status(500).json({ error: "Internal Server Error" });
             });
           }
+
+          try {
+            await leaveLog(name, surname);
+          } catch (logError) {
+            console.error("Failed to log leave event:", logError);
+          }
+
 
           // Email sending is done outside of the transaction block
           sendEmail(result.insertId, name, surname, fromDate, toDate, days);
@@ -427,12 +434,19 @@ const editApplicationAdmin = (req, res) => {
             req.params.id,
           ];
 
-          connection.query(updateDealer, values, (error, results) => {
+          connection.query(updateDealer, values, async(error, results) => {
             if (error) {
               console.error("Error executing update query:", error);
               connection.release();
               return res.status(500).json({ error: "Internal Server Error" });
             }
+
+  // Call editleaveLog after successful update
+  try {
+    await editleaveLog(userName, userSurname);
+  } catch (logError) {
+    console.error("Failed to log leave edit event:", logError);
+  }
 
             // Sending emails asynchronously to avoid slowing down the transaction
             if ((currentStatus === 'approved' || currentStatus === 'rejected') && (fromDateChanged || toDateChanged)) {
@@ -574,20 +588,104 @@ const leaveConfirm = (req, res) => {
 };
 
 const deleteApplication = async (req, res) => {
-  const query = `DELETE from leaveapplication where id =?`
-   
-  const value = [req.body.id]
- 
-  pool.query(query,value, (error, results) => {
-    if (error) {
-      console.error('Error executing query:', error);
-      return;
+  const fetchQuery = `
+    SELECT name, surname, fromDate, toDate 
+    FROM leaveapplication 
+    WHERE id = ?
+  `;
+
+  pool.getConnection((err, connection) => {
+    if (err) {
+      console.error("Error connecting to database:", err);
+      return res.status(500).json({ error: "Internal Server Error" });
     }
-  
-    console.log('Deleted', results);
-    res.json(results)
+
+    // Fetching name, surname, fromDate, and toDate using id
+    connection.query(fetchQuery, [req.body.id], async (error, results) => {
+      if (error) {
+        console.error("Error executing fetch query:", error);
+        connection.release();
+        return res.status(500).json({ error: "Internal Server Error" });
+      }
+
+      if (results.length === 0) {
+        connection.release();
+        return res.status(404).json({ error: "Application not found" });
+      }
+
+      const { name, surname, fromDate, toDate } = results[0];
+
+      try {
+        // Log the delete action
+        await deletLeaveLog(name, surname, fromDate, toDate);
+
+        // Proceed with the delete operation
+        const deleteQuery = `DELETE FROM leaveapplication WHERE id = ?`;
+        connection.query(deleteQuery, [req.body.id], (error, deleteResults) => {
+          if (error) {
+            console.error("Error executing delete query:", error);
+            connection.release();
+            return res.status(500).json({ error: "Internal Server Error" });
+          }
+
+          console.log(`Deleted application for ${name} ${surname} from ${fromDate} to ${toDate}`);
+          connection.release();
+          res.json({ message: "Application deleted successfully", results: deleteResults });
+        });
+      } catch (logError) {
+        console.error("Error logging delete action:", logError);
+        connection.release();
+        res.status(500).json({ error: "Internal Server Error" });
+      }
+    });
   });
-}
+};
+
+
+const leaveLog = (name, surname) => {
+  return new Promise((resolve, reject) => {
+    const query = `
+      INSERT INTO leavelogs (EventLog, created_at) 
+      VALUES (?, NOW())
+    `;
+    const value = `${name} ${surname} added a leave`;
+    
+    pool.query(query, [value], (error, results) => {
+      if (error) return reject(error);
+      resolve(results);
+    });
+  });
+};
+
+const editleaveLog = (name, surname) => {
+  return new Promise((resolve, reject) => {
+    const query = `
+      INSERT INTO leavelogs (EventLog, created_at) 
+      VALUES (?, NOW())
+    `;
+    const value = `${name} ${surname} edited a leave application`;
+    
+    pool.query(query, [value], (error, results) => {
+      if (error) return reject(error);
+      resolve(results);
+    });
+  });
+};
+
+const deletLeaveLog = (name, surname,fromDate, toDate) => {
+  return new Promise((resolve, reject) => {
+    const query = `
+      INSERT INTO leavelogs (EventLog, created_at) 
+      VALUES (?, NOW())
+    `;
+    const value = `${name} ${surname} Deleted application from ${fromDate} to ${toDate}`;
+    
+    pool.query(query, [value], (error, results) => {
+      if (error) return reject(error);
+      resolve(results);
+    });
+  });
+};
 
 module.exports = {
   showApplicationLeave,

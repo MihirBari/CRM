@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import API_BASE_URL from "../../config";
 import axios from "axios";
+import { AuthContext } from "../../context/AuthContext";
 
 const EditOpportunity = () => {
   const initialInputs = {
@@ -17,9 +18,12 @@ const EditOpportunity = () => {
     period: "",
     license_from: "",
     license_to: "",
+    user_name: "", // For sending currentUser's name
+    user_surname: "", // For sending currentUser's surname
   };
 
   const { id } = useParams();
+  const { currentUser } = useContext(AuthContext);
   const navigate = useNavigate();
   const [inputs, setInputs] = useState(initialInputs);
   const [nameOptions, setNameOptions] = useState([]);
@@ -89,6 +93,7 @@ const EditOpportunity = () => {
 
     setInputs((prev) => ({
       ...prev,
+    
       [name]: type === "checkbox" ? checked : value,
     }));
   };
@@ -106,9 +111,13 @@ const EditOpportunity = () => {
     }
   };
 
+  console.log("Current User Name:", currentUser.name);
+console.log("Current User Surname:", currentUser.surname);
+
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     try {
       await axios.put(`${API_BASE_URL}/api/Opportunity/editOpportunity/${id}`, {
         ...inputs,
@@ -121,17 +130,20 @@ const EditOpportunity = () => {
         license_to: inputs.license_to
           ? new Date(inputs.license_to).toISOString()
           : null,
+        user_name: currentUser.name, // Add currentUser.name here
+        user_surname: currentUser.surname, // Add currentUser.surname here
       });
-
+  
       setInputs(initialInputs);
       navigate("/Opportunity");
-      toast.success("Opportnity updated successfully");
+      toast.success("Opportunity updated successfully");
     } catch (err) {
       console.error(err);
       setError(err.response);
-      toast.error("Failed to update order");
+      toast.error("Failed to update opportunity");
     }
   };
+  
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">

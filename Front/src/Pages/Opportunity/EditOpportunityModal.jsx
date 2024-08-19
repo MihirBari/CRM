@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import API_BASE_URL from "../../config";
 import axios from "axios";
 import Modal from "react-modal";
+import { AuthContext } from "../../context/AuthContext";
 
 Modal.setAppElement("#root");
 
@@ -20,9 +21,13 @@ const EditOpportunityModal = ({ isOpen, onClose }) => {
     period: "",
     license_from: "",
     license_to: "",
+    user_name: "", // For sending currentUser's name
+    user_surname: "", // For sending currentUser's surname
+    pdf: "", // For file upload
   };
 
   const { id } = useParams();
+  const { currentUser } = useContext(AuthContext);
   const [inputs, setInputs] = useState(initialInputs);
   const [nameOptions, setNameOptions] = useState([]);
   const [typeOptions, setTypeOptions] = useState([]);
@@ -36,7 +41,7 @@ const EditOpportunityModal = ({ isOpen, onClose }) => {
         );
         const orderData = response.data[0];
         console.log("Fetched Order Data:", orderData);
-  
+
         // Adjust the timezone offset and convert to yyyy-MM-dd format
         const formatDate = (dateString) => {
           if (!dateString) return "";
@@ -45,7 +50,7 @@ const EditOpportunityModal = ({ isOpen, onClose }) => {
           const adjustedDate = new Date(date.getTime() - timezoneOffset);
           return adjustedDate.toISOString().split("T")[0];
         };
-  
+
         const fetchTypeOptions = async () => {
           try {
             const response = await axios.get(`${API_BASE_URL}/api/Opportunity/product`);
@@ -54,9 +59,9 @@ const EditOpportunityModal = ({ isOpen, onClose }) => {
             console.error("Error fetching type options:", error);
           }
         };
-  
+
         fetchTypeOptions(); // Call fetchTypeOptions to populate typeOptions
-  
+
         setInputs({
           customer_entity: orderData.customer_entity,
           name: orderData.name,
@@ -69,6 +74,8 @@ const EditOpportunityModal = ({ isOpen, onClose }) => {
           period: orderData.period,
           license_from: formatDate(orderData.license_from),
           license_to: formatDate(orderData.license_to),
+          user_name: currentUser.name || "", // Ensure it is a string
+          user_surname: currentUser.surname || "", // Ensure it is a string
         });
       } catch (err) {
         console.error(err);
@@ -76,9 +83,9 @@ const EditOpportunityModal = ({ isOpen, onClose }) => {
         toast.error("Failed to fetch order details");
       }
     };
-  
+
     fetchOrder();
-  }, [id]);
+  }, [id, currentUser]);
 
   useEffect(() => {
     if (inputs.customer_entity) {

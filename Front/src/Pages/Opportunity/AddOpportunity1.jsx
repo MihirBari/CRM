@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import API_BASE_URL from "../../config";
 import axios from "axios";
 import Select from "react-select";
+import { AuthContext } from "../../context/AuthContext";
 
 const AddOpportunity = () => {
   const initialInputs = {
@@ -19,8 +20,12 @@ const AddOpportunity = () => {
     license_from: "",
     license_to: "",
     pdf: null,
+    user_name: "", // For sending currentUser's name
+    user_surname: "", // For sending currentUser's surname
   };
 
+  const { currentUser } = useContext(AuthContext);
+  
   const [inputs, setInputs] = useState(initialInputs);
   const [customerEntities, setCustomerEntities] = useState([]);
   const [nameOptions, setNameOptions] = useState([]);
@@ -50,7 +55,14 @@ const AddOpportunity = () => {
 
     fetchCustomerEntities();
     fetchTypeOptions();
-  }, []);
+
+    // Set current user's name and surname
+    setInputs((prev) => ({
+      ...prev,
+      user_name: currentUser.name,
+      user_surname: currentUser.surname,
+    }));
+  }, [currentUser]);
 
   const fetchName = async (customerEntity) => {
     try {

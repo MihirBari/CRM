@@ -220,10 +220,16 @@ WHERE
 };
 
 const addOpportunity = async (req, res) => {
-  const addDealer = `
+  const addOpportunityQuery = `
     INSERT INTO opportunity
     (customer_entity, name, description, type, License_type, value, closure_time, status, period, license_from, license_to, pdf)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+
+  const addLogQuery = `
+    INSERT INTO opportunitylog
+    (eventLog, created_at)
+    VALUES (?, now())
   `;
 
   // Extract values from the request body
@@ -239,7 +245,9 @@ const addOpportunity = async (req, res) => {
     period,
     license_from,
     license_to,
-    pdf
+    pdf,
+    user_name,
+    user_surname
   } = req.body;
 
   // Set default values for license_from and license_to if they are not provided
@@ -257,7 +265,7 @@ const addOpportunity = async (req, res) => {
     }
   }
 
-  const values = [
+  const opportunityValues = [
     customer_entity,
     name,
     description,
@@ -272,11 +280,26 @@ const addOpportunity = async (req, res) => {
     pdfBuffer
   ];
 
+  const logEvent = `${user_name} ${user_surname} added Opportunity for ${customer_entity} for ${type} ${License_type}`;
+
   try {
+    // Insert into opportunity table
     await new Promise((resolve, reject) => {
-      pool.query(addDealer, values, (error, results) => {
+      pool.query(addOpportunityQuery, opportunityValues, (error, results) => {
         if (error) {
           console.error("Error executing query:", error);
+          reject(error);
+        } else {
+          resolve();
+        }
+      });
+    });
+
+    // Insert into opportunitylog table
+    await new Promise((resolve, reject) => {
+      pool.query(addLogQuery, [logEvent], (error, results) => {
+        if (error) {
+          console.error("Error inserting log:", error);
           reject(error);
         } else {
           resolve();
@@ -291,15 +314,33 @@ const addOpportunity = async (req, res) => {
   }
 };
 
-const editOpportunity = (req, res) => {
-  const { customer_entity, name, description, type, License_type, value, closure_time, status, period, license_from, license_to } = req.body;
-  const pdf = req.files && req.files.length > 0 ? req.files[0].buffer : null; 
 
+const editOpportunity = async (req, res) => {
+  const {
+    customer_entity,
+    name,
+    description,
+    type,
+    License_type,
+    value,
+    closure_time,
+    status,
+    period,
+    license_from,
+    license_to,
+    user_name,
+    user_surname
+  } = req.body;
+
+  const pdf = req.files && req.files.length > 0 ? req.files[0].buffer : null;
+
+  // Convert date fields to ISO format without time if provided
   const closureTime = closure_time ? new Date(closure_time).toISOString().split('T')[0] : null;
-  const LicenseFrom = license_from ? new Date(license_from).toISOString().split('T')[0] : null;
-  const LicenseTo = license_to ? new Date(license_to).toISOString().split('T')[0] : null;
+  const licenseFrom = license_from ? new Date(license_from).toISOString().split('T')[0] : null;
+  const licenseTo = license_to ? new Date(license_to).toISOString().split('T')[0] : null;
 
-  let updateDealer = `
+  // Update query
+  let updateOpportunityQuery = `
     UPDATE opportunity 
     SET
       customer_entity = ?,
@@ -315,7 +356,7 @@ const editOpportunity = (req, res) => {
       license_to = ?
   `;
 
-  const values = [
+  const opportunityValues = [
     customer_entity,
     name,
     description,
@@ -325,28 +366,101 @@ const editOpportunity = (req, res) => {
     closureTime,
     status,
     period,
-    LicenseFrom,
-    LicenseTo
+    licenseFrom,
+    licenseTo
   ];
 
+  // Log query
+  const logEvent = `${user_name} ${user_surname} edited Opportunity for ${customer_entity} for ${type} ${License_type}`;
+  const addLogQuery = `
+    INSERT INTO opportunitylog
+    (eventLog, created_at)
+    VALUES (?, now())
+  `;
+
+  // Add PDF field to the update query if provided
   if (pdf) {
-    updateDealer += `, pdf = ?`;
-    values.push(pdf);
+    updateOpportunityQuery += `, pdf = ?`;
+    opportunityValues.push(pdf);
   }
 
-  updateDealer += ` WHERE id = ?;`;
-  values.push(req.params.id);
+  // Add WHERE clause to target specific opportunity by id
+  updateOpportunityQuery += ` WHERE id = ?;`;
+  opportunityValues.push(req.params.id);
 
-  pool.query(updateDealer, values, (error, results) => {
-    if (error) {
-      console.error("Error executing query:", error);
-      res.status(500).json({ error: "Internal Server Error" });
-      return;
+  let connection;
+
+  try {
+    // Get a connection from the pool
+    connection = await new Promise((resolve, reject) => {
+      pool.getConnection((err, conn) => {
+        if (err) reject(err);
+        else resolve(conn);
+      });
+    });
+
+    // Start a transaction
+    await new Promise((resolve, reject) => {
+      connection.beginTransaction(err => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
+
+    // Execute the update query
+    await new Promise((resolve, reject) => {
+      connection.query(updateOpportunityQuery, opportunityValues, (error, results) => {
+        if (error) {
+          console.error("Error executing update query:", error);
+          reject(error);
+        } else {
+          resolve(results);
+        }
+      });
+    });
+
+    // Log the update action
+    await new Promise((resolve, reject) => {
+      connection.query(addLogQuery, [logEvent], (error, results) => {
+        if (error) {
+          console.error("Error inserting log:", error);
+          reject(error);
+        } else {
+          resolve(results);
+        }
+      });
+    });
+
+    // Commit the transaction
+    await new Promise((resolve, reject) => {
+      connection.commit(err => {
+        if (err) {
+          console.error("Error committing transaction:", err);
+          connection.rollback(() => reject(err));
+        } else {
+          resolve();
+        }
+      });
+    });
+
+    // Send success response
+    res.json({ message: "Opportunity updated successfully" });
+  } catch (error) {
+    // Rollback transaction in case of error
+    if (connection) {
+      await new Promise(resolve => {
+        connection.rollback(() => resolve());
+      });
     }
 
-    res.json(results);
-  });
+    console.error("Transaction failed:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  } finally {
+    // Release the connection back to the pool
+    if (connection) connection.release();
+  }
 };
+
 
 const deleteOpportunity = (req, res) => {
   const query = "DELETE FROM opportunity WHERE id = ?";
