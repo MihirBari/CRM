@@ -1,96 +1,45 @@
-import axios from "axios";
 import React, { useEffect, useState } from "react";
 import Modal from "react-modal";
-import API_BASE_URL from "../../config";
 import Select from "react-select";
 
 Modal.setAppElement("#root");
-const FilterModal = ({
-  isOpen,
-  onClose,
-  onApplyFilters,
-  users,
-  resetFilters,
-}) => {
+
+const FilterModal = ({ isOpen, onClose, onApplyFilters, users, resetFilters }) => {
   const [status, setStatus] = useState("");
- 
   const [dateFilterType, setDateFilterType] = useState("");
-  const [selectedDate, setSelectedDate] = useState(
-    new Date().toISOString().split("T")[0]
-  ); // Today's date
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
-  const [shouldApplyFilters, setShouldApplyFilters] = useState(false);
 
-  const applyFilters = async () => {
-    try {
-      const response = await axios.get(
-        `${API_BASE_URL}/api/Leave/showApplicationLeave`,
-        {
-          params: {
-            status,
-            
-            dateFilterType,
-            selectedDate: dateFilterType !== "between" ? selectedDate : null,
-            startDate: dateFilterType === "between" ? startDate : null,
-            endDate: dateFilterType === "between" ? endDate : null,
-          },
-        }
-      );
-      onApplyFilters(response.data.dealers);
-      localStorage.setItem(
-        "SellerFilters",
-        JSON.stringify({
-          status,
-          
-          dateFilterType,
-          selectedDate,
-          startDate,
-          endDate,
-        })
-      );
-    } catch (error) {
-      console.error("Error applying filters:", error.message);
+  const applyFilters = () => {
+    // Filter users data based on status and date criteria
+    let filteredUsers = users;
+
+    if (status.length > 0) {
+      filteredUsers = filteredUsers.filter((user) => status.includes(user.status));
     }
+
+    if (dateFilterType) {
+      const selectedDateObj = new Date(selectedDate);
+      const startDateObj = startDate ? new Date(startDate) : null;
+      const endDateObj = endDate ? new Date(endDate) : null;
+
+      if (dateFilterType === "equal") {
+        filteredUsers = filteredUsers.filter((user) => new Date(user.fromDate).toDateString() === selectedDateObj.toDateString());
+      } else if (dateFilterType === "before") {
+        filteredUsers = filteredUsers.filter((user) => new Date(user.fromDate) < selectedDateObj);
+      } else if (dateFilterType === "after") {
+        filteredUsers = filteredUsers.filter((user) => new Date(user.fromDate) > selectedDateObj);
+      } else if (dateFilterType === "between") {
+        filteredUsers = filteredUsers.filter((user) => new Date(user.fromDate) >= startDateObj && new Date(user.fromDate) <= endDateObj);
+      }
+    }
+
+    onApplyFilters(filteredUsers); // Apply filtered users data
   };
-
-  useEffect(() => {
-    // Retrieve filter values from localStorage
-    const storedFilters = localStorage.getItem("SellerFilters");
-    if (storedFilters) {
-      const {
-        status: storedStatus,
-        dateFilterType: storedDateFilterType,
-        selectedDate: storedSelectedDate,
-        startDate: storedStartDate,
-        endDate: storedEndDate,
-      } = JSON.parse(storedFilters);
-
-      // Set filter values to state
-      setStatus(storedStatus);
-      
-      setDateFilterType(storedDateFilterType);
-      setSelectedDate(storedSelectedDate);
-      setStartDate(storedStartDate);
-      setEndDate(storedEndDate);
-
-      // Apply retrieved filters
-      setShouldApplyFilters(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    // Apply filters when the flag is set to true
-    if (shouldApplyFilters) {
-      applyFilters();
-      // Reset the flag to false after applying filters
-      setShouldApplyFilters(false);
-    }
-  }, [shouldApplyFilters]);
 
   const handleResetFilters = () => {
     setStatus("");
-   
     setDateFilterType("");
     setSelectedDate(new Date().toISOString().split("T")[0]);
     setStartDate(null);
@@ -104,7 +53,6 @@ const FilterModal = ({
     { value: "rejected", label: "Rejected" },
   ];
 
-  
   return (
     <Modal
       isOpen={isOpen}
@@ -114,8 +62,8 @@ const FilterModal = ({
           zIndex: 9999,
         },
         content: {
-          height: "50%", // Set the height here, e.g., 50%
-          margin: "auto", // Center the modal horizontally
+          height: "50%",
+          margin: "auto",
         },
       }}
     >
@@ -123,21 +71,11 @@ const FilterModal = ({
         <Select
           isMulti
           options={statusOptions}
-          value={statusOptions.filter((option) =>
-            status.includes(option.value)
-          )}
-          onChange={(selectedOptions) =>
-            setStatus(
-              selectedOptions
-                ? selectedOptions.map((option) => option.value)
-                : []
-            )
-          }
+          value={statusOptions.filter((option) => status.includes(option.value))}
+          onChange={(selectedOptions) => setStatus(selectedOptions ? selectedOptions.map((option) => option.value) : [])}
           placeholder="Select Status Type"
           className="p-2 w-full md:w-1/4 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2 m-2"
         />
-
-        
 
         <select
           value={dateFilterType}
@@ -152,9 +90,7 @@ const FilterModal = ({
         </select>
 
         {dateFilterType &&
-          (dateFilterType === "equal" ||
-            dateFilterType === "before" ||
-            dateFilterType === "after") && (
+          (dateFilterType === "equal" || dateFilterType === "before" || dateFilterType === "after") && (
             <input
               type="date"
               value={selectedDate}
@@ -180,29 +116,13 @@ const FilterModal = ({
           </div>
         )}
 
-        {/* Apply and Cancel buttons */}
-        <button
-          onClick={() => {
-            applyFilters();
-            onClose();
-          }}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-          style={{ marginLeft: "10px" }}
-        >
+        <button onClick={applyFilters} className="bg-blue-500 text-white px-4 py-2 rounded" style={{ marginLeft: "10px" }}>
           Apply Filters
         </button>
-        <button
-          onClick={handleResetFilters}
-          className="bg-red-500 text-white px-4 py-2 rounded"
-          style={{ marginLeft: "10px" }}
-        >
+        <button onClick={handleResetFilters} className="bg-red-500 text-white px-4 py-2 rounded" style={{ marginLeft: "10px" }}>
           Clear Filters
         </button>
-        <button
-          onClick={onClose}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-          style={{ marginLeft: "10px" }}
-        >
+        <button onClick={onClose} className="bg-blue-500 text-white px-4 py-2 rounded" style={{ marginLeft: "10px" }}>
           Cancel
         </button>
       </div>

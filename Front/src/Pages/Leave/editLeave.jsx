@@ -5,7 +5,7 @@ import API_BASE_URL from "../../config";
 import axios from "axios";
 import { AuthContext } from "../../context/AuthContext";
 
-const EditSeller = () => {
+const EditLeave = () => {
   const initialInputs = {
     name: "",
     surname: "",
@@ -407,4 +407,4 @@ const EditSeller = () => {
   );
 };
 
-export default EditSeller;
+export default EditLeave;

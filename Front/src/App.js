@@ -8,21 +8,21 @@ import User from './Pages/User/User.jsx';
 import AddUser from './Pages/User/addUser.jsx';
 import EditUser from './Pages/User/editUser.jsx';
 import { AuthContext } from './context/AuthContext.jsx';
-import Expense from './Pages/Contact/Expense.jsx';
+import Contact from './Pages/Contact/Contact.jsx';
 import AddContact from './Pages/Contact/AddContact.jsx';
 import EditContact from './Pages/Contact/editContact.jsx';
-import AddSeller from './Pages/Leave/addSeller.jsx';
-import Seller from './Pages/Leave/Seller.jsx';
-import EditSeller from './Pages/Leave/editSeller.jsx';
 import AddCustomer from './Pages/Contact/addCustomer.jsx';
 import EditCustomer from './Pages/Contact/editCustomer.jsx';
 import CustomerDetail from './Pages/Contact/CustomerDetail.jsx';
+import AddLeave from './Pages/Leave/addLeave.jsx';
+import Leave from './Pages/Leave/Leave.jsx';
+import EditLeave from './Pages/Leave/editLeave.jsx';
 import AddOpportunity from './Pages/Opportunity/AddOpportunity1.jsx';
 import Opportunity from './Pages/Opportunity/Opportunity.jsx';
 import EditOpportunity from './Pages/Opportunity/editOpportunity.jsx';
+import ViewOpportunity from './Pages/Opportunity/viewOpportunity.jsx';
 import Alert from './Pages/Alert/Alert.jsx';
 import PO from './Pages/PO/PO.jsx';
-import ViewOpportunity from './Pages/Opportunity/viewOpportunity.jsx';
 import Summary from './Pages/Summary/Summary.jsx';
 import CustomerDetailVeiw from './Pages/Opportunity/CustomerDetailVeiw.jsx';
 import ProtectedRoute from './Pages/ProtectedRoute.jsx';
@@ -60,16 +60,17 @@ function App() {
             )
           }
         />
+        
         <Route path='/user' element={<ProtectedRoute adminOnly><User /></ProtectedRoute>} />
         <Route path='/user/edit/:id' element={<ProtectedRoute adminOnly><EditUser /></ProtectedRoute>} />
         <Route path='/adduser' element={<ProtectedRoute adminOnly><AddUser /></ProtectedRoute>} />
-        <Route path='/Customer' element={<ProtectedRoute adminMod><Expense /></ProtectedRoute>} />
+        <Route path='/Customer' element={<ProtectedRoute adminMod><Contact /></ProtectedRoute>} />
         <Route path='/Summary' element={<ProtectedRoute adminMod ><Summary /></ProtectedRoute>} />
         <Route
   path='/Leave'
   element={
     <ProtectedRoute>
-      {isMobile ? <MobileLeave /> : <Seller />}
+      {isMobile ? <MobileLeave /> : <Leave />}
     </ProtectedRoute>
   }
 />
@@ -78,12 +79,12 @@ function App() {
         <Route path='/PO' element={<ProtectedRoute adminMod><PO /></ProtectedRoute>} />
         <Route path='/addExpense' element={<ProtectedRoute adminMod><AddContact /></ProtectedRoute>} />
         <Route path='/addCustomer' element={<ProtectedRoute adminMod><AddCustomer /></ProtectedRoute>} />
-        <Route path='/addLeave' element={<ProtectedRoute><AddSeller /></ProtectedRoute>} />
+        <Route path='/addLeave' element={<ProtectedRoute><AddLeave /></ProtectedRoute>} />
         <Route path='/addOpportunity' element={<ProtectedRoute adminMod ><AddOpportunity /></ProtectedRoute>} />
         <Route path='/Expense/edit/:id' element={<ProtectedRoute adminMod><EditContact /></ProtectedRoute>} />
         <Route path='/Opportunity/view/:id' element={<ProtectedRoute adminMod><ViewOpportunity /></ProtectedRoute>} />
         <Route path='/Customer/edit/:id' element={<ProtectedRoute adminMod><EditCustomer /></ProtectedRoute>} />
-        <Route path='/Leave/edit/:id' element={<ProtectedRoute><EditSeller /></ProtectedRoute>} />
+        <Route path='/Leave/edit/:id' element={<ProtectedRoute><EditLeave /></ProtectedRoute>} />
         <Route path='/Leave/view/:id' element={<ProtectedRoute><ViewLeave /></ProtectedRoute>} />
         <Route path='/Opportunity/edit/:id' element={<ProtectedRoute adminMod ><EditOpportunity /></ProtectedRoute>} />
         <Route path='/Customer/view/:customer_entity/:id' element={<ProtectedRoute adminMod><CustomerDetailVeiw /></ProtectedRoute>} />

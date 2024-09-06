@@ -2,7 +2,7 @@ import React from 'react';
 import SideNavBar from '../Sidebar/Navbar';
 import Maiin from './maiin';  
 
-const Seller = () => {
+const Leave = () => {
   return (
     <>
     <div className="flex h-screen overflow-hidden">
@@ -16,4 +16,4 @@ const Seller = () => {
   );
 }
 
-export default Seller;
+export default Leave;

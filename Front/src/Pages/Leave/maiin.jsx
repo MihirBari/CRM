@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import Table from "./tableSeller";
+import Table from "./tableLeave";
 import { IoMdAddCircle } from "react-icons/io";
 import LeaveTable from "./LeaveTable";
 

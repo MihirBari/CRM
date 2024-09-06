@@ -1,11 +1,11 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import API_BASE_URL from "../../config";
 import axios from "axios";
 import { AuthContext } from "../../context/AuthContext";
 
-const AddSeller = () => {
+const AddLeave = () => {
   const { currentUser } = useContext(AuthContext);
 
   const initialInputs = {
@@ -23,6 +23,7 @@ const AddSeller = () => {
   const [holidays, setHolidays] = useState([]);
   const [err, setError] = useState(null);
   const navigate = useNavigate();
+  const toDateRef = useRef(null);
 
   useEffect(() => {
     // Fetch holidays from the backend
@@ -51,8 +52,21 @@ const AddSeller = () => {
       [name]: type === "checkbox" ? checked : value,
     };
 
+    if (name === "duration" && value === "Half Day") {
+      // Reset toDate and days when duration changes to Half Day
+      newInputs.toDate = "";
+      newInputs.days = "1";
+      if (toDateRef.current) {
+        toDateRef.current.value = ""; // Reset the toDate input field
+      }
+    }
+
+    if (name === "fromDate" && toDateRef.current) {
+      toDateRef.current.value = value; // Set the default value of toDate to the fromDate
+    }
+
     // Calculate number of days if both fromDate and toDate are available
-    if (newInputs.fromDate && newInputs.toDate) {
+    if (newInputs.fromDate && newInputs.toDate && newInputs.duration === "Full Day") {
       const fromDate = new Date(newInputs.fromDate);
       const toDate = new Date(newInputs.toDate);
       let daysDifference = 0;
@@ -70,11 +84,12 @@ const AddSeller = () => {
         }
       }
 
-      newInputs = { ...newInputs, days: daysDifference };
+      newInputs.days = daysDifference;
     }
 
     setInputs(newInputs);
   };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -205,22 +220,23 @@ const AddSeller = () => {
 
               {inputs.duration === "Full Day" && (
                 <div className="md:col-span-1">
-                  <label
-                    htmlFor="toDate"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    To Date
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      type="date"
-                      name="toDate"
-                      required
-                      onChange={handleChange}
-                      className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                    />
-                  </div>
+                <label
+                  htmlFor="toDate"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  To Date
+                </label>
+                <div className="mt-1">
+                  <input
+                    type="date"
+                    name="toDate"
+                    ref={toDateRef} // Attach the ref to the toDate input
+                    required
+                    onChange={handleChange}
+                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  />
                 </div>
+              </div>
               )}
 
               <div className="md:col-span-1">
@@ -283,4 +299,4 @@ const AddSeller = () => {
   );
 };
 
-export default AddSeller;
+export default AddLeave;

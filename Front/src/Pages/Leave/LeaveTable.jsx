@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import Box from '@mui/material/Box';
 import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid';
@@ -12,6 +12,7 @@ import { CiFilter } from 'react-icons/ci';
 import ExportTable from './ExportTable';
 import { PiExportBold } from 'react-icons/pi';
 import { Edit } from '@mui/icons-material';
+import { AuthContext } from "../../context/AuthContext";
 
 const LeaveTable = () => {
   const [rows, setRows] = useState([]);
@@ -33,22 +34,26 @@ const LeaveTable = () => {
     assignedTo:""
   });
 
+  const { currentUser } = useContext(AuthContext);
+
   useEffect(() => {
     const fetchOrders = async () => {
       const controller = new AbortController();
       const signal = controller.signal;
       try {
-        const response = await axios.get(
+        const response = await axios.post(
           `${API_BASE_URL}/api/Leave/showApplicationLeave`,
           {
-            params: filters, // Pass filters as parameters to the backend
-            signal: signal, // Pass the signal to the request
+            role: currentUser.role,
+            id: currentUser.id,
+            signal: signal,
           }
         );
-        if (response.data && Array.isArray(response.data.products)) {
-          setRows(response.data.products);
-          setFilteredUsers(response.data.products);
-          console.log(response.data.products);
+        // Check for 'dealers' in response data
+        if (response.data && Array.isArray(response.data.dealers)) {
+          setRows(response.data.dealers); // use the correct data key
+         // setFilteredUsers(response.data.dealers); // use the correct data key
+          console.log(response.data.dealers);
         } else {
           console.error('Unexpected response data:', response.data);
         }
@@ -63,9 +68,10 @@ const LeaveTable = () => {
         controller.abort(); // Cancel the request if the component unmounts
       };
     };
-
+  
     fetchOrders();
   }, [filters]);
+  
 
   const handleDeleteClick = (itemId) => {
     setDeleteItemId(itemId);

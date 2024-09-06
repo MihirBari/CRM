@@ -16,6 +16,14 @@ const Main = () => {
     customerEntity: "",
     status: "",
   });
+  const [selectedTabIndex, setSelectedTabIndex] = useState(0);
+
+  useEffect(() => {
+    const savedTabIndex = localStorage.getItem("selectedTabIndex");
+    if (savedTabIndex !== null) {
+      setSelectedTabIndex(parseInt(savedTabIndex, 10));
+    }
+  }, []);
 
   useEffect(() => {
     const fetchAlerts = async () => {
@@ -102,6 +110,11 @@ const Main = () => {
     );
   };
 
+  const handleTabChange = (index) => {
+    setSelectedTabIndex(index);
+    localStorage.setItem("selectedTabIndex", index);
+  };
+
   return (
     <div className="h-screen flex-1 p-7 bg-gray-50">
       <h1 className="text-2xl font-semibold text-center">Alerts</h1>
@@ -119,7 +132,7 @@ const Main = () => {
           resetFilters={() => setFilters(initialFilters)}
         />
       </div>
-      <Tabs>
+      <Tabs selectedIndex={selectedTabIndex} onSelect={handleTabChange}>
         <TabList>
           <Tab>Urgent</Tab>
           <Tab>Warning</Tab>
@@ -143,7 +156,7 @@ const Main = () => {
                     Opportunity for <b>{alert.alert_entity}</b> for{" "}
                     {alert.alert_description} in {alert.alert_type} for{" "}
                     <b>{alert.License_type} License Type</b> expiring in{" "}
-                    {alert.daysLeft} days on {alert.license_to}
+                    <b>{alert.daysLeft} days</b> on {alert.license_to}
                   </p>
                   <div className="button-container">
                     <button
@@ -176,14 +189,22 @@ const Main = () => {
                     Opportunity for <b>{alert.alert_entity}</b> for{" "}
                     {alert.alert_description} in {alert.alert_type} for{" "}
                     <b>{alert.License_type} License Type</b> expiring in{" "}
-                    {alert.daysLeft} days on {alert.license_to}
+                    <b>{alert.daysLeft} days</b> on {alert.license_to}
                   </p>
+                  <div className="button-container">
                   <button
                     className="po-received-button"
                     onClick={() => Remind(alert.id)}
                   >
                     Remind Me Later
                   </button>
+                  <button
+                      className="po-received-button"
+                      onClick={() => acknowledgeAlert(alert.id)}
+                    >
+                      PO Won
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -201,7 +222,7 @@ const Main = () => {
                     Opportunity for <b>{alert.alert_entity}</b> for{" "}
                     {alert.alert_description} in {alert.alert_type} for{" "}
                     <b>{alert.License_type} License Type</b> expiring in{" "}
-                    {alert.daysLeft} days on {alert.license_to}
+                    <b>{alert.daysLeft} days</b> on {alert.license_to}
                   </p>
                   <button
                     className="po-received-button"
