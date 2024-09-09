@@ -12,7 +12,7 @@ const showOpportunity = (req, res) => {
     status,
     licenseFrom,
     licenseTo,
-    LicenseType,
+    licenseType,
     dateFilterType,
     fromDate,
     toDate,
@@ -62,13 +62,13 @@ const showOpportunity = (req, res) => {
         filterConditions.push(`type LIKE '${type}'`);
       }
 
-      if (LicenseType && Array.isArray(LicenseType)) {
-        const LicenseTypeConditions = LicenseType.map(LicenseType => `License_type LIKE '${LicenseType}'`);
+      if (licenseType && Array.isArray(licenseType)) {
+        const LicenseTypeConditions = licenseType.map(licenseType => `License_type LIKE '${licenseType}'`);
         if (LicenseTypeConditions.length > 0) {
           filterConditions.push(`(${LicenseTypeConditions.join(" OR ")})`);
         }
-      } else if (LicenseType) {
-        filterConditions.push(`License_type LIKE '${LicenseType}'`);
+      } else if (licenseType) {
+        filterConditions.push(`License_type LIKE '${licenseType}'`);
       }
 
       if (value) {
@@ -860,6 +860,24 @@ const customerEntityAlert = async (req, res) => {
   });
 };
 
+const customerPOEntityAlert = async (req, res) => {
+  // Use the promisified pool.query function
+  const dealerQuery = `
+    SELECT distinct alert_entity FROM alert
+      WHERE acknowledge = "Yes"
+  `;
+
+  pool.query(dealerQuery, (error, results) => {
+    if (error) {
+      console.error("Error executing query:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+      return;
+    }
+
+    res.status(200).json(results);
+  });
+};
+
 const product = (req, res) => {
   const dealerQuery = `SELECT DISTINCT(type) AS name FROM opportunity`;
 
@@ -893,5 +911,6 @@ module.exports = {
   PoLost,
   sendPo,
   reminder,
-  product
+  product,
+  customerPOEntityAlert
 };

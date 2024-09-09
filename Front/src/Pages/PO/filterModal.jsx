@@ -18,7 +18,7 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
     const fetchCustomerEntity = async () => {
       try {
         const response = await axios.get(
-          `${API_BASE_URL}/api/opportunity/customerEntityAlert`
+          `${API_BASE_URL}/api/opportunity/customerPOEntityAlert`
         );
         setCustomerEntitys(response.data);
         //console.log("Entity:", response.data);
@@ -47,7 +47,7 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
   
       // Update localStorage only if filters are applied successfully
       localStorage.setItem(
-        "expenseFilters",
+        "POFilters",
         JSON.stringify({
           customerEntity,
           type,
@@ -62,7 +62,7 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
 
   const retrieveAndSetFilters = async () => {
     // Retrieve filter values from localStorage
-    const storedFilters = localStorage.getItem("expenseFilters");
+    const storedFilters = localStorage.getItem("POFilters");
     if (storedFilters) {
       const {
         customerEntity: storedCustomerEntity,
