@@ -14,7 +14,7 @@ export const EditLeaveModal = ({ isOpen, onClose, id }) => {
     fromDate: "",
     toDate: "",
     duration: "",
-    days: 1,
+    days: 0,
     description: "",
     history: "",
   };

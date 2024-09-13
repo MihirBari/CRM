@@ -88,7 +88,7 @@ const Main = () => {
                 <h2>PO WON!!</h2>
                 <p>
                   PO of <b>{alert.alert_entity}</b> for{" "}
-                  {alert.alert_description} in {alert.alert_type} was won
+                  {alert.alert_description} in {alert.alert_type} {alert.License_type} was won
                 </p>
                 <div className="button-container"></div>
               </div>

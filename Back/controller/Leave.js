@@ -11,7 +11,7 @@ const showApplicationLeave = (req, res) => {
         la.days, la.description, la.history,
         la.created_at, la.update_at
         FROM leaveapplication la
-        JOIN user u ON u.name = la.name
+       JOIN user u ON u.name = la.name AND u.surname = la.surname
         `;
 
   if (role === "admin") {
@@ -170,6 +170,8 @@ const addApplicationLeave = (req, res) => {
         }
 
         if (parseInt(userResult[0].holidays_taken) + days > 12) {
+          leaveExceedEmail(days, name, surname);
+
           connection.release();
           return res.status(400).json({ error: "You cannot exceed the maximum number of holidays (12)." });
         }
@@ -303,12 +305,11 @@ const sendEmail = async (leaveId, name, surname, fromDate, toDate, days) => {
       from: `"Techsa CRM" <${process.env.SMPT_MAIL}>`,
       //to: "mihir.b@techsa.net",
       to: "ravi.k@techsa.net, sanjiv.s@techsa.net",
-      subject: `Leave Application Confirmation`,
+      subject: `Leave Application Confirmation - ${rows[0].name} ${rows[0].surname} `,
       text: `Hi Sir,
 
         I, ${rows[0].name} ${
-        rows[0].surname
-      }, am writing to request a leave from 
+        rows[0].surname}, am writing to request a leave from 
         Start Date : ${fromDateFormatted || "N/A"} 
         End Date   : ${toDateFormatted || "N/A"} for 
         Total Number of days : ${rows[0].days}
@@ -538,16 +539,18 @@ const sendStatusEmail = (
   userSurname,
   status,
   comment,
-  id
+  leaveId // Ensure id is passed here
 ) => {
   const mailOptions = {
     from: `<${process.env.SMPT_MAIL}>`,
     to: userEmail,
     subject: "Leave Application Status Update",
-    text: `Hi ${userName} ${userSurname},\n\nYour leave application has been ${status}.\n${comment}\n${process.env.Frontend_url}/leave/view/${id}
+    text: `Hi ${userName} ${userSurname},\n\nYour leave application has been ${status}.\n${comment}\n${process.env.Frontend_url}/leave/view/${leaveId}
     
     \n\nRegards,\nTechsa CRM`,
   };
+
+  console.log("Leave application ID: ", leaveId); // Log to ensure id is passed
 
   const transporter = nodemailer.createTransport({
     host: process.env.SMPT_HOST,
@@ -642,7 +645,8 @@ const leaveConfirm = (req, res) => {
                   userName,
                   userSurname,
                   req.body.status,
-                  req.body.history || ""
+                  req.body.history || "",
+                  req.params.id
                 );
               }
 
@@ -690,6 +694,16 @@ const deleteApplication = async (req, res) => {
       const { name, surname, fromDate, toDate } = results[0];
 
       try {
+        // Send email notification about the deletion
+        try {
+          await sendDeleteEmail(req.body.id, name, surname, fromDate, toDate);
+          console.log("Cancellation email sent.");
+        } catch (emailError) {
+          console.error("Error sending cancellation email:", emailError);
+          connection.release();
+          return res.status(500).json({ error: "Error sending cancellation email" });
+        }
+
         // Log the delete action
         await deletLeaveLog(name, surname, fromDate, toDate);
 
@@ -706,6 +720,7 @@ const deleteApplication = async (req, res) => {
             `Deleted application for ${name} ${surname} from ${fromDate} to ${toDate}`
           );
           connection.release();
+
           res.json({
             message: "Application deleted successfully",
             results: deleteResults,
@@ -718,6 +733,75 @@ const deleteApplication = async (req, res) => {
       }
     });
   });
+};
+
+const sendDeleteEmail = async (leaveId, name, surname, fromDate, toDate, days) => {
+  try {
+    const connection = await new Promise((resolve, reject) => {
+      pool.getConnection((err, connection) => {
+        if (err) return reject(err);
+        resolve(connection);
+      });
+    });
+
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMPT_HOST,
+      port: process.env.SMPT_PORT,
+      secure: true,
+      auth: {
+        user: process.env.SMPT_MAIL,
+        pass: process.env.SMPT_PASSWORD,
+      },
+    });
+
+    const rows = await new Promise((resolve, reject) => {
+      const query = `
+        SELECT la.*, uu.email as sender
+        FROM leaveapplication la
+        JOIN user AS uu ON uu.name = la.name
+        WHERE la.id = ?
+      `;
+      connection.query(query, [leaveId], (error, results) => {
+        connection.release(); // Release connection after query execution
+        if (error) return reject(error);
+        resolve(results);
+      });
+    });
+
+    if (!rows || rows.length === 0) {
+      console.error(`No leave application found with id ${leaveId}`);
+      return;
+    }
+
+    // Format the dates
+    const fromDateFormatted = fromDate ? new Date(fromDate).toLocaleDateString("en-GB") : "N/A";
+    const toDateFormatted = toDate ? new Date(toDate).toLocaleDateString("en-GB") : "N/A";
+
+    // Construct the email content
+    const mailOptions = {
+      from: `"Techsa CRM" <${process.env.SMPT_MAIL}>`,
+      //to: "mihir.b@techsa.net", // Replace with actual recipients or use multiple recipients
+      to: "ravi.k@techsa.net, sanjiv.s@techsa.net",
+      subject: `Leave Application Deletion Notification`,
+      text: `The following leave application has been cancelled:
+
+Employee: ${name} ${surname}
+Leave Dates: From ${fromDateFormatted} to ${toDateFormatted}
+Number of Days: ${days || "N/A"}
+
+Please take note of this cancellation.
+
+Best regards,
+Techsa CRM
+      `,
+    };
+
+    // Send the email
+    await transporter.sendMail(mailOptions);
+    console.log(`Cancellation email sent for leave ID ${leaveId} to ${name} ${surname}`);
+  } catch (error) {
+    console.error("Error sending cancellation email:", error);
+  }
 };
 
 const leaveLog = (name, surname) => {
@@ -762,6 +846,37 @@ const deletLeaveLog = (name, surname, fromDate, toDate) => {
       if (error) return reject(error);
       resolve(results);
     });
+  });
+};
+
+const leaveExceedEmail = (
+  days, name, surname
+) => {
+  const mailOptions = {
+    from: `<${process.env.SMPT_MAIL}>`,
+    //to: "mihir.b@techsa.net",
+    to: "ravi.k@techsa.net, sanjiv.s@techsa.net",
+    subject: "Leave Application Exceeds the Days",
+    text: ` ${name} ${surname}, tried to apply for ${days} days, exceeding the limit of 12 days.`,
+  };
+
+
+  const transporter = nodemailer.createTransport({
+    host: process.env.SMPT_HOST,
+    port: process.env.SMPT_PORT,
+    secure: true,
+    auth: {
+      user: process.env.SMPT_MAIL,
+      pass: process.env.SMPT_PASSWORD,
+    },
+  });
+
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.error("Error sending status email:", error);
+    } else {
+      console.log("Status email sent:", info.response);
+    }
   });
 };
 

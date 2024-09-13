@@ -349,8 +349,8 @@ const Users = () => {
         theme="solarized"
         pagination
         highlightOnHover
-        paginationPerPage={10}
-        paginationRowsPerPageOptions={[10, 20, 30]}
+        paginationPerPage={20}
+        paginationRowsPerPageOptions={[20, 40, 60]}
         paginationComponentOptions={{
           rowsPerPageText: "Rows per page:",
           rangeSeparatorText: "of",

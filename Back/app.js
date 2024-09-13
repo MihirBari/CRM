@@ -16,10 +16,13 @@ const app = express();
 
 app.use(express.json());
 
+app.options('*', cors());
+
 app.use(cors({
-  origin: [process.env.Frontend_url],
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Authorization', 'Content-Type']
+  origin: process.env.Frontend_url,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Authorization', 'Content-Type'],
+  credentials: true
 }));
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));

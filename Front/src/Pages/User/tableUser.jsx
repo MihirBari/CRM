@@ -145,10 +145,11 @@ const Users = () => {
                 className='dataTable'
                 columns={columns}
                 data={filteredUsers}
-                
                 fixedHeaderScrollHeight='450px'
                 striped
                 pagination
+                paginationPerPage={20}
+                paginationRowsPerPageOptions={[20, 40, 60]}
             />
             <DeleteConfirmationDialog
                 isOpen={showDeleteConfirmation}

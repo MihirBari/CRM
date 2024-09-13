@@ -51,7 +51,7 @@ const AddLeave = () => {
       ...inputs,
       [name]: type === "checkbox" ? checked : value,
     };
-
+  
     if (name === "duration" && value === "Half Day") {
       // Reset toDate and days when duration changes to Half Day
       newInputs.toDate = "";
@@ -60,35 +60,33 @@ const AddLeave = () => {
         toDateRef.current.value = ""; // Reset the toDate input field
       }
     }
-
+  
     if (name === "fromDate" && toDateRef.current) {
       toDateRef.current.value = value; // Set the default value of toDate to the fromDate
+      newInputs.toDate = value; // Set toDate in state as well
     }
-
+  
     // Calculate number of days if both fromDate and toDate are available
     if (newInputs.fromDate && newInputs.toDate && newInputs.duration === "Full Day") {
       const fromDate = new Date(newInputs.fromDate);
       const toDate = new Date(newInputs.toDate);
       let daysDifference = 0;
-
-      for (
-        let d = new Date(fromDate);
-        d <= toDate;
-        d.setDate(d.getDate() + 1)
-      ) {
+  
+      for (let d = new Date(fromDate); d <= toDate; d.setDate(d.getDate() + 1)) {
         const day = d.getDay();
         const formattedDate = d.toISOString().split("T")[0];
-
+  
         if (day !== 0 && day !== 6 && !holidays.includes(formattedDate)) {
           daysDifference++;
         }
       }
-
+  
       newInputs.days = daysDifference;
     }
-
-    setInputs(newInputs);
+  
+    setInputs(newInputs); // Update the state with new inputs
   };
+  
 
 
   const handleSubmit = async (e) => {

@@ -93,7 +93,7 @@ const showOpportunity = (req, res) => {
       }
 
       if (licenseFrom && licenseTo) {
-        filterConditions.push(`license_from >= '${licenseFrom}' AND license_to <= '${licenseTo}'`);
+        filterConditions.push(`license_from >= '${licenseFrom}' OR license_to <= '${licenseTo}'`);
       } else if (licenseFrom) {
         filterConditions.push(`license_from >= '${licenseFrom}'`);
       } else if (licenseTo) {
@@ -280,7 +280,7 @@ const addOpportunity = async (req, res) => {
     pdfBuffer
   ];
 
-  const logEvent = `${user_name} ${user_surname} added Opportunity for ${customer_entity} for ${type} ${License_type}`;
+  const logEvent = `${user_name} ${user_surname} added Opportunity for ${customer_entity} for ${type} ${License_type} from ${licenseFrom} to  ${licenseTo}`;
 
   try {
     // Insert into opportunity table
@@ -371,7 +371,7 @@ const editOpportunity = async (req, res) => {
   ];
 
   // Log query
-  const logEvent = `${user_name} ${user_surname} edited Opportunity for ${customer_entity} for ${type} ${License_type}`;
+  const logEvent = `${user_name} ${user_surname} edited Opportunity for ${customer_entity} for ${type} ${License_type} from ${licenseFrom} to  ${licenseTo}`;
   const addLogQuery = `
     INSERT INTO opportunitylog
     (eventLog, created_at)
@@ -745,7 +745,7 @@ cron.schedule('00 11 * * *', () => {
 const sendPo = async (req, res) => { 
   const { customerEntity = [], type = [], licenseType = [] } = req.query;
   let dealerQuery = `
-  SELECT id, alert_entity, alert_description, license_to, alert_type, daysLeft, acknowledge, po_lost 
+  SELECT id, alert_entity, alert_description, license_to, alert_type, License_type, daysLeft, acknowledge, po_lost 
   FROM alert 
   WHERE acknowledge = "Yes"
   `;
@@ -788,20 +788,70 @@ const sendPo = async (req, res) => {
 
 const acknowledge = async (req, res) => {
   const { id } = req.body;
-  //console.log(id);
-  const query = `
-      UPDATE alert
-      SET 	acknowledge = 'Yes'
-      WHERE id = ?
+
+  // First, retrieve the customer_entity using the alert ID
+  const getCustomerEntityQuery = `
+    SELECT alert_entity 
+    FROM alert
+    WHERE id = ?
   `;
 
-  pool.query(query, [id], (error, results) => {
-    if (error) {
-      console.error("Error acknowledging alert:", error);
-      res.status(500).send("Server error");
-    } else {
-      res.send("Alert acknowledged");
+  const updateAlertQuery = `
+    UPDATE alert
+    SET acknowledge = 'Yes'
+    WHERE id = ?
+  `;
+
+  const addLogQuery = `
+    INSERT INTO alertlog
+    (EventLog, created_at)
+    VALUES (?, now())
+  `;
+
+  pool.getConnection((err, connection) => {
+    if (err) {
+      console.error("Error connecting to database:", err);
+      return res.status(500).json({ error: "Internal Server Error" });
     }
+
+    // First, retrieve the customer_entity from the alert
+    connection.query(getCustomerEntityQuery, [id], (error, results) => {
+      if (error) {
+        console.error("Error retrieving customer entity:", error);
+        connection.release();
+        return res.status(500).send("Server error");
+      }
+
+      if (results.length === 0) {
+        connection.release();
+        return res.status(404).send("Alert not found");
+      }
+
+      const customerEntity = results[0].alert_entity;
+      const logEvent = `${customerEntity} PO was won`;
+
+      // Now, update the alert to acknowledge it
+      connection.query(updateAlertQuery, [id], (error, results) => {
+        if (error) {
+          console.error("Error acknowledging alert:", error);
+          connection.release();
+          return res.status(500).send("Server error");
+        }
+
+        // After updating the alert, insert the event log
+        connection.query(addLogQuery, [logEvent], (error, results) => {
+          if (error) {
+            console.error("Error inserting event log:", error);
+            connection.release();
+            return res.status(500).send("Server error");
+          }
+
+          // Finally, release the connection and send a response
+          connection.release();
+          res.send("Alert acknowledged and log added");
+        });
+      });
+    });
   });
 };
 
