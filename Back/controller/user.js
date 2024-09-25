@@ -10,7 +10,7 @@ const login = (req, res) => {
   
   pool.query(sqlUserQuery, [req.body.email], (err, data) => {
     if (err) {
-      console.log(err);
+      console.error('SQL Error:', err);
       return res.status(500).json({ error: 'Internal Server Error' });
     }
 
@@ -26,14 +26,14 @@ const login = (req, res) => {
       
       pool.query(sqlEmployeeQuery, [user.name, user.surname], (err, empData) => {
         if (err) {
-          console.log(err);
+          console.error('Employee Query Error:', err);
           return res.status(500).json({ error: 'Internal Server Error' });
         }
 
         if (empData.length > 0) {
           bcrypt.compare(req.body.password.toString(), user.password, (err, response) => {
             if (err) {
-              console.log(err);
+              console.error('Bcrypt Error:', err);
               return res.status(500).json({ error: 'Internal Server Error' });
             }
 
@@ -46,12 +46,13 @@ const login = (req, res) => {
                 role: user.role
               };
               
-              const accessToken = jwt.sign(userInfo, 'jwt-secret-key', { expiresIn: '5d' });
+              // Use environment variable for JWT secret
+              const accessToken = jwt.sign(userInfo, process.env.JWT_SECRET_KEY, { expiresIn: '3d' });
 
               // Reset login attempts on successful login
               pool.query('UPDATE user SET login_attempts = 0, lockout_time = NULL WHERE id = ?', [user.id], (err) => {
                 if (err) {
-                  console.log(err);
+                  console.error('Update Login Attempts Error:', err);
                   return res.status(500).json({ error: 'Internal Server Error' });
                 }
               });
@@ -71,7 +72,7 @@ const login = (req, res) => {
 
               pool.query('UPDATE user SET login_attempts = ?, lockout_time = ? WHERE id = ?', [user.login_attempts, lockout_time, user.id], (err) => {
                 if (err) {
-                  console.log(err);
+                  console.error('Update Lockout Error:', err);
                   return res.status(500).json({ error: 'Internal Server Error' });
                 }
               });

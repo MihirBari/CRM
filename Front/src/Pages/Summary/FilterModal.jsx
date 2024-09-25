@@ -7,7 +7,7 @@ Modal.setAppElement("#root");
 const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
   const [type, setType] = useState([]);
   const [selectedTypes, setSelectedTypes] = useState([]);
-  const [LicenseType, setLicenseType] = useState("");
+  const [licenseType, setLicenseType] = useState([]);
   const [status, setStatus] = useState([]);
   const [licenseFrom, setLicenseFrom] = useState("");
   const [licenseTo, setLicenseTo] = useState("");
@@ -20,10 +20,11 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
   const [shouldApplyFilters, setShouldApplyFilters] = useState(false);
 
   useEffect(() => {
- 
     const fetchTypeOptions = async () => {
       try {
-        const response = await axios.get(`${API_BASE_URL}/api/Opportunity/product`);
+        const response = await axios.get(
+          `${API_BASE_URL}/api/Opportunity/product`
+        );
         setType(response.data);
       } catch (error) {
         console.error("Error fetching type options:", error);
@@ -31,9 +32,7 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
     };
 
     fetchTypeOptions();
-
   }, []);
-
 
   const applyFilters = async () => {
     try {
@@ -43,7 +42,7 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
           params: {
             type: selectedTypes,
             status,
-            LicenseType,
+            licenseType,
             licenseFrom,
             licenseTo,
             dateFilterType,
@@ -60,7 +59,7 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
         JSON.stringify({
           selectedTypes,
           status,
-          LicenseType,
+          licenseType,
           licenseFrom,
           licenseTo,
           dateFilterType,
@@ -157,14 +156,18 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
     >
       <div className="filter-modal">
         <div className="flex flex-wrap">
-        <Select
+          <Select
             isMulti
             options={typeOptionsTransformed}
             value={typeOptionsTransformed.filter((option) =>
               selectedTypes.includes(option.value)
             )}
             onChange={(selectedOptions) =>
-              setSelectedTypes(selectedOptions ? selectedOptions.map((option) => option.value) : [])
+              setSelectedTypes(
+                selectedOptions
+                  ? selectedOptions.map((option) => option.value)
+                  : []
+              )
             }
             placeholder="Select Opportunity Type"
             className="p-2 w-full md:w-1/4 rounded border border-gray-300 focus:outline-none focus:border-blue-500 ml-2 m-2"
@@ -174,7 +177,9 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
             isMulti
             options={LicenseTypeOptions}
             value={LicenseTypeOptions.filter((option) =>
-              LicenseType.includes(option.value)
+              Array.isArray(licenseType)
+                ? licenseType.includes(option.value)
+                : false
             )}
             onChange={(selectedOptions) =>
               setLicenseType(
@@ -191,7 +196,7 @@ const FilterModal = ({ isOpen, onClose, onApplyFilters, resetFilters }) => {
             isMulti
             options={opportunityStatusOptions}
             value={opportunityStatusOptions.filter((option) =>
-              status.includes(option.value)
+              Array.isArray(status) ? status.includes(option.value) : false
             )}
             onChange={(selectedOptions) =>
               setStatus(

@@ -42,7 +42,7 @@ export const AuthContextProvider = ({ children }) => {
         `${API_BASE_URL}/api/user/login`,
         credentials
       );
-      const { accessToken, user } = res.data; // Extract accessToken and user from response
+      const { accessToken, user } = res.data; 
       handleAuthSuccess(user, accessToken);
       navigate("/Customer");
       toast.success("Login successful");
@@ -63,10 +63,10 @@ const register = async (userData) => {
       `${API_BASE_URL}/api/user/addUser`,
       userData
     );
-    const { accessToken, user } = res.data; // Extract accessToken and user from response
+    const { accessToken, user } = res.data; 
     handleAuthSuccess(user, accessToken);
     toast.success("Registration successful");
-    navigate("/Leave"); // Navigate to '/Leave' upon successful registration
+    navigate("/Leave"); 
   } catch (error) {
     console.error("Registration error:", error);
     if (error.response && error.response.status === 400) {
@@ -84,7 +84,7 @@ const register = async (userData) => {
     try {
       await axios.get(`${API_BASE_URL}/api/user/logout`);
       setCurrentUser(null);
-      localStorage.removeItem("user"); // Remove user data from localStorage on logout
+      localStorage.removeItem("user");
       // Remove the accessToken from Axios defaults on logout
       delete axios.defaults.headers.common["Authorization"];
       navigate("/");

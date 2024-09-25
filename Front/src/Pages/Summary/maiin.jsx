@@ -15,7 +15,7 @@ const Main = () => {
   const [aggregates, setAggregates] = useState({});
   const [filters, setFilters] = useState({
     type: "",
-    LicenseType: "",
+    licenseType: "",
     licenseFrom: "",
     licenseTo: "",
   });
