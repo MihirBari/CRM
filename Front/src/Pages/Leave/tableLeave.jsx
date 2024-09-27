@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import "./orders.css";
 import DataTable, { createTheme } from "react-data-table-component";
 import API_BASE_URL from "../../config";
@@ -17,6 +17,8 @@ const Users = () => {
   const [exportModalIsOpen, setExportModalIsOpen] = useState(false);
   const [filterModalIsOpen, setFilterModalIsOpen] = useState(false);
   const [filteredUsers, setFilteredUsers] = useState([]);
+  const tableRef = useRef(null); // Add this ref
+  const [currentPage, setCurrentPage] = useState(1);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false); // State variable for delete confirmation dialog
   const [deleteItemId, setDeleteItemId] = useState(null);
   const [filters, setFilters] = useState({
@@ -291,8 +293,28 @@ const Users = () => {
     setFilteredUsers(filteredData);
 };
 
+useEffect(() => {
+  if (tableRef.current) {
+    tableRef.current.scrollIntoView({ behavior: "smooth" }); // Scroll to top when page changes
+  }
+}, [currentPage]);
+
+// Modify pagination options to capture page changes
+const handlePageChange = (page) => {
+  setCurrentPage(page); // Update the current page state
+};
+
+const customPaginationComponentOptions = {
+  rowsPerPageText: "Rows per page:",
+  rangeSeparatorText: "of",
+  noRowsPerPage: false,
+  selectAllRowsItem: false,
+  onChangePage: handlePageChange, // Update the page change handler
+};
+
+
   return (
-    <div className="order">
+    <div ref={tableRef} className="order">
       <div className="flex items-center">
         <div
           style={{ display: "flex", alignItems: "center", marginLeft: "10px" }}
@@ -351,12 +373,8 @@ const Users = () => {
         highlightOnHover
         paginationPerPage={20}
         paginationRowsPerPageOptions={[20, 40, 60]}
-        paginationComponentOptions={{
-          rowsPerPageText: "Rows per page:",
-          rangeSeparatorText: "of",
-          noRowsPerPage: false,
-          selectAllRowsItem: false,
-        }}
+        paginationComponentOptions={customPaginationComponentOptions}
+        onChangePage={handlePageChange}
       />
     </div>
   );

@@ -3,6 +3,7 @@ const nodemailer = require("nodemailer");
 const cron = require("node-cron");
 const moment = require("moment-timezone");
 
+//To Show all the opportunities
 const showOpportunity = (req, res) => {
   const {
     customerEntities,
@@ -162,7 +163,7 @@ const showOpportunity = (req, res) => {
   });
 };
 
-
+//To Show only the opportunity which was selected
 const showOneOpportunity = async (req, res) => {
   const dealerQuery = `
   SELECT 
@@ -219,6 +220,7 @@ WHERE
   });
 };
 
+//To add New opportyunit
 const addOpportunity = async (req, res) => {
   const addOpportunityQuery = `
     INSERT INTO opportunity
@@ -314,7 +316,7 @@ const addOpportunity = async (req, res) => {
   }
 };
 
-
+//to edit opportunity
 const editOpportunity = async (req, res) => {
   const {
     customer_entity,
@@ -461,7 +463,7 @@ const editOpportunity = async (req, res) => {
   }
 };
 
-
+//To Delete Opportunity
 const deleteOpportunity = (req, res) => {
   const query = "DELETE FROM opportunity WHERE id = ?";
   const opportunityId = req.body.id; // Use the correct variable name
@@ -483,6 +485,7 @@ const deleteOpportunity = (req, res) => {
   });
 };
 
+//To send all the cudtomer names to frontend for filters
 const name = async (req, res) => {
   // Use the promisified pool.query function
   const customerEntity = req.body.customer_entity;
@@ -535,6 +538,7 @@ const sendEmailAlert = (alertDetails) => {
   });
 };
 
+//Storing the alerts in DB
 const storeAlertInDatabase = (alertDetails) => {
   const checkQuery = `
     SELECT COUNT(*) AS count FROM alert 
@@ -585,6 +589,7 @@ const storeAlertInDatabase = (alertDetails) => {
   );
 };
 
+//This check the dates of the license weather it in range of 45,30,15
 const checkOpportunities = () => {
   console.log(`Task started`);
 
@@ -630,6 +635,7 @@ const checkOpportunities = () => {
   });
 };
 
+//auto update days left in alert
 const updateDaysLeftInAlerts = () => {
   console.log('Updating daysLeft for all alerts...');
 
@@ -684,6 +690,7 @@ const updateDaysLeftInAlerts = () => {
   });
 };
 
+//send alert to frontend
 const sendAlert = async (req, res) => {
   const { customerEntity, type, licenseType } = req.query;
 

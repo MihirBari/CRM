@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import "./orders.css";
 import DataTable, { createTheme } from "react-data-table-component";
 import API_BASE_URL from "../../config";
@@ -19,7 +19,8 @@ const TableEmploye = () => {
   const [filterModalIsOpen, setFilterModalIsOpen] = useState(false);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
-
+  const tableRef = useRef(null);
+  const [currentPage, setCurrentPage] = useState(1);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [deleteItemId, setDeleteItemId] = useState(null);
   const [filters, setFilters] = useState({
@@ -301,10 +302,29 @@ const TableEmploye = () => {
     setFilteredUsers(filteredData);
 };
 
+useEffect(() => {
+  if (tableRef.current) {
+    tableRef.current.scrollIntoView({ behavior: "smooth" }); // Scroll to top when page changes
+  }
+}, [currentPage]);
+
+// Modify pagination options to capture page changes
+const handlePageChange = (page) => {
+  setCurrentPage(page); // Update the current page state
+};
+
+const customPaginationComponentOptions = {
+  rowsPerPageText: "Rows per page:",
+  rangeSeparatorText: "of",
+  noRowsPerPage: false,
+  selectAllRowsItem: false,
+  onChangePage: handlePageChange, // Update the page change handler
+};
+
   return (
     <>
     <div>
-      <div className="flex items-center">
+      <div ref={tableRef} className="flex items-center">
         <ExportTable
           isOpen={exportModalIsOpen}
           onClose={handleExportModalClose}
@@ -350,12 +370,8 @@ const TableEmploye = () => {
        highlightOnHover
        paginationPerPage={20}
        paginationRowsPerPageOptions={[20, 40, 60]}
-       paginationComponentOptions={{
-         rowsPerPageText: "Rows per page:",
-         rangeSeparatorText: "of",
-         noRowsPerPage: false,
-         selectAllRowsItem: false,
-       }}
+       paginationComponentOptions={customPaginationComponentOptions}
+       onChangePage={handlePageChange}
       />
       <FilterModal
         isOpen={filterModalIsOpen}

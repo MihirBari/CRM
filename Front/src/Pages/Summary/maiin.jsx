@@ -78,10 +78,6 @@ const Main = () => {
     return new Intl.NumberFormat('en-IN').format(value);
   };
 
-  const handleExportClick = () => {
-    setExportModalIsOpen(true);
-  };
-
 
   return (
     <>

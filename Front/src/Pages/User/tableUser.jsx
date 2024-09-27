@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import "./orders.css";
 import DataTable from 'react-data-table-component';
 import { MdEdit, MdDelete } from "react-icons/md";
@@ -13,6 +13,8 @@ const Users = () => {
     const [filteredUsers, setFilteredUsers] = useState([]);
     const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
     const [deleteItemId, setDeleteItemId] = useState(null);
+    const tableRef = useRef(null);
+    const [currentPage, setCurrentPage] = useState(1);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -133,8 +135,28 @@ const Users = () => {
         },
     ];
 
+    useEffect(() => {
+        if (tableRef.current) {
+          tableRef.current.scrollIntoView({ behavior: "smooth" }); // Scroll to top when page changes
+        }
+      }, [currentPage]);
+      
+      // Modify pagination options to capture page changes
+      const handlePageChange = (page) => {
+        setCurrentPage(page); // Update the current page state
+      };
+      
+      const customPaginationComponentOptions = {
+        rowsPerPageText: "Rows per page:",
+        rangeSeparatorText: "of",
+        noRowsPerPage: false,
+        selectAllRowsItem: false,
+        onChangePage: handlePageChange, // Update the page change handler
+      };
+    
+
     return (
-        <div className='order'>
+        <div ref={tableRef} className='order'>
             <input
                 type="text"
                 placeholder="Search"
@@ -150,6 +172,8 @@ const Users = () => {
                 pagination
                 paginationPerPage={20}
                 paginationRowsPerPageOptions={[20, 40, 60]}
+                paginationComponentOptions={customPaginationComponentOptions}
+                onChangePage={handlePageChange}
             />
             <DeleteConfirmationDialog
                 isOpen={showDeleteConfirmation}

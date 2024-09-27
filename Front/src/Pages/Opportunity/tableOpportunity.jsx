@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import "./orders.css";
 import DataTable, { createTheme } from "react-data-table-component";
 import API_BASE_URL from "../../config";
@@ -18,7 +18,8 @@ const TableOpportunity = () => {
   const [exportModalIsOpen, setExportModalIsOpen] = useState(false);
   const [filterModalIsOpen, setFilterModalIsOpen] = useState(false);
   const [filteredUsers, setFilteredUsers] = useState([]);
-
+  const tableRef = useRef(null); // Add this ref
+  const [currentPage, setCurrentPage] = useState(1);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [deleteItemId, setDeleteItemId] = useState(null);
   const [filters, setFilters] = useState({
@@ -324,8 +325,28 @@ const TableOpportunity = () => {
     setFilteredUsers(filteredData);
   };
 
+  useEffect(() => {
+    if (tableRef.current) {
+      tableRef.current.scrollIntoView({ behavior: "smooth" }); // Scroll to top when page changes
+    }
+  }, [currentPage]);
+
+  // Modify pagination options to capture page changes
+  const handlePageChange = (page) => {
+    setCurrentPage(page); // Update the current page state
+  };
+
+  const customPaginationComponentOptions = {
+    rowsPerPageText: "Rows per page:",
+    rangeSeparatorText: "of",
+    noRowsPerPage: false,
+    selectAllRowsItem: false,
+    onChangePage: handlePageChange, // Update the page change handler
+  };
+
+
   return (
-    <div className="order">
+    <div ref={tableRef} className="order">
       <div className="flex items-center">
         <input
           type="text"
@@ -367,7 +388,7 @@ const TableOpportunity = () => {
         className="dataTable"
         columns={modifiedColumns}
         data={filteredUsers}
-        customStyles={customStyles} // Pass the updated customStyles object here
+        customStyles={customStyles}
         fixedHeaderScrollHeight="800px"
         striped
         theme="solarized"
@@ -375,12 +396,8 @@ const TableOpportunity = () => {
         highlightOnHover
         paginationPerPage={20}
         paginationRowsPerPageOptions={[20, 40, 60]}
-        paginationComponentOptions={{
-          rowsPerPageText: "Rows per page:",
-          rangeSeparatorText: "of",
-          noRowsPerPage: false,
-          selectAllRowsItem: false,
-        }}
+        paginationComponentOptions={customPaginationComponentOptions}
+        onChangePage={handlePageChange}
       />
     </div>
   );
