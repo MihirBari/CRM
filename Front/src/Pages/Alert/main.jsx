@@ -115,6 +115,30 @@ const Main = () => {
     localStorage.setItem("selectedTabIndex", index);
   };
 
+  const handleAlertClick = async (
+    alert_entity,
+    alert_description,
+    alert_type,
+    License_type
+  ) => {
+    console.log("clicked")
+    try {
+      const response = await axios.post(`${API_BASE_URL}/api/opportunity/editAlertOpportunity`, {
+        alert_entity,
+        alert_description,
+        alert_type,
+        License_type,
+      });
+      
+      const { id } = response.data; // Assuming the backend returns an object with the id
+  
+      window.location.href = `/Opportunity/view/${id}`; // Redirect to the new URL
+    } catch (error) {
+      console.error("Error editing alert opportunity:", error);
+    }
+  };
+  
+  
   return (
     <div className="h-screen flex-1 p-7 bg-gray-50">
       <h1 className="text-2xl font-semibold text-center">Alerts</h1>
@@ -152,7 +176,16 @@ const Main = () => {
                       <FaExclamationTriangle className="warning-icon" />
                     )}
                   </h2>
-                  <p>
+                  <p
+                   onClick={() =>
+                    handleAlertClick(
+                      alert.alert_entity,
+                      alert.alert_description,
+                      alert.alert_type,
+                      alert.License_type
+                    )
+                  }
+                  >
                     Opportunity for <b>{alert.alert_entity}</b> for{" "}
                     {alert.alert_description} in {alert.alert_type} for{" "}
                     <b>{alert.License_type} License Type</b> expiring in{" "}

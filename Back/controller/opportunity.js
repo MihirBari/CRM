@@ -955,6 +955,43 @@ const product = (req, res) => {
   });
 };
 
+const editAlertOpportunity = (req, res) => {
+  const { alert_entity, alert_description, alert_type, License_type } = req.body;
+
+  if (!alert_entity || !alert_description || !alert_type || !License_type) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  const query = `
+    SELECT id
+    FROM opportunity
+    WHERE customer_entity = ?
+    AND description = ?
+    AND type = ?
+    AND License_type = ?
+  `;
+
+  pool.query(
+    query,
+    [alert_entity, alert_description, alert_type, License_type],
+    (error, results) => {
+      if (error) {
+        console.error("Error querying opportunity:", error);
+        return res.status(500).json({ error: "Database query failed" });
+      }
+
+      if (results.length === 0) {
+        return res.status(404).json({ error: "Opportunity not found" });
+      }
+
+      const { id: opportunityId } = results[0]; // Assuming 'id' is the field name in the database
+
+      return res.status(200).json({ id: opportunityId });
+    }
+  );
+};
+
+
 module.exports = {
   showOpportunity,
   showOneOpportunity,
@@ -969,5 +1006,6 @@ module.exports = {
   sendPo,
   reminder,
   product,
-  customerPOEntityAlert
+  customerPOEntityAlert,
+  editAlertOpportunity
 };
