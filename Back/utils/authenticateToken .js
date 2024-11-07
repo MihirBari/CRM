@@ -2,20 +2,28 @@ const jwt = require('jsonwebtoken');
 
 const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
-    //console.log(authHeader);
-    if (!authHeader) return res.sendStatus(401); // Unauthorized
-    
-    // Split the header to separate the "Bearer" and the token
-    const token = authHeader.split(' ')[1];
-    //console.log(token)
-    jwt.verify(token, 'jwt-secret-key', (err, user) => {
-      if (err) return res.sendStatus(403); // Forbidden
-      req.user = user; // Assigning the entire user object to req.user
-      // Check if user's role is admin
-     
-      next(); // Pass the execution to the next middleware
+    //console.log('Authorization Header:', authHeader);  // Log the entire header for debugging
+
+    if (!authHeader) return res.status(401).json({ message: 'Authorization token is missing' });
+
+    const token = authHeader.split(' ')[1];  // Get the token from 'Bearer <token>'
+    //console.log('Extracted Token:', token);  // Log the extracted token
+
+    if (!token) return res.status(401).json({ message: 'Token is missing' });
+
+    jwt.verify(token, process.env.JWT_SECRET_KEY, (err, user) => {
+        if (err) {
+          if (err.name === 'TokenExpiredError') {
+            return res.status(401).json({ message: 'Token has expired' }); // Expired token
+          }
+          console.log("JWT Verification Error:", err); // Log the error for debugging
+          return res.status(403).json({ message: 'Invalid or expired token' }); // Forbidden
+        }      
+
+      req.user = user;
+      next();
     });
-  };
+};
   
 
 module.exports = { authenticateToken };

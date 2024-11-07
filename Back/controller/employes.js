@@ -8,7 +8,7 @@ const addEmployes = async (req, res) => {
   const { contacts } = req.body; // Assuming the structure matches what React sends
 
   const insertQuery = `
-      INSERT INTO employes (id, name, surname, designation, joining_date, last_date, status, DOB, personal_email)
+      INSERT INTO employes (id, name, surname, designation, joining_date, last_date, status, DOB,team, personal_email)
       VALUES ?
     `;
 
@@ -26,6 +26,7 @@ const addEmployes = async (req, res) => {
       lastDate,
       status,
       contact.DOB === "" ? null : contact.DOB,
+      Array.isArray(contact.team) ? contact.team.join(",") : null, 
       contact.personal_email,
     ];
   });
@@ -153,6 +154,7 @@ const editEmployes = async (req, res) => {
     last_date = ?,
     status = ?,
     DOB = ?,
+    team = ?,
     personal_email = ?
     WHERE
       id = ?;`;
@@ -166,10 +168,10 @@ const editEmployes = async (req, res) => {
     req.body.last_date === "" ? null : req.body.last_date,
     status,
     req.body.DOB === "" ? null : req.body.DOB,
+    Array.isArray(req.body.team) ? req.body.team.join(",") : null, 
     req.body.personal_email,
     req.params.id,
   ];
-
   pool.query(updateDealer, values, (error, results) => {
     if (error) {
       console.error("Error executing query:", error);
@@ -285,6 +287,7 @@ const importExcel = async (req, res) => {
         lastDate,
         status,
         dob,
+        row.team,
         row.personal_email,
       ];
     });
@@ -320,7 +323,7 @@ const importExcel = async (req, res) => {
       }
 
       const sql = `
-        INSERT INTO employes (id, name, surname, designation, joining_date, last_date, status, DOB, personal_email)
+        INSERT INTO employes (id, name, surname, designation, joining_date, last_date, status, DOB, team, personal_email)
         VALUES ?
         ON DUPLICATE KEY UPDATE
         name = VALUES(name),
@@ -330,6 +333,7 @@ const importExcel = async (req, res) => {
         last_date = VALUES(last_date),
         status = VALUES(status),
         DOB = VALUES(DOB),
+        team = VALUES(team),
         personal_email = VALUES(personal_email)
       `;
 

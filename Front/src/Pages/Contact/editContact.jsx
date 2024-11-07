@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import API_BASE_URL from "../../config";
 import axios from "axios";
 import Modal from "react-modal";
+import { AuthContext } from "../../context/AuthContext";
 
 Modal.setAppElement("#root");
 const EditContact = ({ isOpen, onClose,customerId  }) => {
@@ -13,7 +14,7 @@ const EditContact = ({ isOpen, onClose,customerId  }) => {
     phone:"",
     email:"",
   };
-
+  const { currentUser } = useContext(AuthContext);
   const [inputs, setInputs] = useState(initialInputs);
   const [err, setError] = useState(null);
 
@@ -30,7 +31,13 @@ const EditContact = ({ isOpen, onClose,customerId  }) => {
   useEffect(() => {
     const fetchSeller = async () => {
       try {
-        const response = await axios.get(`${API_BASE_URL}/api/Contact/showOneContact/${customerId}`);
+        const response = await axios.get(`${API_BASE_URL}/api/Contact/showOneContact/${customerId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${currentUser.accessToken}`,
+            },
+          }
+        );
         console.log(customerId)
         const sellerData = response.data[0];
      if (sellerData) {
@@ -60,7 +67,13 @@ const EditContact = ({ isOpen, onClose,customerId  }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`${API_BASE_URL}/api/Contact/editContact/${customerId}`, inputs);
+      await axios.put(`${API_BASE_URL}/api/Contact/editContact/${customerId}`, inputs,
+        {
+          headers: {
+            Authorization: `Bearer ${currentUser.accessToken}`,
+          },
+        }
+      );
       setInputs(initialInputs);
       toast.success("Updated successfully");
       onClose()

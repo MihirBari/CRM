@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useContext } from "react";
 import "./orders.css";
 import DataTable, { createTheme } from "react-data-table-component";
 import API_BASE_URL from "../../config";
@@ -11,6 +11,7 @@ import FilterModal from "./FilterModal";
 import ExportTable from "./ExportTable";
 import DeleteConfirmationDialog from "./DeleteConfirmationDialog.jsx";
 import { PiExportBold } from "react-icons/pi";
+import { AuthContext } from "../../context/AuthContext.jsx";
 
 const TableOpportunity = () => {
   const [users, setUsers] = useState([]);
@@ -18,8 +19,7 @@ const TableOpportunity = () => {
   const [exportModalIsOpen, setExportModalIsOpen] = useState(false);
   const [filterModalIsOpen, setFilterModalIsOpen] = useState(false);
   const [filteredUsers, setFilteredUsers] = useState([]);
-  const tableRef = useRef(null); // Add this ref
-  const [currentPage, setCurrentPage] = useState(1);
+  const tableRef = useRef(null); 
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [deleteItemId, setDeleteItemId] = useState(null);
   const [filters, setFilters] = useState({
@@ -33,6 +33,8 @@ const TableOpportunity = () => {
     licenseFrom: "",
     licenseTo: "",
   });
+
+  const { currentUser } = useContext(AuthContext);
 
   const handleCiFilterClick = () => {
     setFilterModalIsOpen(true);
@@ -52,6 +54,7 @@ const TableOpportunity = () => {
       data: { id: itemId }, // Include only the ID in the request payload
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${currentUser.accessToken}`,
       },
     })
       .then((response) => {
@@ -78,8 +81,11 @@ const TableOpportunity = () => {
         const response = await axios.get(
           `${API_BASE_URL}/api/Opportunity/showOpportunity`,
           {
-            params: filters, // Pass filters as parameters to the backend
-            signal: signal, // Pass the signal to the request
+            headers: {
+              Authorization: `Bearer ${currentUser.accessToken}`
+            },
+            params: filters, 
+            signal: signal, 
           }
         );
         setUsers(response.data.products);
@@ -92,7 +98,7 @@ const TableOpportunity = () => {
         }
       }
       return () => {
-        controller.abort(); // Cancel the request if the component unmounts
+        controller.abort(); 
       };
     };
 
@@ -100,8 +106,6 @@ const TableOpportunity = () => {
   }, [filters]);
 
   const handleEditClick = (id) => {
-    //console.log("Editing order with ID:", id);
-
     navigate(`edit/${id}`);
   };
 
@@ -325,25 +329,20 @@ const TableOpportunity = () => {
     setFilteredUsers(filteredData);
   };
 
-  useEffect(() => {
-    if (tableRef.current) {
-      tableRef.current.scrollIntoView({ behavior: "smooth" }); // Scroll to top when page changes
-    }
-  }, [currentPage]);
-
-  // Modify pagination options to capture page changes
-  const handlePageChange = (page) => {
-    setCurrentPage(page); // Update the current page state
-  };
 
   const customPaginationComponentOptions = {
-    rowsPerPageText: "Rows per page:",
+    rowsPerPageText: "Rows Per Page :",
     rangeSeparatorText: "of",
     noRowsPerPage: false,
     selectAllRowsItem: false,
-    onChangePage: handlePageChange, // Update the page change handler
   };
 
+  // Scroll to top when the page changes
+  const handlePageChange = () => {
+    if (tableRef.current) {
+      tableRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  };
 
   return (
     <div ref={tableRef} className="order">
@@ -374,7 +373,7 @@ const TableOpportunity = () => {
         isOpen={filterModalIsOpen}
         onClose={() => setFilterModalIsOpen(false)}
         onApplyFilters={onApplyFilters}
-        resetFilters={() => setFilters(initialFilters)} // Pass initial filters to resetFilters
+        resetFilters={() => setFilters(initialFilters)}
       />
       <DeleteConfirmationDialog
         isOpen={showDeleteConfirmation}
@@ -389,7 +388,7 @@ const TableOpportunity = () => {
         columns={modifiedColumns}
         data={filteredUsers}
         customStyles={customStyles}
-        fixedHeaderScrollHeight="800px"
+        
         striped
         theme="solarized"
         pagination

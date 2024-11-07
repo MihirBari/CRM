@@ -20,21 +20,21 @@ const upload = multer({
     limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB limit
   });
 
-  const { authenticateToken } = require('../utils/authenticateToken ');
+  const { authenticateToken } = require("../utils/authenticateToken ");
 
-router.get("/showOpportunity",showOpportunity);
-router.get("/showOneOpportunity/:id", showOneOpportunity);
-router.post("/addOpportunity",upload.single('file'), addOpportunity);
-router.put("/editOpportunity/:id", upload.single('file'),  editOpportunity);
-router.post("/name",name);
-router.post("/acknowledge",acknowledge);
-router.post("/PoLost",PoLost);
-router.get("/sendAlert",sendAlert);
-router.get("/sendPo",sendPo);
-router.post("/reminder",reminder);
-router.get("/customerEntityAlert",customerEntityAlert);
-router.get("/product",product);
-router.get("/customerPOEntityAlert",customerPOEntityAlert);
-router.delete("/deleteOpportunity", deleteOpportunity);
-router.post("/editAlertOpportunity",editAlertOpportunity);
+router.get("/showOpportunity",authenticateToken,showOpportunity);
+router.get("/showOneOpportunity/:id",authenticateToken, showOneOpportunity);
+router.post("/addOpportunity",upload.single('file'),authenticateToken, addOpportunity);
+router.put("/editOpportunity/:id", upload.single('file'), authenticateToken, editOpportunity);
+router.post("/name",authenticateToken,name);
+router.post("/acknowledge",authenticateToken, acknowledge);
+router.post("/PoLost",authenticateToken, PoLost);
+router.get("/sendAlert",authenticateToken, sendAlert);
+router.get("/sendPo",authenticateToken, sendPo);
+router.post("/reminder",authenticateToken, reminder);
+router.get("/customerEntityAlert",authenticateToken, customerEntityAlert);
+router.get("/product",authenticateToken, product);
+router.get("/customerPOEntityAlert",authenticateToken, customerPOEntityAlert);
+router.delete("/deleteOpportunity",authenticateToken,  deleteOpportunity);
+router.post("/editAlertOpportunity",authenticateToken, editAlertOpportunity);
 module.exports = router; 

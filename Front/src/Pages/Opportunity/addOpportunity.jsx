@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import API_BASE_URL from "../../config";
 import axios from "axios";
 import Select from "react-select";
+import { AuthContext } from "../../context/AuthContext";
 
 const AddOpportunity = () => {
   const initialInputs = {
@@ -27,11 +28,19 @@ const AddOpportunity = () => {
   const [err, setError] = useState(null);
   const navigate = useNavigate();
 
+  const { currentUser } = useContext(AuthContext);
+
+
   useEffect(() => {
     const fetchCustomerEntities = async () => {
       try {
         const response = await axios.get(
-          `${API_BASE_URL}/api/Contact/customerentity`
+          `${API_BASE_URL}/api/Contact/customerentity`,
+          {
+            headers: {
+              Authorization: `Bearer ${currentUser.accessToken}`
+            }
+          }
         );
         setCustomerEntities(response.data);
       } catch (error) {

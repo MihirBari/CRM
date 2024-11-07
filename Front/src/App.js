@@ -38,6 +38,7 @@ import ResetPassword from './Pages/ResetPassword.jsx';
 import MobileLeave from './Pages/Leave/mobileLeave.jsx';
 import { useMediaQuery } from 'react-responsive';
 import Profile from './Pages/Profile/profile.jsx';
+import Game from './Pages/EasterEgg/game.jsx';
 
 function App() {
   const { currentUser } = useContext(AuthContext);
@@ -98,6 +99,7 @@ function App() {
         <Route path='/forgetPassword' element={<ForgetPassword />} />
         <Route path='/resetPassword/:token' element={<ResetPassword />} />
         <Route path='/Profile' element={<ProtectedRoute ><Profile /></ProtectedRoute>} />
+        <Route path='/game' element={<ProtectedRoute ><Game /></ProtectedRoute>} />
       </Routes>
 
       <ToastContainer

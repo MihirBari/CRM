@@ -3,67 +3,77 @@ const nodemailer = require("nodemailer");
 
 const showApplicationLeave = (req, res) => {
   const { fromDate, status, toDate, dateFilterType } = req.query;
-  const { id, role } = req.body;
-  // console.log(id);
-  // console.log(role);
-  let query = `
-        SELECT la.id, la.name,la.surname,la.status, la.fromDate, la.toDate, la.duration, 
-        la.days, la.description, la.history,
-        la.created_at, la.update_at
-        FROM leaveapplication la
-       JOIN user u ON u.name = la.name AND u.surname = la.surname
-        `;
+  const { id, role, team } = req.body;
+  //console.log("Team:", team);
 
+  let query = `
+    SELECT la.id, la.name, la.surname, la.status, la.fromDate, la.toDate, la.duration, 
+           la.days, la.description, la.history,
+           la.created_at, la.update_at
+    FROM leaveapplication la
+    JOIN user u ON u.name = la.name AND u.surname = la.surname
+    JOIN employes e ON e.name = la.name AND e.surname = la.surname
+  `;
+
+  // Role-based access control
+  let queryParams = [];
   if (role === "admin") {
-    // If the user is an admin, fetch all leave applications
-    query += `
-              WHERE 1=1
-          `;
-  } else {
-    // If the user is not an admin, fetch only their leave applications
-    query += `
-              WHERE u.id = ?
-          `;
+    query += `WHERE 1=1`; // No additional filter for admin
+  } else if (role === "Ro-User") {
+    // Split the team string into an array
+    const teams = team ? team.split(',') : [];
+    if (teams.length > 0) {
+      // Construct the LIKE conditions for each team
+      const likeConditions = teams.map(() => `e.team LIKE ?`).join(' OR ');
+      query += `WHERE ${likeConditions}`; // Use OR to combine the LIKE conditions
+      // Prepare query parameters with wildcard characters for LIKE
+      queryParams.push(...teams.map(t => `%${t}%`)); // Add the teams to query parameters with wildcards
+    }
+  }
+   else {
+    query += `WHERE u.id = ?`; // Filter by user id for regular users
+    queryParams.push(id);
   }
 
+  // Filter conditions
   let filterConditions = [];
 
+  // Status filter
   if (status && Array.isArray(status)) {
-    const statusConditions = status.map(
-      (status) => `status LIKE '%${status}%'`
-    );
-    if (statusConditions.length > 0) {
-      filterConditions.push(`(${statusConditions.join(" OR ")})`);
-    }
+    const statusConditions = status.map(() => `la.status LIKE ?`);
+    filterConditions.push(`(${statusConditions.join(" OR ")})`);
+    queryParams.push(...status.map((s) => `%${s}%`));
   } else if (status) {
-    filterConditions.push(`status LIKE '${status}'`);
+    filterConditions.push(`la.status LIKE ?`);
+    queryParams.push(`%${status}%`);
   }
 
+  // Date filter
   if (dateFilterType && fromDate && toDate) {
     if (dateFilterType === "equal") {
-      filterConditions.push(
-        `fromDate = '${fromDate}' AND toDate = '${toDate}'`
-      );
+      filterConditions.push(`la.fromDate = ? AND la.toDate = ?`);
+      queryParams.push(fromDate, toDate);
     } else if (dateFilterType === "before") {
-      filterConditions.push(
-        `fromDate < '${fromDate}' AND toDate < '${toDate}'`
-      );
+      filterConditions.push(`la.fromDate < ? AND la.toDate < ?`);
+      queryParams.push(fromDate, toDate);
     } else if (dateFilterType === "after") {
-      filterConditions.push(
-        `fromDate > '${fromDate}' AND toDate > '${toDate}'`
-      );
+      filterConditions.push(`la.fromDate > ? AND la.toDate > ?`);
+      queryParams.push(fromDate, toDate);
     } else if (dateFilterType === "between") {
-      filterConditions.push(`fromDate BETWEEN '${fromDate}' AND '${toDate}'`);
+      filterConditions.push(`la.fromDate BETWEEN ? AND ?`);
+      queryParams.push(fromDate, toDate);
     }
   }
 
+  // Append filter conditions to the query
   if (filterConditions.length > 0) {
     query += ` AND ${filterConditions.join(" AND ")}`;
   }
 
-  query += `ORDER BY status DESC,id DESC`;
+  // Order results
+  query += ` ORDER BY la.status DESC, la.id DESC`;
 
-  // Start a transaction
+  // Execute transaction
   pool.getConnection((err, connection) => {
     if (err) {
       console.error("Error getting connection from pool:", err);
@@ -75,11 +85,12 @@ const showApplicationLeave = (req, res) => {
       if (err) {
         console.error("Error starting transaction:", err);
         res.status(500).json({ error: "Internal Server Error" });
+        connection.release();
         return;
       }
 
-      // Run the query with user ID and role
-      connection.query(query, [id, role], (error, results) => {
+      // Run the query with parameterized inputs
+      connection.query(query, queryParams, (error, results) => {
         if (error) {
           return connection.rollback(() => {
             console.error("Error executing query:", error);
@@ -99,8 +110,6 @@ const showApplicationLeave = (req, res) => {
           }
 
           res.status(200).json({ dealers: results });
-          //console.log(results)
-          // Release connection back to the pool
           connection.release();
         });
       });
@@ -169,12 +178,14 @@ const addApplicationLeave = (req, res) => {
           return res.status(400).json({ error: "User not found." });
         }
 
-        if (parseInt(userResult[0].holidays_taken) + days > 12) {
-          leaveExceedEmail(days, name, surname);
+        const holidaysTaken = parseFloat(userResult[0].holidays_taken) || 0;
 
-          connection.release();
-          return res.status(400).json({ error: "You cannot exceed the maximum number of holidays (12)." });
-        }
+     // Check if adding the requested days exceeds the 12-day limit
+     if (holidaysTaken + days > 12) {
+      leaveExceedEmail(days, name, surname);
+      connection.release();
+      return res.status(400).json({ error: "You cannot exceed the maximum number of holidays (12)." });
+    }
 
         const overlapResult = await new Promise((resolve, reject) => {
           connection.query(
@@ -394,11 +405,13 @@ const editApplicationAdmin = (req, res) => {
 
         const { days } = req.body;
 
-        if (parseInt(userResult.holidays_taken) + days > 12) {
+        const holidaysTaken = parseFloat(userResult[0].holidays_taken) || 0;
+
+        // Check if adding the requested days exceeds the 12-day limit
+        if (holidaysTaken + days > 12) {
+          leaveExceedEmail(days, name, surname);
           connection.release();
-          return res.status(400).json({
-            error: "You cannot exceed the maximum number of holidays (12).",
-          });
+          return res.status(400).json({ error: "You cannot exceed the maximum number of holidays (12)." });
         }
 
         const [overlapResult] = await new Promise((resolve, reject) => {

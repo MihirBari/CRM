@@ -6,7 +6,10 @@ const nodemailer = require('nodemailer');
 const cron = require("node-cron");
 
 const login = (req, res) => {
-  const sqlUserQuery = 'SELECT id, name, surname, email, password, role, login_attempts, lockout_time FROM user WHERE email = ?';
+  const sqlUserQuery = `SELECT u.id, u.name, u.surname, u.email, u.password, u.role, u.login_attempts, u.lockout_time,e.team 
+  FROM user u
+  JOIN employes e ON e.name = u.name AND e.surname = u.surname
+  WHERE email = ?`;
   
   pool.query(sqlUserQuery, [req.body.email], (err, data) => {
     if (err) {
@@ -43,7 +46,8 @@ const login = (req, res) => {
                 name: user.name,
                 surname: user.surname,
                 email: user.email,
-                role: user.role
+                role: user.role,
+                team: user.team
               };
               
               // Use environment variable for JWT secret
@@ -92,7 +96,10 @@ const login = (req, res) => {
 
 
 const getUserData = (req, res) => {
-  const getAllUsersQuery = 'SELECT id, name, surname, email, role, holidays_taken, created_at FROM user';
+  const getAllUsersQuery = `SELECT u.id, u.name, u.surname, u.email,u.holidays_taken,  u.role ,e.team 
+  FROM user u
+    JOIN employes e ON e.name = u.name AND e.surname = u.surname
+  `;
 
   pool.getConnection((err, connection) => {
     if (err) {
@@ -231,7 +238,7 @@ const addUser = async (req, res) => {
 
 const editUser = async (req, res) => {
   const { name,surname, email, password, role } = req.body;
-console.log(email, password)
+
   try {
     let hashedPassword = null;
 
@@ -490,7 +497,7 @@ const RestDetail = async (req, res) => {
   const { name, surname } = req.body;
 
   const dealerQuery = `
-    SELECT e.designation, e.joining_date, e.DOB, u.holidays_taken	
+    SELECT e.designation, e.joining_date, e.DOB, u.holidays_taken, e.team
     FROM employes e
     JOIN user u ON u.name = e.name AND u.surname = e.surname
     WHERE u.name = ? AND u.surname = ?

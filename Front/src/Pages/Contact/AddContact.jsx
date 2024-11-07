@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { toast } from "react-toastify";
 import API_BASE_URL from "../../config";
 import axios from "axios";
 import Modal from "react-modal";
+import { AuthContext } from "../../context/AuthContext";
 
 const AddContact = ({ isOpen, onClose, customer_entity }) => {
   const initialInputs = {
@@ -58,11 +59,19 @@ const AddContact = ({ isOpen, onClose, customer_entity }) => {
     }));
   };
 
+  const { currentUser } = useContext(AuthContext);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       // Send data to backend
-      await axios.post(`${API_BASE_URL}/api/Contact/addContact`, inputs);
+      await axios.post(`${API_BASE_URL}/api/Contact/addContact`, inputs,
+        {
+          headers: {
+            Authorization: `Bearer ${currentUser.accessToken}`,
+          }
+        }
+      );
       setInputs(initialInputs);
       toast.success("Contact created successfully");
       onClose();

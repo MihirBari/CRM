@@ -14,23 +14,24 @@ const {   showContact,
     deleteContact,
     deleteCustomer,
     showCustomerOpportunity} = require("../controller/Contact");
+const { authenticateToken } = require("../utils/authenticateToken ");
 const router = express.Router();
 
 
-router.get("/showContact/:customer_entity" ,showContact);
-router.get("/showCustomer" ,showCustomer);
-router.get("/showOneContact/:id", showOneContact);
-router.get("/showOneCustomer/:id", showOneCustomer);
-router.post("/addContact", addContact);
-router.post("/addCustomer", addCustomer);
-router.put("/editContact/:id", editContact);
-router.put("/editCustomer/:id", editCustomer);
-router.delete("/deleteContact", deleteContact);
-router.delete("/deleteCustomer", deleteCustomer);
-router.get("/city", city);
-router.get("/designation", designation);
-router.get("/customerentity", customerentity);
-router.get("/name", name);
-router.get("/showCustomerOpportunity/:customer_entity", showCustomerOpportunity);
+router.get("/showContact/:customer_entity" ,authenticateToken, showContact);
+router.get("/showCustomer" ,authenticateToken, showCustomer);
+router.get("/showOneContact/:id",authenticateToken, showOneContact);
+router.get("/showOneCustomer/:id",authenticateToken, showOneCustomer);
+router.post("/addContact",authenticateToken, addContact);
+router.post("/addCustomer",authenticateToken, addCustomer);
+router.put("/editContact/:id",authenticateToken, editContact);
+router.put("/editCustomer/:id",authenticateToken, editCustomer);
+router.delete("/deleteContact",authenticateToken, deleteContact);
+router.delete("/deleteCustomer",authenticateToken, deleteCustomer);
+router.get("/city",authenticateToken, city);
+router.get("/designation",authenticateToken, designation);
+router.get("/customerentity",authenticateToken, customerentity);
+router.get("/name",authenticateToken, name);
+router.get("/showCustomerOpportunity/:customer_entity",authenticateToken, showCustomerOpportunity);
 
 module.exports = router;

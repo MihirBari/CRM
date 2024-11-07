@@ -1,12 +1,13 @@
 const express = require("express");
 const { showApplicationLeave,addApplicationLeave,editApplicationAdmin,showOneApplicationLeave,deleteApplication,leaveConfirm} = require("../controller/Leave");
+const { authenticateToken } = require("../utils/authenticateToken ");
 const router = express.Router();
 
-router.post("/showApplicationLeave", showApplicationLeave);
-router.get("/showOneApplicationLeave/:id", showOneApplicationLeave);
-router.post("/addApplicationLeave", addApplicationLeave);
-router.put("/leaveConfirm/:id", leaveConfirm);
-router.put("/editApplicationAdmin/:id", editApplicationAdmin);
-router.delete("/deleteApplication",deleteApplication)
+router.post("/showApplicationLeave",authenticateToken, showApplicationLeave);
+router.get("/showOneApplicationLeave/:id", authenticateToken,  showOneApplicationLeave);
+router.post("/addApplicationLeave", authenticateToken,  addApplicationLeave);
+router.put("/leaveConfirm/:id", authenticateToken,  leaveConfirm);
+router.put("/editApplicationAdmin/:id", authenticateToken,  editApplicationAdmin);
+router.delete("/deleteApplication", authenticateToken, deleteApplication)
 
 module.exports = router;

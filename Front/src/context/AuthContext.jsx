@@ -17,11 +17,27 @@ export const AuthContextProvider = ({ children }) => {
     const storedUser = JSON.parse(localStorage.getItem("user"));
     if (storedUser) {
       setCurrentUser(storedUser); // Set currentUser state if user data is available
-      // Include the authentication token in Axios defaults if user data is available
       axios.defaults.headers.common[
         "Authorization"
       ] = `Bearer ${storedUser.accessToken}`;
     }
+
+    // Set up Axios interceptor to attach token to every request
+    const requestInterceptor = axios.interceptors.request.use(
+      (config) => {
+        const user = JSON.parse(localStorage.getItem("user"));
+        if (user?.accessToken) {
+          config.headers["Authorization"] = `Bearer ${user.accessToken}`;
+        }
+        return config;
+      },
+      (error) => Promise.reject(error)
+    );
+
+    // Cleanup interceptor on component unmount
+    return () => {
+      axios.interceptors.request.eject(requestInterceptor);
+    };
   }, []);
 
   const handleAuthSuccess = (user, accessToken) => {
@@ -30,7 +46,6 @@ export const AuthContextProvider = ({ children }) => {
       "user",
       JSON.stringify({ ...user, accessToken })
     ); // Store user data including accessToken in localStorage
-    // Set the accessToken in Axios defaults to be sent with every subsequent request
     axios.defaults.headers.common[
       "Authorization"
     ] = `Bearer ${accessToken}`;
@@ -57,35 +72,33 @@ export const AuthContextProvider = ({ children }) => {
     }
   };
 
-const register = async (userData) => {
-  try {
-    const res = await axios.post(
-      `${API_BASE_URL}/api/user/addUser`,
-      userData
-    );
-    const { accessToken, user } = res.data; 
-    handleAuthSuccess(user, accessToken);
-    toast.success("Registration successful");
-    navigate("/Leave"); 
-  } catch (error) {
-    console.error("Registration error:", error);
-    if (error.response && error.response.status === 400) {
-      toast.error(
-        "Registration failed. Please check your input and try again."
+  const register = async (userData) => {
+    try {
+      const res = await axios.post(
+        `${API_BASE_URL}/api/user/addUser`,
+        userData
       );
-    } else {
-      toast.error("Registration failed. Please try again later.");
+      const { accessToken, user } = res.data; 
+      handleAuthSuccess(user, accessToken);
+      toast.success("Registration successful");
+      navigate("/Leave"); 
+    } catch (error) {
+      console.error("Registration error:", error);
+      if (error.response && error.response.status === 400) {
+        toast.error(
+          "Registration failed. Please check your input and try again."
+        );
+      } else {
+        toast.error("Registration failed. Please try again later.");
+      }
     }
-    // Do not navigate away from the current page on registration failure
-  }
-};
+  };
 
   const logout = async () => {
     try {
       await axios.get(`${API_BASE_URL}/api/user/logout`);
       setCurrentUser(null);
       localStorage.removeItem("user");
-      // Remove the accessToken from Axios defaults on logout
       delete axios.defaults.headers.common["Authorization"];
       navigate("/");
       toast.success("Logout successful");

@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import API_BASE_URL from "../../config";
 import "./style.css";
 import { CiFilter } from "react-icons/ci";
 import FilterModal from "./filterModal.jsx";
 import axios from "axios";
+import { AuthContext } from "../../context/AuthContext.jsx";
 
 const Main = () => {
   const [alerts, setAlerts] = useState([]);
@@ -15,21 +16,27 @@ const Main = () => {
   });
   const [popupAlerts, setPopupAlerts] = useState([]); // State for multiple popup alerts
 
+  const { currentUser } = useContext(AuthContext);
+
   useEffect(() => {
     const fetchAlerts = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/Opportunity/sendPo`);
-        const data = await response.json();
-        setAlerts(data.products || []);
-        //console.log(data.products);
-        setFilteredUsers(data.products || []);
+        const response = await axios.get(
+          `${API_BASE_URL}/api/opportunity/sendPo`,
+          {headers: {
+            Authorization: `Bearer ${currentUser.accessToken}`,
+          }
+        }
+        );
+        setAlerts(response.data.products);
+        setFilteredUsers(response.data.products);
       } catch (error) {
-        console.error("Error fetching alerts:", error);
+        console.error("Error fetching customer details:", error);
       }
     };
 
     fetchAlerts();
-  }, []);
+  }, [filters]);
 
   useEffect(() => {
     const checkForPopupAlerts = () => {
